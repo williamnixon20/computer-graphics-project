@@ -1197,7 +1197,7 @@ export function createBuffersFromArrays(gl, arrays) {
  * @param {number} [offset] An optional offset. Defaults to 0.
  * @memberOf module:webgl-utils
  */
-function drawBufferInfo(gl, bufferInfo, primitiveType, count, offset) {
+export function drawBufferInfo(gl, bufferInfo, primitiveType, count, offset) {
     const indices = bufferInfo.indices;
     primitiveType = primitiveType === undefined ? gl.TRIANGLES : primitiveType;
     const numElements = count === undefined ? bufferInfo.numElements : count;

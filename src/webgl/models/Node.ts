@@ -5,6 +5,9 @@ import TRS from '../utils/trs';
 import * as webglUtils from "../utils/webGlUtils";
 
 export class Node {
+    position: number[];
+    color: number[];
+    normal: number[];
     children: Node[];
     localMatrix: number[];
     worldMatrix: number[];
@@ -15,6 +18,7 @@ export class Node {
     cubeBufferInfo: any;
     programInfo: any;
     name: string;
+    arrayInfo: any;
 
     constructor() {
         this.children = [];
@@ -23,7 +27,11 @@ export class Node {
         this.source = new TRS();
         this.parent = null;
         this.draw = false;
-        this.name= "";
+        this.name = "";
+        this.position = [];
+        this.color = [];
+        this.normal = [];
+        this.arrayInfo = {};
     }
 
     setParent(parent: Node | null) {
@@ -61,8 +69,7 @@ export class Node {
         });
     }
 
-    buildByDescription(nodeDescription: any, programInfo: any) {
-        this.programInfo = programInfo;
+    buildArticulated(nodeDescription: any) {
         let trs = this.source
         trs.translation = nodeDescription.translation || trs.translation;
         trs.rotation = nodeDescription.rotation || trs.rotation;
@@ -70,22 +77,18 @@ export class Node {
 
         this.name = nodeDescription.name;
 
-        if (nodeDescription.draw !== false) {
-            this.drawInfo = {
-                uniforms: {
-                    u_colorOffset: [0, 0, 0.6, 0],
-                    u_colorMult: [0.4, 0.4, 0.4, 1],
-                },
-                programInfo: programInfo,
-                bufferInfo: null,
-            };
-            this.draw = true;
-        } else {
-            this.draw = false;
-        }
+        this.draw = nodeDescription.draw !== false;
+
+        // Articulated model position, color normal is always cube (hardcode).
+        // TODO: make this dynamic
+        let cubeVertices = primitives.createCubeVertices(1);
+        // this.position = cubeVertices.position;
+        // this.color = cubeVertices.color;
+        // this.normal = cubeVertices.normal;
+        this.arrayInfo = cubeVertices;
 
 
-        let childrenNodes = this.makeNodes(nodeDescription.children, programInfo)
+        let childrenNodes = this.makeNodes(nodeDescription.children, this.programInfo, "articulated")
 
 
         // set parent to this for every childrenNodes
@@ -97,9 +100,34 @@ export class Node {
         return this;
     }
 
-    makeNodes(nodeDescriptions: any, programInfo: any) {
+    buildHollow(nodeDescription: any) {
+        this.draw = true;
+        this.arrayInfo = {
+            position: nodeDescription.positions,
+            color: nodeDescription.colors,
+            normal: nodeDescription.normals,
+        }
+        // this.position = nodeDescription.positions;
+        // this.color = nodeDescription.colors;
+        // this.normal = nodeDescription.normals;
+        this.name = nodeDescription.name;
+        return this;
+    }
+
+    buildByDescription(nodeDescription: any, programInfo: any) {
+        this.programInfo = programInfo;
+        if (nodeDescription.type === "articulated") {
+            return this.buildArticulated(nodeDescription);
+        }
+        else {
+            return this.buildHollow(nodeDescription);
+        }
+    }
+
+    makeNodes(nodeDescriptions: any, programInfo: any, type: any) {
         // @ts-ignore
         return nodeDescriptions ? nodeDescriptions.map((node) => {
+            node["type"] = type;
             const childNode = new Node();
             return childNode.buildByDescription(node, programInfo)
         }) : [];
@@ -107,17 +135,32 @@ export class Node {
 
     drawNode(gl: any, viewProjectionMatrix: any) {
         if (this.draw) {
-            this.drawInfo.uniforms.u_matrix = m4.multiply(viewProjectionMatrix, this.worldMatrix);
+            // set shader uniforms
+            let uniforms = {
+                u_colorOffset: [0, 0, 0.6, 0],
+                u_colorMult: [0.4, 0.4, 0.4, 1],
+            }
+            uniforms.u_matrix = m4.multiply(viewProjectionMatrix, this.worldMatrix);
 
-            let programInfo = this.drawInfo.programInfo;
-            let bufferInfo = primitives.createCubeWithVertexColorsBufferInfo(gl, 1)
+            // set shader buffers
+            let programInfo = this.programInfo;
 
-            gl.useProgram(programInfo.program);;
 
+            console.log("ARRAYS INFO", this.arrayInfo)
+
+            let bufferInfo = webglUtils.createBufferInfoFromArrays(gl, this.arrayInfo);
+
+            gl.useProgram(programInfo.program);
+
+            // this function will set attribute vec4 in shader
+            // this will follow pass all attribs in bufferInfo
             webglUtils.setBuffersAndAttributes(gl, programInfo, bufferInfo);
 
-            webglUtils.setUniforms(this.programInfo, this.drawInfo.uniforms);
-            gl.drawArrays(gl.TRIANGLES, 0, bufferInfo.numElements);
+            // This function will set all uniforms in the shaders.
+            // This will pass all uniforms 
+            webglUtils.setUniforms(this.programInfo, uniforms);
+
+            webglUtils.drawBufferInfo(gl, bufferInfo);
         } else {
             console.log("NOT DRAWING!")
         }

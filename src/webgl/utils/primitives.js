@@ -53,7 +53,7 @@ function allButIndices(name) {
  * @return {Object.<string, TypedArray>} The deindexed vertices
  * @memberOf module:primitives
  */
-function deindexVertices(vertices) {
+export function deindexVertices(vertices) {
     const indices = vertices.indices;
     const newVertices = {};
     const numElements = indices.length;
@@ -570,7 +570,6 @@ export function createCubeVertices(size) {
             positions.push(position);
             normals.push(normal);
             texCoords.push(uv);
-
         }
         // Two triangles make a square face.
         const offset = 4 * f;

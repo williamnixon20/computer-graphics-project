@@ -17,6 +17,7 @@ class TRS {
         }
     }
 
+    // @ts-ignore
     getMatrix(dst) {
         // make a local copy of translation, then add with setDelta
         const t = this.translation.slice();
@@ -33,8 +34,6 @@ class TRS {
         s[0] += d.scale.x;
         s[1] += d.scale.y;
         s[2] += d.scale.z;
-
-        console.log(t, r, s, d)
 
         dst = dst || new Float32Array(16);
         // const t = this.translation;

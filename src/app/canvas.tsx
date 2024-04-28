@@ -11,9 +11,12 @@ import * as webglUtils from "../webgl/utils/webGlUtils";
 import * as primitives from "../webgl/utils/primitives";
 import { createVertexShader, createFragmentShader } from "@/webgl/utils/create-shader";
 import { Drawer } from "@/webgl/drawer";
+import { cubeHollow } from "./cube-hollow";
+import { HollowObject } from "@/webgl/models/HollowObject";
 
 var blockGuyNodeDescriptions =
 {
+  type: "articulated",
   name: "point between feet",
   draw: false,
   children: [
@@ -108,12 +111,14 @@ var blockGuyNodeDescriptions =
   ],
 };
 
+
 export type Transforms = {
   translate: { x: number, y: number, z: number },
   scale: { x: number, y: number, z: number },
   rotate: { x: number, y: number, z: number }
 }
 
+var jsonToDraw = blockGuyNodeDescriptions;
 export default function Canvas() {
   const [selectedName, setSelectedName] = useState(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -122,6 +127,7 @@ export default function Canvas() {
   const [refDict, setRefDict] = useState({});
   const [drawer, setDrawer] = useState(null);
   const [scene, setScene] = useState(null);
+  const [hollow, setHollow] = useState(false);
   const [transforms, setTransforms] = useState<Transforms>({
     translate: { x: 0, y: 0, z: 0 },
     scale: { x: 0, y: 0, z: 0 },
@@ -155,12 +161,12 @@ export default function Canvas() {
       drawer = new Drawer(gl);
       setDrawer(drawer);
     }
+    let scene = null;
+    let refNode = {};
+    scene = new Node().buildByDescription(jsonToDraw, drawer.programInfo);
+    scene.procedureGetNodeRefDict(refNode);
 
-    let scene = new Node().buildByDescription(blockGuyNodeDescriptions, drawer.programInfo);
-    let refNode = {}
-    scene.procedureGetNodeRefDict(refNode)
     setScene(scene);
-    console.log(refNode);
     setRefDict(refNode);
 
     drawer.draw(scene);
@@ -240,9 +246,24 @@ export default function Canvas() {
           onChange={(e) => setAnimate(e.target.checked)}
           className="w-full">
         </input>
+        <label
+          className="text-base font-semibold text-white mb-2"
+        >
+          Hollow Object:
+        </label>
+        <input
+          type="checkbox"
+          checked={hollow}
+          onChange={(e) => {
+            setHollow(e.target.checked);
+            jsonToDraw = e.target.checked ? cubeHollow : blockGuyNodeDescriptions;
+            setupWebGL();
+          }}
+          className="w-full">
+        </input>
       </div >
       <div>
-        {Object.keys(refDict).map((name) => (
+        {refDict && Object.keys(refDict).map((name) => (
           <div key={name} style={{ marginLeft: refDict[name].level * 10 }}>
             <button
               onClick={() => { setSelectedName(name); resetTransforms(); }}
@@ -262,13 +283,6 @@ export default function Canvas() {
           ))}
         </div>
       )}
-      {/* <div>
-        {Object.keys(refDict).map((name) => (
-          <div key={name} style={{ marginLeft: refDict[name].level * 10 }}>
-            <p>{name}</p>
-          </div>
-        ))}
-      </div> */}
     </>
   );
 }
