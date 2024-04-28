@@ -9,10 +9,8 @@ import { Node } from "../webgl/models/node";
 import * as m4 from "../webgl/utils/m4";
 import * as webglUtils from "../webgl/utils/webGlUtils";
 import * as primitives from "../webgl/utils/primitives";
-import { createVertexShader, createFragmentShader } from "@/webgl/utils/create-shader";
 import { Drawer } from "@/webgl/drawer";
 import { cubeHollow } from "./cube-hollow";
-import { HollowObject } from "@/webgl/models/HollowObject";
 
 var blockGuyNodeDescriptions =
 {
@@ -256,6 +254,7 @@ export default function Canvas() {
           checked={hollow}
           onChange={(e) => {
             setHollow(e.target.checked);
+            setSelectedName(null);
             jsonToDraw = e.target.checked ? cubeHollow : blockGuyNodeDescriptions;
             setupWebGL();
           }}
