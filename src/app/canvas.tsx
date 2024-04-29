@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import TRS from "../webgl/utils/trs";
 
 // @ts-ignore
-import { Node } from "../webgl/models/node";
+import { Node } from "../webgl/models/Node";
 
 import * as m4 from "../webgl/utils/m4";
 import * as webglUtils from "../webgl/utils/webGlUtils";
