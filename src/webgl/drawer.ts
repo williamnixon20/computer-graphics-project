@@ -3,13 +3,11 @@ import * as m4 from "./utils/m4";
 import * as webglUtils from "./utils/webGlUtils";
 import * as primitives from "./utils/primitives";
 
-import { createVertexShader, createFragmentShader, createVertexShaderPicking, createFragmentShaderPicking } from "@/webgl/utils/create-shader";
+import { createVertexShader, createFragmentShader, createVertexShaderPicking, createFragmentShaderPicking, createVertexPostProcessShader, createFragmentPostProcessShader } from "@/webgl/utils/create-shader";
 
 function degToRad(d: any) {
     return d * Math.PI / 180;
 }
-
-
 export class Drawer {
     objects: any[];
     objectsToDraw: any[];
@@ -19,8 +17,10 @@ export class Drawer {
     gl: any;
     programInfo: any;
     pickingProgramInfo: any;
+    postprocessProgramInfo: any;
     scene: any;
     viewProjectionMatrix: any;
+    isPostprocess: boolean;
 
     constructor(gl: any) {
         this.objects = [];
@@ -30,8 +30,13 @@ export class Drawer {
         this.fieldOfViewRadians = degToRad(60);
         this.gl = gl;
         this.scene = null;
+        this.isPostprocess = false;
         this.viewProjectionMatrix = null;
         this.initialize();
+    }
+
+    setPostprocess(checked) {
+        this.isPostprocess = checked;
     }
 
     initialize() {
@@ -44,6 +49,11 @@ export class Drawer {
         const pickingFragmentShader = createFragmentShaderPicking(this.gl);
         // @ts-ignore
         this.pickingProgramInfo = webglUtils.createProgramInfo(this.gl, [pickingShader, pickingFragmentShader]);
+
+        const postProcessVertexShader = createVertexPostProcessShader(this.gl);
+        const postProcessFragmentShader = createFragmentPostProcessShader(this.gl);
+        // @ts-ignore
+        this.postprocessProgramInfo = webglUtils.createProgramInfo(this.gl, [postProcessVertexShader, postProcessFragmentShader]);
 
     }
 
@@ -125,15 +135,86 @@ export class Drawer {
         // nodeInfosByName["head"].trs.rotation[1] = adjust;
         // adjust = Math.cos(c * 2) * 0.4;
         // nodeInfosByName["head"].trs.rotation[0] = adjust;
-        scene.drawNode(this.gl, viewProjectionMatrix, this.programInfo);
+
         this.scene = scene;
         this.viewProjectionMatrix = viewProjectionMatrix;
+
+        if (this.isPostprocess) {
+            this.postprocess();
+        } else {
+            scene.drawNode(this.gl, viewProjectionMatrix, this.programInfo);
+        }
         // if (this.animate) {
         //     requestAnimationFrame(this.drawScene(scene, time));
         // }
     }
 
+    postprocess() {
+        this.clear();
+        let gl = this.gl;
+        let scene = this.scene;
+        let viewProjectionMatrix = this.viewProjectionMatrix;
+
+
+        const targetTexture = gl.createTexture();
+        gl.bindTexture(gl.TEXTURE_2D, targetTexture);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.canvas.width, gl.canvas.height, 0,
+            gl.RGBA, gl.UNSIGNED_BYTE, null);
+
+
+        const fb = gl.createFramebuffer();
+        gl.bindFramebuffer(gl.FRAMEBUFFER, fb);
+        gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, targetTexture, 0);
+
+        // gl.enable(gl.BLEND);
+        // gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+
+        gl.clear(gl.COLOR_BUFFER_BIT);
+        gl.clearColor(1, 1, 1, 1);
+        gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
+        scene.drawNode(gl, viewProjectionMatrix, this.programInfo);
+
+        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+        gl.clear(gl.COLOR_BUFFER_BIT);
+
+        gl.useProgram(this.postprocessProgramInfo.program);
+        gl.bindTexture(gl.TEXTURE_2D, targetTexture);
+        gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
+        const positionBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
+            -1.0, -1.0,
+            1.0, -1.0,
+            -1.0, 1.0,
+            -1.0, 1.0,
+            1.0, -1.0,
+            1.0, 1.0,
+        ]), gl.STATIC_DRAW);
+
+        // Link the position attribute
+        const positionAttributeLocation = gl.getAttribLocation(this.postprocessProgramInfo.program, "a_position");
+        gl.enableVertexAttribArray(positionAttributeLocation);
+        gl.vertexAttribPointer(positionAttributeLocation, 2, gl.FLOAT, false, 0, 0);
+
+        // Bind the texture to the texture unit
+        gl.activeTexture(gl.TEXTURE0);
+        gl.bindTexture(gl.TEXTURE_2D, targetTexture);
+        gl.uniform1i(gl.getUniformLocation(this.postprocessProgramInfo.program, "u_texture"), 0);
+
+        // Draw the rectangle
+        gl.drawArrays(gl.TRIANGLES, 0, 6);
+        // SAMPLE THE WHOLE TEXTURE UP TO CANVAS
+
+        // scene.drawNode(gl, viewProjectionMatrix, this.postprocessProgramInfo);
+    }
+
+
     getPickingId(mouseX, mouseY) {
+        console.log("PICKING EXEC")
         let gl = this.gl;
         let scene = this.scene;
         let viewProjectionMatrix = this.viewProjectionMatrix;

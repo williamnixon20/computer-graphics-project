@@ -105,11 +105,28 @@ export class Node {
 
     buildHollow(nodeDescription: any) {
         this.draw = true;
+        const lengthPoint = nodeDescription.positions.length / (3 * 6);
+        let textureArrBase = [
+            0, 0,
+            0, 1,
+            1, 1,
+            1, 0,
+            0, 0,
+            1, 1,
+        ];
+
+        // NOT SURE ABOUT TEXTURE HERE
+        let textureArr = [];
+        for (let i = 0; i < lengthPoint; i++) {
+            textureArr = textureArr.concat(textureArrBase);
+        }
         this.arrayInfo = {
             position: nodeDescription.positions,
             color: nodeDescription.colors,
             normal: nodeDescription.normals,
+            texcoord: new Float32Array(textureArr)
         }
+        console.log(this.arrayInfo)
         // this.position = nodeDescription.positions;
         // this.color = nodeDescription.colors;
         // this.normal = nodeDescription.normals;

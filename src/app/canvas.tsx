@@ -123,9 +123,10 @@ export default function Canvas() {
   const [FOVRadians, setFOVRadians] = useState(60);
   const [animate, setAnimate] = useState(false);
   const [refDict, setRefDict] = useState({});
-  const [drawer, setDrawer] = useState(null);
+  let [drawer, setDrawer] = useState(null);
   const [scene, setScene] = useState(null);
   const [hollow, setHollow] = useState(false);
+  const [postProcess, setPostprocess] = useState(false);
   const [transforms, setTransforms] = useState<Transforms>({
     translate: { x: 0, y: 0, z: 0 },
     scale: { x: 0, y: 0, z: 0 },
@@ -154,10 +155,11 @@ export default function Canvas() {
     var cameraAngleRadians = degToRad(0);
     var fieldOfViewRadians = degToRad(FOVRadians);
     var cameraHeight = 100;
-    let drawer = null;
+    let drawerLoc = null;
     if (!drawer) {
-      drawer = new Drawer(gl);
-      setDrawer(drawer);
+      drawerLoc = new Drawer(gl);
+      setDrawer(drawerLoc);
+      drawer = drawerLoc;
     }
     let scene = null;
     let refNode = {};
@@ -233,7 +235,7 @@ export default function Canvas() {
           ref={canvasRef}
           onMouseDown={handleMouseDown}
           id="webgl-canvas"
-          className="w-[720px] h-[720px] bg-gray-200"
+          className="w-[720px] h-[720px] bg-white"
         />
       </div>
       <div className="flex flex-col h-full rounded-md bg-gray-black p-4">
@@ -259,6 +261,17 @@ export default function Canvas() {
           type="checkbox"
           checked={animate}
           onChange={(e) => setAnimate(e.target.checked)}
+          className="w-full">
+        </input>
+        <label
+          className="text-base font-semibold text-white mb-2"
+        >
+          Grayscale Postprocess:
+        </label>
+        <input
+          type="checkbox"
+          checked={postProcess}
+          onChange={(e) => { setPostprocess(e.target.checked); drawer.setPostprocess(e.target.checked); drawer.draw(scene); }}
           className="w-full">
         </input>
         <label

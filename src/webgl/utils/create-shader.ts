@@ -4,6 +4,9 @@ import fragmentShaderSource from "raw-loader!../shaders/fragment-shaders-3d.glsl
 import vertexShaderPickingSource from "raw-loader!../shaders/picking/vertex-shaders-picking.glsl";
 import fragmentShaderPickingSource from "raw-loader!../shaders/picking/fragment-shaders-picking.glsl";
 
+import vertexPostProcessShader from "raw-loader!../shaders/postprocess/vertex-shaders-post.glsl";
+import fragmentPostProcessShader from "raw-loader!../shaders/postprocess/fragment-shaders-post.glsl";
+
 export function createShader(
     gl: WebGLRenderingContext,
     type: number,
@@ -39,4 +42,12 @@ export function createVertexShaderPicking(gl: WebGLRenderingContext) {
 
 export function createFragmentShaderPicking(gl: WebGLRenderingContext) {
     return createShader(gl, gl.FRAGMENT_SHADER, fragmentShaderPickingSource);
+}
+
+export function createVertexPostProcessShader(gl: WebGLRenderingContext) {
+    return createShader(gl, gl.VERTEX_SHADER, vertexPostProcessShader);
+}
+
+export function createFragmentPostProcessShader(gl: WebGLRenderingContext) {
+    return createShader(gl, gl.FRAGMENT_SHADER, fragmentPostProcessShader);
 }
