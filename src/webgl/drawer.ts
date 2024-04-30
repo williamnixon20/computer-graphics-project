@@ -3,7 +3,7 @@ import * as m4 from "./utils/m4";
 import * as webglUtils from "./utils/webGlUtils";
 import * as primitives from "./utils/primitives";
 
-import { createVertexShader, createFragmentShader } from "@/webgl/utils/create-shader";
+import { createVertexShader, createFragmentShader, createVertexShaderPicking, createFragmentShaderPicking } from "@/webgl/utils/create-shader";
 
 function degToRad(d: any) {
     return d * Math.PI / 180;
@@ -18,6 +18,9 @@ export class Drawer {
     fieldOfViewRadians: number;
     gl: any;
     programInfo: any;
+    pickingProgramInfo: any;
+    scene: any;
+    viewProjectionMatrix: any;
 
     constructor(gl: any) {
         this.objects = [];
@@ -26,6 +29,8 @@ export class Drawer {
         this.animate = true;
         this.fieldOfViewRadians = degToRad(60);
         this.gl = gl;
+        this.scene = null;
+        this.viewProjectionMatrix = null;
         this.initialize();
     }
 
@@ -34,6 +39,12 @@ export class Drawer {
         const fragmentShader = createFragmentShader(this.gl);
         // @ts-ignore
         this.programInfo = webglUtils.createProgramInfo(this.gl, [vertexShader, fragmentShader]);
+
+        const pickingShader = createVertexShaderPicking(this.gl);
+        const pickingFragmentShader = createFragmentShaderPicking(this.gl);
+        // @ts-ignore
+        this.pickingProgramInfo = webglUtils.createProgramInfo(this.gl, [pickingShader, pickingFragmentShader]);
+
     }
 
     clear() {
@@ -114,13 +125,86 @@ export class Drawer {
         // nodeInfosByName["head"].trs.rotation[1] = adjust;
         // adjust = Math.cos(c * 2) * 0.4;
         // nodeInfosByName["head"].trs.rotation[0] = adjust;
-
-        scene.drawNode(this.gl, viewProjectionMatrix);
-
-
+        scene.drawNode(this.gl, viewProjectionMatrix, this.programInfo);
+        this.scene = scene;
+        this.viewProjectionMatrix = viewProjectionMatrix;
         // if (this.animate) {
         //     requestAnimationFrame(this.drawScene(scene, time));
         // }
+    }
+
+    getPickingId(mouseX, mouseY) {
+        let gl = this.gl;
+        let scene = this.scene;
+        let viewProjectionMatrix = this.viewProjectionMatrix;
+
+        const targetTexture = gl.createTexture();
+        gl.bindTexture(gl.TEXTURE_2D, targetTexture);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+
+        const depthBuffer = gl.createRenderbuffer();
+        gl.bindRenderbuffer(gl.RENDERBUFFER, depthBuffer);
+
+        function setFramebufferAttachmentSizes(width, height) {
+            console.log("WIDTH", width, "HEIGHT", height)
+            gl.bindTexture(gl.TEXTURE_2D, targetTexture);
+            // define size and format of level 0
+            const level = 0;
+            const internalFormat = gl.RGBA;
+            const border = 0;
+            const format = gl.RGBA;
+            const type = gl.UNSIGNED_BYTE;
+            const data = null;
+            gl.texImage2D(gl.TEXTURE_2D, level, internalFormat,
+                width, height, border,
+                format, type, data);
+
+            gl.bindRenderbuffer(gl.RENDERBUFFER, depthBuffer);
+            gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_COMPONENT16, width, height);
+        }
+
+        // Create and bind the framebuffer
+        const fb = gl.createFramebuffer();
+        gl.bindFramebuffer(gl.FRAMEBUFFER, fb);
+
+        // attach the texture as the first color attachment
+        const attachmentPoint = gl.COLOR_ATTACHMENT0;
+        const level = 0;
+        gl.framebufferTexture2D(gl.FRAMEBUFFER, attachmentPoint, gl.TEXTURE_2D, targetTexture, level);
+
+        // make a depth buffer and the same size as the targetTexture
+        gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.RENDERBUFFER, depthBuffer);
+
+        setFramebufferAttachmentSizes(gl.canvas.width, gl.canvas.height);
+
+        gl.bindFramebuffer(gl.FRAMEBUFFER, fb);
+        gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
+
+        gl.enable(gl.CULL_FACE);
+        gl.enable(gl.DEPTH_TEST);
+
+        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+        scene.drawNode(this.gl, viewProjectionMatrix, this.pickingProgramInfo);
+
+        const pixelX = mouseX * gl.canvas.width / gl.canvas.clientWidth;
+        const pixelY = gl.canvas.height - mouseY * gl.canvas.height / gl.canvas.clientHeight - 1;
+        const data = new Uint8Array(4);
+        gl.readPixels(
+            pixelX,            // x
+            pixelY,            // y
+            1,                 // width
+            1,                 // height
+            gl.RGBA,           // format
+            gl.UNSIGNED_BYTE,  // type
+            data);             // typed array to hold result
+        const id = data[0] + (data[1] << 8) + (data[2] << 16) + (data[3] << 24);
+
+        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+        gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
+        return id;
     }
 
 }

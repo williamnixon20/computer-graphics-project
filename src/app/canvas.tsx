@@ -161,7 +161,7 @@ export default function Canvas() {
     }
     let scene = null;
     let refNode = {};
-    scene = new Node().buildByDescription(jsonToDraw, drawer.programInfo);
+    scene = new Node().buildByDescription(jsonToDraw);
     scene.procedureGetNodeRefDict(refNode);
 
     setScene(scene);
@@ -210,11 +210,28 @@ export default function Canvas() {
     );
   };
 
+  function handleMouseDown(
+    e: React.MouseEvent<HTMLCanvasElement, globalThis.MouseEvent>
+  ) {
+    console.log("Mouse down", e.clientX, e.clientY);
+    const rect = canvasRef.current.getBoundingClientRect();
+    const mouseX = e.clientX - rect.left;
+    const mouseY = e.clientY - rect.top;
+
+    let pickId = drawer.getPickingId(mouseX, mouseY);
+    if (pickId) {
+      resetTransforms();
+      let selectedNode = scene.getById(pickId)
+      setSelectedName(selectedNode.name)
+    }
+  }
+
   return (
     <>
       <div className="w-full h-full max-h-screen overflow-auto">
         <canvas
           ref={canvasRef}
+          onMouseDown={handleMouseDown}
           id="webgl-canvas"
           className="w-[720px] h-[720px] bg-gray-200"
         />

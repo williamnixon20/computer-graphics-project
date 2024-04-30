@@ -4,6 +4,7 @@ import * as primitives from '../utils/primitives';
 import TRS from '../utils/trs';
 import * as webglUtils from "../utils/webGlUtils";
 
+var id_global = 1;
 export class Node {
     position: number[];
     color: number[];
@@ -16,9 +17,9 @@ export class Node {
     draw: boolean;
     drawInfo: any;
     cubeBufferInfo: any;
-    programInfo: any;
     name: string;
     arrayInfo: any;
+    id: number;
 
     constructor() {
         this.children = [];
@@ -32,6 +33,8 @@ export class Node {
         this.color = [];
         this.normal = [];
         this.arrayInfo = {};
+        this.id = id_global;
+        id_global += 1;
     }
 
     setParent(parent: Node | null) {
@@ -88,7 +91,7 @@ export class Node {
         this.arrayInfo = cubeVertices;
 
 
-        let childrenNodes = this.makeNodes(nodeDescription.children, this.programInfo, "articulated")
+        let childrenNodes = this.makeNodes(nodeDescription.children, "articulated")
 
 
         // set parent to this for every childrenNodes
@@ -114,8 +117,7 @@ export class Node {
         return this;
     }
 
-    buildByDescription(nodeDescription: any, programInfo: any) {
-        this.programInfo = programInfo;
+    buildByDescription(nodeDescription: any) {
         if (nodeDescription.type === "articulated") {
             return this.buildArticulated(nodeDescription);
         }
@@ -124,29 +126,31 @@ export class Node {
         }
     }
 
-    makeNodes(nodeDescriptions: any, programInfo: any, type: any) {
+    makeNodes(nodeDescriptions: any, type: any) {
         // @ts-ignore
         return nodeDescriptions ? nodeDescriptions.map((node) => {
             node["type"] = type;
             const childNode = new Node();
-            return childNode.buildByDescription(node, programInfo)
+            return childNode.buildByDescription(node)
         }) : [];
     }
 
-    drawNode(gl: any, viewProjectionMatrix: any) {
+    drawNode(gl: any, viewProjectionMatrix: any, programInfo: any) {
         if (this.draw) {
             // set shader uniforms
             let uniforms = {
                 u_colorOffset: [0, 0, 0.6, 0],
                 u_colorMult: [0.4, 0.4, 0.4, 1],
+                u_id: [
+                    ((this.id >> 0) & 0xFF) / 0xFF,
+                    ((this.id >> 8) & 0xFF) / 0xFF,
+                    ((this.id >> 16) & 0xFF) / 0xFF,
+                    ((this.id >> 24) & 0xFF) / 0xFF,
+                ],
             }
             uniforms.u_matrix = m4.multiply(viewProjectionMatrix, this.worldMatrix);
 
-            // set shader buffers
-            let programInfo = this.programInfo;
-
-
-            console.log("ARRAYS INFO", this.arrayInfo)
+            // console.log("ARRAYS INFO", this.arrayInfo)
 
             let bufferInfo = webglUtils.createBufferInfoFromArrays(gl, this.arrayInfo);
 
@@ -158,7 +162,7 @@ export class Node {
 
             // This function will set all uniforms in the shaders.
             // This will pass all uniforms 
-            webglUtils.setUniforms(this.programInfo, uniforms);
+            webglUtils.setUniforms(programInfo, uniforms);
 
             webglUtils.drawBufferInfo(gl, bufferInfo);
         } else {
@@ -166,14 +170,15 @@ export class Node {
         }
 
         this.children.forEach((child) => {
-            child.drawNode(gl, viewProjectionMatrix);
+            child.drawNode(gl, viewProjectionMatrix, programInfo);
         })
     }
 
     procedureGetNodeRefDict(nodeDict: any, level = 0) {
         nodeDict[this.name] = {
             "node": this,
-            "level": level
+            "level": level,
+            "id": this.id
         }
         this.children.forEach((child) => {
             child.procedureGetNodeRefDict(nodeDict, level + 1);
@@ -182,5 +187,18 @@ export class Node {
 
     addTransform(transform: Transforms) {
         this.source.setDelta(transform);
+    }
+
+    getById(id: any) {
+        if (this.id === id) {
+            return this;
+        }
+        for (let i = 0; i < this.children.length; i++) {
+            let node = this.children[i].getById(id);
+            if (node) {
+                return node;
+            }
+        }
+        return null;
     }
 }
