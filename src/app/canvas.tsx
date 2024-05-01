@@ -258,7 +258,7 @@ export default function Canvas() {
       startX: e.nativeEvent.offsetX,
       startY: e.nativeEvent.offsetY,
     });
-    console.log("Mouse down", e.clientX, e.clientY);
+    // console.log("Mouse down", e.clientX, e.clientY);
     const rect = canvasRef.current?.getBoundingClientRect() as DOMRect;
     const mouseX = e.clientX - rect.left;
     const mouseY = e.clientY - rect.top;
@@ -293,7 +293,7 @@ export default function Canvas() {
       e.nativeEvent.offsetX % 2 === 0 &&
       e.nativeEvent.offsetY % 2 === 0
     ) {
-      console.log(cameraInformation.cameraAngleXRadians)
+      // console.log(cameraInformation.cameraAngleXRadians)
       const deltaX = mouseDownInformation.startX - e.nativeEvent.offsetX;
       const deltaY = mouseDownInformation.startY - e.nativeEvent.offsetY;
 
@@ -302,7 +302,7 @@ export default function Canvas() {
 
       const newCameraInformation = { ...cameraInformation };
       newCameraInformation.cameraAngleXRadians = newX;
-      newCameraInformation.cameraAngleYRadians = newY;
+      newCameraInformation.cameraAngleYRadians = newY < degToRad(90) && newY > degToRad(-90) ? newY : newCameraInformation.cameraAngleYRadians;
 
       setCameraInformation(newCameraInformation);
       const newMouseDownInformation = {
@@ -325,12 +325,12 @@ export default function Canvas() {
       if (e.deltaY < 0) {
         // console.log("Zoom in");
         // make sure the radius is not a negative value
-        if (oldState.radius - 1 > 0) {
-          newState.radius = oldState.radius - 1;
+        if (oldState.radius - 1 * (oldState.radius / 100) > 0.1) {
+          newState.radius = oldState.radius - 2 * (oldState.radius / 100);
         }
       } else {
         // console.log("Zoom out");
-        newState.radius = oldState.radius + 1;
+        newState.radius = oldState.radius + 2 * (oldState.radius / 100);
       }
       if (scene) {
         drawer?.draw(scene, newState);
