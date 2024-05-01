@@ -13,6 +13,7 @@ import { Drawer } from "@/webgl/drawer";
 import { cubeHollow } from "./cube-hollow";
 import {
   ArticulatedDescriptions,
+  CameraInformation,
   HollowDescriptions,
   Transforms,
 } from "./type";
@@ -113,12 +114,20 @@ var blockGuyNodeDescriptions: ArticulatedDescriptions = {
   ],
 };
 
+function degToRad(d: any) {
+  return (d * Math.PI) / 180;
+}
+
 var jsonToDraw: ArticulatedDescriptions | HollowDescriptions =
   blockGuyNodeDescriptions;
 export default function Canvas() {
   const [selectedName, setSelectedName] = useState<string | null | undefined>();
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [FOVRadians, setFOVRadians] = useState(60);
+  const [cameraInformation, setCameraInformation] = useState<CameraInformation>({
+    cameraAngleRadians: degToRad(0),
+    fieldOfViewRadians: degToRad(60),
+    radius: 100
+  });
   const [animate, setAnimate] = useState(false);
   const [refDict, setRefDict] = useState<{ [key: string]: any }>({});
   let [drawer, setDrawer] = useState<Drawer>();
@@ -146,13 +155,6 @@ export default function Canvas() {
       return;
     }
 
-    function degToRad(d: any) {
-      return (d * Math.PI) / 180;
-    }
-
-    var cameraAngleRadians = degToRad(0);
-    var fieldOfViewRadians = degToRad(FOVRadians);
-    var cameraHeight = 100;
     let drawerLoc = null;
     if (!drawer) {
       drawerLoc = new Drawer(gl);
@@ -167,7 +169,7 @@ export default function Canvas() {
     setScene(scene);
     setRefDict(refNode);
 
-    drawer.draw(scene);
+    drawer.draw(scene, cameraInformation);
   }
 
   const handleTransformChange = (
@@ -184,12 +186,23 @@ export default function Canvas() {
     };
     setTransforms(newTransforms);
     if (selectedName) {
-      refDict[selectedName].node.addTransform(newTransforms);
+      (refDict[selectedName].node as Node).addTransform(newTransforms);
     }
     if (scene) {
-      drawer?.draw(scene);
+      drawer?.draw(scene, cameraInformation);
     }
   };
+
+  const handleCameraChange = (fieldOfView : number) => {
+    setCameraInformation((oldState) => {
+      const newState = {...oldState};
+      newState.fieldOfViewRadians = fieldOfView;
+      if (scene) {
+        drawer?.draw(scene, newState);
+      }
+      return newState;
+    })
+  }
 
   const resetTransforms = () => {
     setTransforms({
@@ -204,17 +217,26 @@ export default function Canvas() {
       <div key={type}>
         <p>{label}:</p>
         {["x", "y", "z"].map((axis) => (
-          <input
-            key={axis}
-            type="range"
-            min={-5}
-            max={5}
-            step={0.1}
-            value={
-              transforms[type][axis as keyof Transforms["translate"]] as number
-            }
-            onChange={(e) => handleTransformChange(type, axis, e.target.value)}
-          />
+          <div key={"div-" + axis} className="flex flex-row">
+            <p key={"p-" + axis} className="mr-2 ml-1">
+              {axis}
+            </p>
+            <input
+              key={"input-" + axis}
+              type="range"
+              min={-5}
+              max={5}
+              step={0.1}
+              value={
+                transforms[type][
+                  axis as keyof Transforms["translate"]
+                ] as number
+              }
+              onChange={(e) =>
+                handleTransformChange(type, axis, e.target.value)
+              }
+            />
+          </div>
         ))}
       </div>
     );
@@ -253,9 +275,9 @@ export default function Canvas() {
         <input
           type="range"
           min="0"
+          defaultValue={"60"}
           max="180"
-          value={FOVRadians}
-          onChange={(e) => setFOVRadians(parseInt(e.target.value))}
+          onChange={(e) => handleCameraChange(degToRad(parseFloat(e.target.value)))}
           className="w-full"
         />
         <label className="text-base font-semibold text-white mb-2">
@@ -276,7 +298,7 @@ export default function Canvas() {
           onChange={(e) => {
             setPostprocess(e.target.checked);
             drawer?.setPostprocess(e.target.checked);
-            if (scene) drawer?.draw(scene);
+            if (scene) drawer?.draw(scene, cameraInformation);
           }}
           className="w-full"
         ></input>
@@ -290,7 +312,7 @@ export default function Canvas() {
             setHollow(e.target.checked);
             setSelectedName(null);
             jsonToDraw = e.target.checked
-              ? cubeHollow as HollowDescriptions
+              ? (cubeHollow as HollowDescriptions)
               : blockGuyNodeDescriptions;
             setupWebGL();
           }}
@@ -322,7 +344,9 @@ export default function Canvas() {
             translate: "Translate",
             scale: "Scale",
             rotate: "Rotate",
-          }).map(([type, label]) => renderSliders(type as keyof Transforms, label))}
+          }).map(([type, label]) =>
+            renderSliders(type as keyof Transforms, label)
+          )}
         </div>
       )}
     </>

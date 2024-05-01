@@ -18,7 +18,9 @@ export class Node {
     drawInfo: any;
     cubeBufferInfo: any;
     name: string;
-    arrayInfo: any;
+    arrayInfo: {
+        [index : string] : ArrayBuffer | number[];
+    };
     id: number;
 
     constructor() {
@@ -151,7 +153,7 @@ export class Node {
         }) : [];
     }
 
-    drawNode(gl: any, viewProjectionMatrix: any, programInfo: any) {
+    drawNode(gl: WebGLRenderingContext, viewProjectionMatrix: number[], programInfo: any) {
         if (this.draw) {
             // set shader uniforms
             let uniforms = {

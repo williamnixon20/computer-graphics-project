@@ -2,7 +2,7 @@ export interface Transforms {
   translate: { x: number; y: number; z: number };
   scale: { x: number; y: number; z: number };
   rotate: { x: number; y: number; z: number };
-};
+}
 
 export interface ArticulatedDescriptions {
   type?: string;
@@ -20,4 +20,10 @@ export interface HollowDescriptions {
   positions: number[];
   colors: number[];
   normals: number[];
+}
+
+export interface CameraInformation {
+  cameraAngleRadians: number;
+  fieldOfViewRadians: number;
+  radius: number;
 }
