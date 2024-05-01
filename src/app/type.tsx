@@ -23,7 +23,8 @@ export interface HollowDescriptions {
 }
 
 export interface CameraInformation {
-  cameraAngleRadians: number;
+  cameraAngleXRadians: number;
+  cameraAngleYRadians: number;
   fieldOfViewRadians: number;
   radius: number;
 }

@@ -94,7 +94,9 @@ export class Drawer {
         var target = [0, 3.5, 0];
         var up = [0, 1, 0];
 
-        var cameraMatrix = m4.yRotation(cameraInformation.cameraAngleRadians);
+        var cameraMatrixX = m4.yRotation(cameraInformation.cameraAngleXRadians);
+        var cameraMatrixY =  m4.xRotation(cameraInformation.cameraAngleYRadians);
+        var cameraMatrix = m4.multiply(cameraMatrixX, cameraMatrixY, cameraMatrix)
         cameraMatrix = m4.translate(cameraMatrix, 0, 0, cameraInformation.radius);
     
         // Get the camera's position from the matrix we computed

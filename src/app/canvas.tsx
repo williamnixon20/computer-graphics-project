@@ -114,7 +114,7 @@ var blockGuyNodeDescriptions: ArticulatedDescriptions = {
   ],
 };
 
-function degToRad(d: any) {
+function degToRad(d: number) {
   return (d * Math.PI) / 180;
 }
 
@@ -125,7 +125,8 @@ export default function Canvas() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [cameraInformation, setCameraInformation] = useState<CameraInformation>(
     {
-      cameraAngleRadians: degToRad(0),
+      cameraAngleXRadians: degToRad(0),
+      cameraAngleYRadians: degToRad(0),
       fieldOfViewRadians: degToRad(60),
       radius: 10,
     }
@@ -141,6 +142,11 @@ export default function Canvas() {
     scale: { x: 0, y: 0, z: 0 },
     rotate: { x: 0, y: 0, z: 0 },
   });
+  const [mouseDownInformation, setMouseDownInformation] = useState<{
+    isDown: boolean;
+    startX: number | undefined;
+    startY: number | undefined;
+  }>({ isDown: false, startX: undefined, startY: undefined });
 
   useEffect(() => {
     setupWebGL();
@@ -195,7 +201,7 @@ export default function Canvas() {
     }
   };
 
-  const handleCameraChange = (fieldOfView: number) => {
+  const handleFieldOfViewChange = (fieldOfView: number) => {
     setCameraInformation((oldState) => {
       const newState = { ...oldState };
       newState.fieldOfViewRadians = fieldOfView;
@@ -247,6 +253,11 @@ export default function Canvas() {
   function handleMouseDown(
     e: React.MouseEvent<HTMLCanvasElement, globalThis.MouseEvent>
   ) {
+    setMouseDownInformation({
+      isDown: true,
+      startX: e.nativeEvent.offsetX,
+      startY: e.nativeEvent.offsetY,
+    });
     console.log("Mouse down", e.clientX, e.clientY);
     const rect = canvasRef.current?.getBoundingClientRect() as DOMRect;
     const mouseX = e.clientX - rect.left;
@@ -260,14 +271,59 @@ export default function Canvas() {
     }
   }
 
+  function handleMouseUp(
+    e: React.MouseEvent<HTMLCanvasElement, globalThis.MouseEvent>
+  ) {
+    setMouseDownInformation({
+      isDown: false,
+      startX: undefined,
+      startY: undefined,
+    });
+  }
+
+  function handleMouseMove(
+    e: React.MouseEvent<HTMLCanvasElement, globalThis.MouseEvent>
+  ) {
+    if (
+      mouseDownInformation.isDown &&
+      mouseDownInformation.startX &&
+      mouseDownInformation.startY &&
+
+      // real ugly hacks to improve performance by reducing the number of drawing per mouse move
+      e.nativeEvent.offsetX % 2 === 0 &&
+      e.nativeEvent.offsetY % 2 === 0
+    ) {
+      console.log(cameraInformation.cameraAngleXRadians)
+      const deltaX = mouseDownInformation.startX - e.nativeEvent.offsetX;
+      const deltaY = mouseDownInformation.startY - e.nativeEvent.offsetY;
+
+      const newX = cameraInformation.cameraAngleXRadians + degToRad(deltaX);
+      const newY = cameraInformation.cameraAngleYRadians + degToRad(deltaY);
+
+      const newCameraInformation = { ...cameraInformation };
+      newCameraInformation.cameraAngleXRadians = newX;
+      newCameraInformation.cameraAngleYRadians = newY;
+
+      setCameraInformation(newCameraInformation);
+      const newMouseDownInformation = {
+        isDown: true,
+        startX: e.nativeEvent.offsetX,
+        startY: e.nativeEvent.offsetY,
+      };
+      setMouseDownInformation(newMouseDownInformation);
+
+      if (scene) {
+        drawer?.draw(scene, newCameraInformation);
+      }
+    }
+  }
+
   function handleScroll(e: React.WheelEvent<HTMLCanvasElement>) {
-    console.log("Zoom in");
     setCameraInformation((oldState) => {
       const newState = { ...oldState };
 
       if (e.deltaY < 0) {
         // console.log("Zoom in");
-
         // make sure the radius is not a negative value
         if (oldState.radius - 1 > 0) {
           newState.radius = oldState.radius - 1;
@@ -289,6 +345,8 @@ export default function Canvas() {
         <canvas
           ref={canvasRef}
           onMouseDown={handleMouseDown}
+          onMouseUp={handleMouseUp}
+          onMouseMove={handleMouseMove}
           onWheel={handleScroll}
           id="webgl-canvas"
           className="w-[720px] h-[720px] bg-white"
@@ -304,7 +362,7 @@ export default function Canvas() {
           defaultValue={"60"}
           max="180"
           onChange={(e) =>
-            handleCameraChange(degToRad(parseFloat(e.target.value)))
+            handleFieldOfViewChange(degToRad(parseFloat(e.target.value)))
           }
           className="w-full"
         />
