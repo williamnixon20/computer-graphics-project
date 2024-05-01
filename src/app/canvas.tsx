@@ -116,7 +116,7 @@ var blockGuyNodeDescriptions: ArticulatedDescriptions = {
 var jsonToDraw: ArticulatedDescriptions | HollowDescriptions =
   blockGuyNodeDescriptions;
 export default function Canvas() {
-  const [selectedName, setSelectedName] = useState<string | null>();
+  const [selectedName, setSelectedName] = useState<string | null | undefined>();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [FOVRadians, setFOVRadians] = useState(60);
   const [animate, setAnimate] = useState(false);
@@ -232,7 +232,7 @@ export default function Canvas() {
     if (pickId) {
       resetTransforms();
       let selectedNode = scene?.getById(pickId);
-      setSelectedName(selectedNode.name);
+      setSelectedName(selectedNode?.name);
     }
   }
 
@@ -290,7 +290,7 @@ export default function Canvas() {
             setHollow(e.target.checked);
             setSelectedName(null);
             jsonToDraw = e.target.checked
-              ? cubeHollow
+              ? cubeHollow as HollowDescriptions
               : blockGuyNodeDescriptions;
             setupWebGL();
           }}

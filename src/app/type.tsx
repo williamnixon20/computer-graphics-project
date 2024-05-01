@@ -6,7 +6,7 @@ export interface Transforms {
 
 export interface ArticulatedDescriptions {
   type?: string;
-  name?: string;
+  name: string;
   draw?: boolean;
   translation?: number[];
   rotation?: number[];
@@ -16,10 +16,8 @@ export interface ArticulatedDescriptions {
 
 export interface HollowDescriptions {
   type?: string;
-  name?: string;
-  draw?: boolean;
-  translation?: number[];
-  rotation?: number[];
-  scale?: number[];
-  children?: ArticulatedDescriptions[];
+  name: string;
+  positions: number[];
+  colors: number[];
+  normals: number[];
 }
