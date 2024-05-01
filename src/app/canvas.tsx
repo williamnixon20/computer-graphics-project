@@ -11,9 +11,13 @@ import * as webglUtils from "../webgl/utils/webGlUtils";
 import * as primitives from "../webgl/utils/primitives";
 import { Drawer } from "@/webgl/drawer";
 import { cubeHollow } from "./cube-hollow";
+import {
+  ArticulatedDescriptions,
+  HollowDescriptions,
+  Transforms,
+} from "./type";
 
-var blockGuyNodeDescriptions =
-{
+var blockGuyNodeDescriptions: ArticulatedDescriptions = {
   type: "articulated",
   name: "point between feet",
   draw: false,
@@ -85,7 +89,7 @@ var blockGuyNodeDescriptions =
                   translation: [0, -1, 0],
                 },
               ],
-            }
+            },
           ],
         },
         {
@@ -101,7 +105,7 @@ var blockGuyNodeDescriptions =
                   translation: [0, -1, 0],
                 },
               ],
-            }
+            },
           ],
         },
       ],
@@ -109,28 +113,22 @@ var blockGuyNodeDescriptions =
   ],
 };
 
-
-export type Transforms = {
-  translate: { x: number, y: number, z: number },
-  scale: { x: number, y: number, z: number },
-  rotate: { x: number, y: number, z: number }
-}
-
-var jsonToDraw = blockGuyNodeDescriptions;
+var jsonToDraw: ArticulatedDescriptions | HollowDescriptions =
+  blockGuyNodeDescriptions;
 export default function Canvas() {
-  const [selectedName, setSelectedName] = useState(null);
+  const [selectedName, setSelectedName] = useState<string | null>();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [FOVRadians, setFOVRadians] = useState(60);
   const [animate, setAnimate] = useState(false);
-  const [refDict, setRefDict] = useState({});
-  let [drawer, setDrawer] = useState(null);
-  const [scene, setScene] = useState(null);
+  const [refDict, setRefDict] = useState<{ [key: string]: any }>({});
+  let [drawer, setDrawer] = useState<Drawer>();
+  const [scene, setScene] = useState<Node>();
   const [hollow, setHollow] = useState(false);
   const [postProcess, setPostprocess] = useState(false);
   const [transforms, setTransforms] = useState<Transforms>({
     translate: { x: 0, y: 0, z: 0 },
     scale: { x: 0, y: 0, z: 0 },
-    rotate: { x: 0, y: 0, z: 0 }
+    rotate: { x: 0, y: 0, z: 0 },
   });
 
   useEffect(() => {
@@ -149,7 +147,7 @@ export default function Canvas() {
     }
 
     function degToRad(d: any) {
-      return d * Math.PI / 180;
+      return (d * Math.PI) / 180;
     }
 
     var cameraAngleRadians = degToRad(0);
@@ -172,39 +170,49 @@ export default function Canvas() {
     drawer.draw(scene);
   }
 
-  const handleTransformChange = (type, axis, value) => {
+  const handleTransformChange = (
+    type: keyof Transforms,
+    axis: string,
+    value: string
+  ) => {
     let newTransforms = {
       ...transforms,
       [type]: {
         ...transforms[type],
-        [axis]: Number(value)
-      }
-    }
+        [axis]: Number(value),
+      },
+    };
     setTransforms(newTransforms);
-    refDict[selectedName].node.addTransform(newTransforms);
-    drawer.draw(scene);
+    if (selectedName) {
+      refDict[selectedName].node.addTransform(newTransforms);
+    }
+    if (scene) {
+      drawer?.draw(scene);
+    }
   };
 
   const resetTransforms = () => {
     setTransforms({
       translate: { x: 0, y: 0, z: 0 },
       scale: { x: 0, y: 0, z: 0 },
-      rotate: { x: 0, y: 0, z: 0 }
+      rotate: { x: 0, y: 0, z: 0 },
     });
-  }
+  };
 
-  const renderSliders = (type, label) => {
+  const renderSliders = (type: keyof Transforms, label: string) => {
     return (
       <div key={type}>
         <p>{label}:</p>
-        {['x', 'y', 'z'].map((axis) => (
+        {["x", "y", "z"].map((axis) => (
           <input
             key={axis}
             type="range"
             min={-5}
             max={5}
             step={0.1}
-            value={transforms[type][axis]}
+            value={
+              transforms[type][axis as keyof Transforms["translate"]] as number
+            }
             onChange={(e) => handleTransformChange(type, axis, e.target.value)}
           />
         ))}
@@ -216,15 +224,15 @@ export default function Canvas() {
     e: React.MouseEvent<HTMLCanvasElement, globalThis.MouseEvent>
   ) {
     console.log("Mouse down", e.clientX, e.clientY);
-    const rect = canvasRef.current.getBoundingClientRect();
+    const rect = canvasRef.current?.getBoundingClientRect() as DOMRect;
     const mouseX = e.clientX - rect.left;
     const mouseY = e.clientY - rect.top;
 
-    let pickId = drawer.getPickingId(mouseX, mouseY);
+    let pickId = drawer?.getPickingId(mouseX, mouseY);
     if (pickId) {
       resetTransforms();
-      let selectedNode = scene.getById(pickId)
-      setSelectedName(selectedNode.name)
+      let selectedNode = scene?.getById(pickId);
+      setSelectedName(selectedNode.name);
     }
   }
 
@@ -239,9 +247,7 @@ export default function Canvas() {
         />
       </div>
       <div className="flex flex-col h-full rounded-md bg-gray-black p-4">
-        <label
-          className="text-base font-semibold text-white mb-2"
-        >
+        <label className="text-base font-semibold text-white mb-2">
           Camera: <br></br>Choose FOV:
         </label>
         <input
@@ -252,31 +258,29 @@ export default function Canvas() {
           onChange={(e) => setFOVRadians(parseInt(e.target.value))}
           className="w-full"
         />
-        <label
-          className="text-base font-semibold text-white mb-2"
-        >
+        <label className="text-base font-semibold text-white mb-2">
           Turn on animation:
         </label>
         <input
           type="checkbox"
           checked={animate}
           onChange={(e) => setAnimate(e.target.checked)}
-          className="w-full">
-        </input>
-        <label
-          className="text-base font-semibold text-white mb-2"
-        >
+          className="w-full"
+        ></input>
+        <label className="text-base font-semibold text-white mb-2">
           Grayscale Postprocess:
         </label>
         <input
           type="checkbox"
           checked={postProcess}
-          onChange={(e) => { setPostprocess(e.target.checked); drawer.setPostprocess(e.target.checked); drawer.draw(scene); }}
-          className="w-full">
-        </input>
-        <label
-          className="text-base font-semibold text-white mb-2"
-        >
+          onChange={(e) => {
+            setPostprocess(e.target.checked);
+            drawer?.setPostprocess(e.target.checked);
+            if (scene) drawer?.draw(scene);
+          }}
+          className="w-full"
+        ></input>
+        <label className="text-base font-semibold text-white mb-2">
           Hollow Object:
         </label>
         <input
@@ -285,31 +289,40 @@ export default function Canvas() {
           onChange={(e) => {
             setHollow(e.target.checked);
             setSelectedName(null);
-            jsonToDraw = e.target.checked ? cubeHollow : blockGuyNodeDescriptions;
+            jsonToDraw = e.target.checked
+              ? cubeHollow
+              : blockGuyNodeDescriptions;
             setupWebGL();
           }}
-          className="w-full">
-        </input>
-      </div >
+          className="w-full"
+        ></input>
+      </div>
       <div>
-        {refDict && Object.keys(refDict).map((name) => (
-          <div key={name} style={{ marginLeft: refDict[name].level * 10 }}>
-            <button
-              onClick={() => { setSelectedName(name); resetTransforms(); }}
-              style={{ backgroundColor: selectedName === name ? 'gray' : 'blue' }}
-            >
-              {name}
-            </button>
-          </div>
-        ))}
-
+        {refDict &&
+          Object.keys(refDict).map((name) => (
+            <div key={name} style={{ marginLeft: refDict[name].level * 10 }}>
+              <button
+                onClick={() => {
+                  setSelectedName(name);
+                  resetTransforms();
+                }}
+                style={{
+                  backgroundColor: selectedName === name ? "gray" : "blue",
+                }}
+              >
+                {name}
+              </button>
+            </div>
+          ))}
       </div>
       {selectedName && (
         <div>
           <h3>Transforms for {selectedName}:</h3>
-          {Object.entries({ translate: 'Translate', scale: 'Scale', rotate: 'Rotate' }).map(([type, label]) => (
-            renderSliders(type, label)
-          ))}
+          {Object.entries({
+            translate: "Translate",
+            scale: "Scale",
+            rotate: "Rotate",
+          }).map(([type, label]) => renderSliders(type as keyof Transforms, label))}
         </div>
       )}
     </>
