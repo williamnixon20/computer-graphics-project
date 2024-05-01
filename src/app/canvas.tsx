@@ -123,11 +123,13 @@ var jsonToDraw: ArticulatedDescriptions | HollowDescriptions =
 export default function Canvas() {
   const [selectedName, setSelectedName] = useState<string | null | undefined>();
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [cameraInformation, setCameraInformation] = useState<CameraInformation>({
-    cameraAngleRadians: degToRad(0),
-    fieldOfViewRadians: degToRad(60),
-    radius: 100
-  });
+  const [cameraInformation, setCameraInformation] = useState<CameraInformation>(
+    {
+      cameraAngleRadians: degToRad(0),
+      fieldOfViewRadians: degToRad(60),
+      radius: 10,
+    }
+  );
   const [animate, setAnimate] = useState(false);
   const [refDict, setRefDict] = useState<{ [key: string]: any }>({});
   let [drawer, setDrawer] = useState<Drawer>();
@@ -193,16 +195,16 @@ export default function Canvas() {
     }
   };
 
-  const handleCameraChange = (fieldOfView : number) => {
+  const handleCameraChange = (fieldOfView: number) => {
     setCameraInformation((oldState) => {
-      const newState = {...oldState};
+      const newState = { ...oldState };
       newState.fieldOfViewRadians = fieldOfView;
       if (scene) {
         drawer?.draw(scene, newState);
       }
       return newState;
-    })
-  }
+    });
+  };
 
   const resetTransforms = () => {
     setTransforms({
@@ -258,12 +260,36 @@ export default function Canvas() {
     }
   }
 
+  function handleScroll(e: React.WheelEvent<HTMLCanvasElement>) {
+    console.log("Zoom in");
+    setCameraInformation((oldState) => {
+      const newState = { ...oldState };
+
+      if (e.deltaY < 0) {
+        // console.log("Zoom in");
+
+        // make sure the radius is not a negative value
+        if (oldState.radius - 1 > 0) {
+          newState.radius = oldState.radius - 1;
+        }
+      } else {
+        // console.log("Zoom out");
+        newState.radius = oldState.radius + 1;
+      }
+      if (scene) {
+        drawer?.draw(scene, newState);
+      }
+      return newState;
+    });
+  }
+
   return (
     <>
       <div className="w-full h-full max-h-screen overflow-auto">
         <canvas
           ref={canvasRef}
           onMouseDown={handleMouseDown}
+          onWheel={handleScroll}
           id="webgl-canvas"
           className="w-[720px] h-[720px] bg-white"
         />
@@ -277,7 +303,9 @@ export default function Canvas() {
           min="0"
           defaultValue={"60"}
           max="180"
-          onChange={(e) => handleCameraChange(degToRad(parseFloat(e.target.value)))}
+          onChange={(e) =>
+            handleCameraChange(degToRad(parseFloat(e.target.value)))
+          }
           className="w-full"
         />
         <label className="text-base font-semibold text-white mb-2">
