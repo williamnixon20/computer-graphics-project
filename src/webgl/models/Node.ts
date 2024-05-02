@@ -32,7 +32,7 @@ export class Node {
         this.draw = false;
         this.name = "";
         this.position = [];
-        this.color = [];
+        this.color = [0, 0, 0, 255];
         this.normal = [];
         this.arrayInfo = {};
         this.id = id_global;
@@ -74,7 +74,7 @@ export class Node {
         });
     }
 
-    buildArticulated(nodeDescription: ArticulatedDescriptions) {
+    buildArticulated(nodeDescription: ArticulatedDescriptions, color: number[]) {
         let trs = this.source
         trs.translation = nodeDescription.translation || trs.translation;
         trs.rotation = nodeDescription.rotation || trs.rotation;
@@ -88,15 +88,15 @@ export class Node {
         // TODO: make this dynamic
         let cubeVertices = primitives.createCubeVertices(1);
         let vertices = primitives.deindexVertices(cubeVertices);
-        console.log(vertices)
-        vertices = primitives.makeColor(vertices, [256, 256, 256, 255]);
+        // console.log(vertices)
+        vertices = primitives.makeColor(vertices, color);
         // vertices = primitives.makeRandomVertexColors(vertices, {
         //     vertsPerColor: 6,
         //     rand: function (ndx, channel) {
         //         return channel < 3 ? ((128 + Math.random() * 128) | 0) : 255;
         //     },
         // });
-        console.log(vertices)
+        // console.log(vertices.colors)
 
         this.arrayInfo = vertices;
 
@@ -113,9 +113,10 @@ export class Node {
         return this;
     }
 
-    buildHollow(nodeDescription: HollowDescriptions) {
+    buildHollow(nodeDescription: HollowDescriptions, color: number[]) {
         this.draw = true;
         const lengthPoint = nodeDescription.positions.length / (3 * 6);
+        console.log("LENGTH POINT", lengthPoint)
         let textureArrBase = [
             0, 0,
             0, 1,
@@ -130,13 +131,14 @@ export class Node {
         for (let i = 0; i < lengthPoint; i++) {
             textureArr = textureArr.concat(textureArrBase);
         }
+        const colors = primitives.makeColorLen(nodeDescription.positions.length, color);
         this.arrayInfo = {
             position: nodeDescription.positions,
-            color: nodeDescription.colors,
+            color: colors,
             normal: nodeDescription.normals,
             texcoord: new Float32Array(textureArr)
         }
-        console.log(this.arrayInfo)
+        // console.log(this.arrayInfo)
         // this.position = nodeDescription.positions;
         // this.color = nodeDescription.colors;
         // this.normal = nodeDescription.normals;
@@ -144,12 +146,13 @@ export class Node {
         return this;
     }
 
-    buildByDescription(nodeDescription: ArticulatedDescriptions | HollowDescriptions) {
-        if (nodeDescription.type === "articulated") {
-            return this.buildArticulated(nodeDescription as ArticulatedDescriptions);
+    buildByDescription(nodeDescription: ArticulatedDescriptions | HollowDescriptions, color: number[]) {
+        if (nodeDescription.type === "articulated" && color) {
+            this.color = color;
+            return this.buildArticulated(nodeDescription as ArticulatedDescriptions, color);
         }
         else {
-            return this.buildHollow(nodeDescription as HollowDescriptions);
+            return this.buildHollow(nodeDescription as HollowDescriptions, color);
         }
     }
 
@@ -157,7 +160,7 @@ export class Node {
         return nodeDescriptions ? nodeDescriptions.map((node) => {
             node["type"] = type;
             const childNode = new Node();
-            return childNode.buildByDescription(node)
+            return childNode.buildByDescription(node, this.color)
         }) : [];
     }
 
@@ -227,5 +230,10 @@ export class Node {
             }
         }
         return null;
+    }
+
+    setColor(color: number[], redrawCallback: () => void) {
+        this.color = color;
+        redrawCallback();
     }
 }

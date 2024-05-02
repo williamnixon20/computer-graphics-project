@@ -148,9 +148,37 @@ export default function Canvas() {
     startY: number | undefined;
   }>({ isDown: false, startX: undefined, startY: undefined });
 
+  // Shading
+  const [shading, setShading] = useState(false);
+  const [color, setColor] = useState("#000099");
+  const [shininess, setShininess] = useState<number>(0);
+  const [specular, setSpecular] = useState<string>("#000000");
+  const [diffuse, setDiffuse] = useState<string>("#000000");
+  const [bumpTexture, setBumpTexture] = useState<string>('');
+
+  const hexToRGBAArray = (hex: string, alpha: number): number[] => {
+    let r = 0, g = 0, b = 0;
+    if (hex.length === 4) {
+        r = parseInt(hex[1] + hex[1], 16);
+        g = parseInt(hex[2] + hex[2], 16);
+        b = parseInt(hex[3] + hex[3], 16);
+    } else if (hex.length === 7) {
+        r = parseInt(hex.slice(1, 3), 16);
+        g = parseInt(hex.slice(3, 5), 16);
+        b = parseInt(hex.slice(5, 7), 16);
+    }
+
+    if (alpha === undefined || isNaN(alpha) || alpha < 0 || alpha > 1 || alpha === 1) {
+        alpha = 255;
+    }
+
+    return [r, g, b, alpha];
+  };
+
+
   useEffect(() => {
     setupWebGL();
-  }, []);
+  }, [color]);
 
   function setupWebGL() {
     if (!canvasRef.current) {
@@ -171,7 +199,8 @@ export default function Canvas() {
     }
     let scene = null;
     let refNode = {};
-    scene = new Node().buildByDescription(jsonToDraw);
+    const arr_color = hexToRGBAArray(color, 1);
+    scene = new Node().buildByDescription(jsonToDraw, arr_color);
     scene.procedureGetNodeRefDict(refNode);
 
     setScene(scene);
@@ -404,6 +433,67 @@ export default function Canvas() {
           }}
           className="w-full"
         ></input>
+         <label className="text-base font-semibold text-white mb-2">
+          Shading:
+        </label>
+        <input
+        type="checkbox"
+        checked={shading}
+        onChange={(e) =>
+          setShading(e.target.checked)
+        }>
+        </input>
+        <label className="text-base font-semibold text-white mb-2">
+          Color:
+        </label>
+        <input
+        type="color"
+        value={color}
+        onChange={(e) =>
+          setColor(e.target.value)
+        }>  
+        </input>
+        {shading && (
+        <div>
+          <label className="text-base font-semibold text-white mb-2">
+            Shininess:
+            <input
+              type="range"
+              min={0}
+              max={100}
+              value={shininess}
+              onChange={(e) => setShininess(parseInt(e.target.value))}
+            />
+          </label>
+          <label className="text-base font-semibold text-white mb-2">
+            Specular:
+            <input
+              type="color"
+              value={specular}
+              onChange={(e) => setSpecular(e.target.value)}
+            />
+          </label>
+          <label className="text-base font-semibold text-white mb-2">
+            Diffuse:
+            <input
+              type="color"
+              value={diffuse}
+              onChange={(e) => setDiffuse(e.target.value)}
+            />
+          </label>
+          <label className="text-base font-semibold text-white mb-2">
+            Bump Texture:
+            <input
+              type="file"
+              onChange={(e) => {
+                if (e.target.files) {
+                  setBumpTexture(e.target.files[0].name);
+                }
+              }}
+            />
+          </label>
+        </div>
+      )}
       </div>
       <div>
         {refDict &&

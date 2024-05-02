@@ -12,6 +12,7 @@ export interface ArticulatedDescriptions {
   rotation?: number[];
   scale?: number[];
   children?: ArticulatedDescriptions[];
+  colors?: number[];
 }
 
 export interface HollowDescriptions {

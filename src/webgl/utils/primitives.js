@@ -290,22 +290,28 @@ export function makeColor(vertices, color) {
     // };
     vertices.color = vcolors;
     if (vertices.indices) {
-        // just make random colors if index
         for (let ii = 0; ii < numElements; ++ii) {
-            vcolors.push(rand(ii, 0), rand(ii, 1), rand(ii, 2), rand(ii, 3));
+            vcolors.push(color);
         }
     } else {
-        // make random colors per triangle
         const numVertsPerColor = 3;
         const numSets = numElements / numVertsPerColor;
         for (let ii = 0; ii < numSets; ++ii) {
-            // const color = [rand(ii, 0), rand(ii, 1), rand(ii, 2), rand(ii, 3)];
             for (let jj = 0; jj < numVertsPerColor; ++jj) {
                 vcolors.push(color);
             }
         }
     }
     return vertices;
+}
+
+export function makeColorLen(length, color) {
+    const vcolors = webglUtils.createAugmentedTypedArray(4, length, Uint8Array);
+        
+    for (let ii = 0; ii < length; ++ii) {
+        vcolors.push(color[0], color[1], color[2], color[3]);
+    }
+    return vcolors;
 }
 
 /**
