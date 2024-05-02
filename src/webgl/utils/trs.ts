@@ -1,5 +1,6 @@
+import { Transforms } from '@/app/type.jsx';
 import m4 from './m4.js';
-import { Transforms } from '../../app/canvas.jsx';
+
 class TRS {
     translation: number[];
     rotation: number[];

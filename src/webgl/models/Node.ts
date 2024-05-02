@@ -1,4 +1,4 @@
-import { Transforms } from '@/app/canvas';
+import { ArticulatedDescriptions, HollowDescriptions, Transforms } from '@/app/type';
 import m4 from '../utils/m4';
 import * as primitives from '../utils/primitives';
 import TRS from '../utils/trs';
@@ -12,13 +12,15 @@ export class Node {
     children: Node[];
     localMatrix: number[];
     worldMatrix: number[];
-    source: any;
+    source: TRS;
     parent: Node | null;
     draw: boolean;
     drawInfo: any;
     cubeBufferInfo: any;
     name: string;
-    arrayInfo: any;
+    arrayInfo: {
+        [index : string] : ArrayBuffer | number[];
+    };
     id: number;
 
     constructor() {
@@ -72,7 +74,7 @@ export class Node {
         });
     }
 
-    buildArticulated(nodeDescription: any) {
+    buildArticulated(nodeDescription: ArticulatedDescriptions) {
         let trs = this.source
         trs.translation = nodeDescription.translation || trs.translation;
         trs.rotation = nodeDescription.rotation || trs.rotation;
@@ -111,7 +113,7 @@ export class Node {
         return this;
     }
 
-    buildHollow(nodeDescription: any) {
+    buildHollow(nodeDescription: HollowDescriptions) {
         this.draw = true;
         const lengthPoint = nodeDescription.positions.length / (3 * 6);
         let textureArrBase = [
@@ -124,7 +126,7 @@ export class Node {
         ];
 
         // NOT SURE ABOUT TEXTURE HERE
-        let textureArr = [];
+        let textureArr: number[] = [];
         for (let i = 0; i < lengthPoint; i++) {
             textureArr = textureArr.concat(textureArrBase);
         }
@@ -142,17 +144,16 @@ export class Node {
         return this;
     }
 
-    buildByDescription(nodeDescription: any) {
+    buildByDescription(nodeDescription: ArticulatedDescriptions | HollowDescriptions) {
         if (nodeDescription.type === "articulated") {
-            return this.buildArticulated(nodeDescription);
+            return this.buildArticulated(nodeDescription as ArticulatedDescriptions);
         }
         else {
-            return this.buildHollow(nodeDescription);
+            return this.buildHollow(nodeDescription as HollowDescriptions);
         }
     }
 
-    makeNodes(nodeDescriptions: any, type: any) {
-        // @ts-ignore
+    makeNodes(nodeDescriptions: ArticulatedDescriptions[] | HollowDescriptions[] | undefined, type: string) {
         return nodeDescriptions ? nodeDescriptions.map((node) => {
             node["type"] = type;
             const childNode = new Node();
@@ -160,7 +161,7 @@ export class Node {
         }) : [];
     }
 
-    drawNode(gl: any, viewProjectionMatrix: any, programInfo: any) {
+    drawNode(gl: WebGLRenderingContext, viewProjectionMatrix: number[], programInfo: any) {
         if (this.draw) {
             // set shader uniforms
             let uniforms = {
@@ -172,6 +173,7 @@ export class Node {
                     ((this.id >> 16) & 0xFF) / 0xFF,
                     ((this.id >> 24) & 0xFF) / 0xFF,
                 ],
+                u_matrix: []
             }
             uniforms.u_matrix = m4.multiply(viewProjectionMatrix, this.worldMatrix);
 
@@ -214,7 +216,7 @@ export class Node {
         this.source.setDelta(transform);
     }
 
-    getById(id: any) {
+    getById(id: number): Node | null {
         if (this.id === id) {
             return this;
         }

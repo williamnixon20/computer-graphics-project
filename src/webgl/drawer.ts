@@ -4,6 +4,7 @@ import * as webglUtils from "./utils/webGlUtils";
 import * as primitives from "./utils/primitives";
 
 import { createVertexShader, createFragmentShader, createVertexShaderPicking, createFragmentShaderPicking, createVertexPostProcessShader, createFragmentPostProcessShader } from "@/webgl/utils/create-shader";
+import { CameraInformation } from '@/app/type';
 
 function degToRad(d: any) {
     return d * Math.PI / 180;
@@ -35,7 +36,7 @@ export class Drawer {
         this.initialize();
     }
 
-    setPostprocess(checked) {
+    setPostprocess(checked: boolean) {
         this.isPostprocess = checked;
     }
 
@@ -61,12 +62,12 @@ export class Drawer {
         this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
     }
 
-    draw(scene: Node) {
-        this.drawScene(scene, 0.01)
+    draw(scene: Node, cameraInformation: CameraInformation) {
+        this.drawScene(scene, cameraInformation, 0.01)
     }
 
     // Draw the scene.
-    drawScene(scene: Node, time: any) {
+    drawScene(scene: Node, cameraInformation: CameraInformation, time: number) {
         if (!this.gl) {
             return;
         }
@@ -84,14 +85,28 @@ export class Drawer {
 
         // Compute the projection matrix
         var aspect = this.gl.canvas.clientWidth / this.gl.canvas.clientHeight;
+        // console.log("Camera Information: ", cameraInformation)
         var projectionMatrix =
-            m4.perspective(this.fieldOfViewRadians, aspect, 1, 2000);
+            m4.perspective(cameraInformation.fieldOfViewRadians, aspect, 1, 2000);
 
         // Compute the camera's matrix using look at.
-        var cameraPosition = [4, 3.5, 10];
+        // var cameraPosition = [4, 3.5, 10];
         var target = [0, 3.5, 0];
         var up = [0, 1, 0];
-        var cameraMatrix = m4.lookAt(cameraPosition, target, up);
+
+        var cameraMatrixX = m4.yRotation(cameraInformation.cameraAngleXRadians);
+        var cameraMatrixY =  m4.xRotation(cameraInformation.cameraAngleYRadians);
+        var cameraMatrix = m4.multiply(cameraMatrixX, cameraMatrixY, cameraMatrix)
+        cameraMatrix = m4.translate(cameraMatrix, 0, 0, cameraInformation.radius);
+    
+        // Get the camera's position from the matrix we computed
+        var cameraPosition : number[] = [
+          cameraMatrix[12],
+          cameraMatrix[13],
+          cameraMatrix[14],
+        ];
+
+        cameraMatrix = m4.lookAt(cameraPosition, target, up);
 
         var viewMatrix = m4.inverse(cameraMatrix);
 
