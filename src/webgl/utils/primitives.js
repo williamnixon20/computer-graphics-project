@@ -254,7 +254,7 @@ function randInt(range) {
  * @return {Object.<string, augmentedTypedArray>} same vertices as passed in with `color` added.
  * @memberOf module:primitives
  */
-function makeRandomVertexColors(vertices, options) {
+export function makeRandomVertexColors(vertices, options) {
     options = options || {};
     const numElements = vertices.position.numElements;
     const vcolors = webglUtils.createAugmentedTypedArray(4, numElements, Uint8Array);
@@ -273,6 +273,33 @@ function makeRandomVertexColors(vertices, options) {
         const numSets = numElements / numVertsPerColor;
         for (let ii = 0; ii < numSets; ++ii) {
             const color = [rand(ii, 0), rand(ii, 1), rand(ii, 2), rand(ii, 3)];
+            for (let jj = 0; jj < numVertsPerColor; ++jj) {
+                vcolors.push(color);
+            }
+        }
+    }
+    return vertices;
+}
+
+export function makeColor(vertices, color) {
+    const numElements = vertices.position.numElements;
+    // options = options || {};
+    const vcolors = webglUtils.createAugmentedTypedArray(4, numElements, Uint8Array);
+    // const rand = options.rand || function (ndx, channel) {
+    //     return channel < 3 ? randInt(256) : 255;
+    // };
+    vertices.color = vcolors;
+    if (vertices.indices) {
+        // just make random colors if index
+        for (let ii = 0; ii < numElements; ++ii) {
+            vcolors.push(rand(ii, 0), rand(ii, 1), rand(ii, 2), rand(ii, 3));
+        }
+    } else {
+        // make random colors per triangle
+        const numVertsPerColor = 3;
+        const numSets = numElements / numVertsPerColor;
+        for (let ii = 0; ii < numSets; ++ii) {
+            // const color = [rand(ii, 0), rand(ii, 1), rand(ii, 2), rand(ii, 3)];
             for (let jj = 0; jj < numVertsPerColor; ++jj) {
                 vcolors.push(color);
             }

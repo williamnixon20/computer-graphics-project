@@ -85,10 +85,18 @@ export class Node {
         // Articulated model position, color normal is always cube (hardcode).
         // TODO: make this dynamic
         let cubeVertices = primitives.createCubeVertices(1);
-        // this.position = cubeVertices.position;
-        // this.color = cubeVertices.color;
-        // this.normal = cubeVertices.normal;
-        this.arrayInfo = cubeVertices;
+        let vertices = primitives.deindexVertices(cubeVertices);
+        console.log(vertices)
+        vertices = primitives.makeColor(vertices, [256, 256, 256, 255]);
+        // vertices = primitives.makeRandomVertexColors(vertices, {
+        //     vertsPerColor: 6,
+        //     rand: function (ndx, channel) {
+        //         return channel < 3 ? ((128 + Math.random() * 128) | 0) : 255;
+        //     },
+        // });
+        console.log(vertices)
+
+        this.arrayInfo = vertices;
 
 
         let childrenNodes = this.makeNodes(nodeDescription.children, "articulated")
@@ -156,8 +164,8 @@ export class Node {
         if (this.draw) {
             // set shader uniforms
             let uniforms = {
-                u_colorOffset: [0, 0, 0.6, 0],
-                u_colorMult: [0.4, 0.4, 0.4, 1],
+                // u_colorOffset: [0, 0, 0.6, 0],
+                // u_colorMult: [0.4, 0.4, 0.4, 1],
                 u_id: [
                     ((this.id >> 0) & 0xFF) / 0xFF,
                     ((this.id >> 8) & 0xFF) / 0xFF,
