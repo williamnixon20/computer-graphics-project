@@ -1,4 +1,4 @@
-import { ArticulatedDescriptions, HollowDescriptions, Transforms } from '@/app/type';
+import { ArticulatedDescriptions, CameraInformation, HollowDescriptions, Transforms } from '@/app/type';
 import m4 from '../utils/m4';
 import * as primitives from '../utils/primitives';
 import TRS from '../utils/trs';
@@ -22,6 +22,7 @@ export class Node {
         [index : string] : ArrayBuffer | number[];
     };
     id: number;
+    cameraInformation: CameraInformation;
 
     constructor() {
         this.children = [];
@@ -37,6 +38,12 @@ export class Node {
         this.arrayInfo = {};
         this.id = id_global;
         id_global += 1;
+        this.cameraInformation = {
+            cameraAngleXRadians: -1,
+            cameraAngleYRadians: -1,
+            fieldOfViewRadians: -1,
+            radius: -1
+        }
     }
 
     setParent(parent: Node | null) {
@@ -71,6 +78,13 @@ export class Node {
         const worldMatrix = this.worldMatrix;
         this.children.forEach((child) => {
             child.updateWorldMatrix(worldMatrix);
+        });
+    }
+
+    updateCameraInformation(cameraInformation: CameraInformation) {
+        this.cameraInformation = cameraInformation;
+        this.children.forEach((child) => {
+            child.updateCameraInformation(cameraInformation);
         });
     }
 
@@ -176,10 +190,18 @@ export class Node {
                     ((this.id >> 16) & 0xFF) / 0xFF,
                     ((this.id >> 24) & 0xFF) / 0xFF,
                 ],
-                u_matrix: []
+                // u_matrix: [],
+                u_color: [0, 1, 0.7, 1],
+                u_reverseLightDirection: [1, 1, 1],
+                u_worldViewProjection: [],
+                // u_world: [],
+                u_worldInverseTranspose: [],
             }
-            uniforms.u_matrix = m4.multiply(viewProjectionMatrix, this.worldMatrix);
+            // uniforms.u_matrix = m4.multiply(viewProjectionMatrix, this.worldMatrix);
+            const u_world = m4.yRotation(this.cameraInformation.cameraAngleXRadians);
 
+            uniforms.u_worldViewProjection = m4.multiply(viewProjectionMatrix, this.worldMatrix);
+            uniforms.u_worldInverseTranspose = m4.transpose(m4.inverse(u_world));
             // console.log("ARRAYS INFO", this.arrayInfo)
 
             let bufferInfo = webglUtils.createBufferInfoFromArrays(gl, this.arrayInfo);

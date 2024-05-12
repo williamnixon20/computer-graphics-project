@@ -7,15 +7,16 @@ varying vec3 v_normal;
 // uniform vec4 u_colorMult;
 // uniform vec4 u_colorOffset;
 
+// uniform vec4 u_ambientColor;
 uniform vec3 u_reverseLightDirection;
 uniform vec4 u_color;
 
 void main() {
-   // vec3 normal = normalize(v_normal);
+   vec3 normal = normalize(v_normal);
 
-   // float light = dot(normal, u_reverseLightDirection);
+   float light = dot(normal, u_reverseLightDirection);
 
-   gl_FragColor = v_color;
+   gl_FragColor = u_color;
 
-   // gl_FragColor.rgb *= light;
+   gl_FragColor.rgb *= light;
 }
