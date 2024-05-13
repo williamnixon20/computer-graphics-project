@@ -16,7 +16,7 @@ void main() {
 
    float light = dot(normal, u_reverseLightDirection);
 
-   gl_FragColor = u_color;
+   gl_FragColor = v_color;
 
    gl_FragColor.rgb *= light;
 }

@@ -16,7 +16,7 @@ void main() {
   gl_Position = u_worldViewProjection  * a_position;
 
   // Pass the color to the fragment shader.
-  // v_color = a_color;
+  v_color = a_color;
 
   // Orient the normals and pass to the fragment shader
   v_normal = mat3(u_worldInverseTranspose) * a_normal;

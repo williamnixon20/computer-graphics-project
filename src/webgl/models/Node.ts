@@ -191,7 +191,7 @@ export class Node {
                     ((this.id >> 24) & 0xFF) / 0xFF,
                 ],
                 // u_matrix: [],
-                u_color: [0, 1, 0.7, 1],
+                // u_color: [0, 1, 0.7, 1],
                 u_reverseLightDirection: [1, 1, 1],
                 u_worldViewProjection: [],
                 // u_world: [],
