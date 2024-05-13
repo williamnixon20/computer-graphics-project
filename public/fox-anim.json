@@ -1,0 +1,47 @@
+{
+  "name": "Fox Walking",
+  "frames": [
+    {
+      "keyframe": {
+        "translation": [-0.5, 0, 0],
+        "rotation": [0, 0, 0]
+      },
+      "children": {
+        "RHead": {
+          "keyframe": {
+            "translation": [0.75, 1.5, 0],
+            "rotation": [0, 0, 0]
+          }
+        },
+        "RTail": {
+          "keyframe": {
+            "translation": [-0.75, 1.5, 0],
+            "rotation": [0, 30, 0]
+          },
+          "children": {
+            "RTailTip": {
+              "keyframe": {
+                "translation": [-0.5, 0, 0],
+                "rotation": [0, 0, 0]
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "keyframe": {
+        "translation": [-0.5, 0, 0],
+        "rotation": [0, 0.5, 0]
+      },
+      "children": {
+        "RHead": {
+          "keyframe": {
+            "translation": [0.75, 1.5, 0],
+            "rotation": [0, 0, 0]
+          }
+        }
+      }
+    }
+  ]
+}

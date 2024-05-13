@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import TRS from "../webgl/utils/trs";
+import { AnimationRunner } from "@/webgl/utils/animation";
 
 // @ts-ignore
 import { Node } from "../webgl/models/Node";
@@ -368,6 +369,18 @@ export default function Canvas() {
     });
   }
 
+  function runAnim(currentTime: number) {
+    let lastFrameTime;
+    // foxNode: Object3D. Sudah ditambahkan dalam scene
+    let foxAnim = new AnimationRunner('../../test/fox-anim.json', blockGuyNodeDescriptions);
+    if (lastFrameTime === undefined) lastFrameTime = currentTime;
+    const deltaSecond = (currentTime - lastFrameTime) / 1000;
+    foxAnim.update(deltaSecond);
+    // Tambahkan render update, animasi, dan lainnya di sini
+    lastFrameTime = currentTime;
+    requestAnimationFrame(runAnim);
+  }
+
   return (
     <>
       <div className="w-full h-full max-h-screen overflow-auto">
@@ -401,7 +414,12 @@ export default function Canvas() {
         <input
           type="checkbox"
           checked={animate}
-          onChange={(e) => setAnimate(e.target.checked)}
+          onChange={(e) => {
+            setAnimate(e.target.checked);
+            if (e.target.checked) {
+              requestAnimationFrame(runAnim);
+            }
+          }}
           className="w-full"
         ></input>
         <label className="text-base font-semibold text-white mb-2">
