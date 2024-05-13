@@ -23,6 +23,7 @@ export class Node {
     };
     id: number;
     cameraInformation: CameraInformation;
+    shadingMode: number;
 
     constructor() {
         this.children = [];
@@ -43,7 +44,8 @@ export class Node {
             cameraAngleYRadians: -1,
             fieldOfViewRadians: -1,
             radius: -1
-        }
+        };
+        this.shadingMode = 0;
     }
 
     setParent(parent: Node | null) {
@@ -192,10 +194,14 @@ export class Node {
                 ],
                 // u_matrix: [],
                 // u_color: [0, 1, 0.7, 1],
-                u_reverseLightDirection: [1, 1, 1],
+                u_reverseLightDirection: [0.5, 0.7, 1],
                 u_worldViewProjection: [],
                 // u_world: [],
                 u_worldInverseTranspose: [],
+
+                mode: 1,
+                u_shininess: 100,
+                u_specularColor: [1, 1, 1],
             }
             // uniforms.u_matrix = m4.multiply(viewProjectionMatrix, this.worldMatrix);
             const u_world = m4.yRotation(this.cameraInformation.cameraAngleXRadians);

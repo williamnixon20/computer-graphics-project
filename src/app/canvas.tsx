@@ -179,7 +179,7 @@ export default function Canvas() {
 
   useEffect(() => {
     setupWebGL();
-  }, [color]);
+  }, [color, shading]);
 
   function setupWebGL() {
     if (!canvasRef.current) {
@@ -206,7 +206,9 @@ export default function Canvas() {
 
     setScene(scene);
     setRefDict(refNode);
-
+    
+    const shadingMode = shading ? 1 : 0;
+    scene.shadingMode = shadingMode;
     drawer.draw(scene, cameraInformation);
   }
 
