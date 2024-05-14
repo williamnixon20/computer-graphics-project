@@ -28,6 +28,7 @@ export interface CameraInformation {
   cameraAngleYRadians: number;
   fieldOfViewRadians: number;
   radius: number;
+  projType: string;
 }
 
 export interface AnimationTRS {

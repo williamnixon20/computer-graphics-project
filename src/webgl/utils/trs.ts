@@ -1,5 +1,6 @@
 import { Transforms } from '@/app/type.jsx';
 import m4 from './m4.js';
+import { degToRad } from './radians.ts';
 
 class TRS {
     translation: number[];

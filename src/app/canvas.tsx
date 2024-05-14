@@ -18,6 +18,7 @@ import {
   HollowDescriptions,
   Transforms,
 } from "./type";
+import { degToRad } from "@/webgl/utils/radians";
 
 var blockGuyNodeDescriptions: ArticulatedDescriptions = {
   type: "articulated",
@@ -115,9 +116,7 @@ var blockGuyNodeDescriptions: ArticulatedDescriptions = {
   ],
 };
 
-function degToRad(d: number) {
-  return (d * Math.PI) / 180;
-}
+
 
 var jsonToDraw: ArticulatedDescriptions | HollowDescriptions =
   blockGuyNodeDescriptions;
@@ -130,6 +129,7 @@ export default function Canvas() {
       cameraAngleYRadians: degToRad(0),
       fieldOfViewRadians: degToRad(60),
       radius: 10,
+      projType: "perspective",
     }
   );
   const [animate, setAnimate] = useState(false);
@@ -273,7 +273,9 @@ export default function Canvas() {
                 ] as number
               }
               onChange={(e) =>
-                handleTransformChange(type, axis, e.target.value)
+                // cameraInformation.projType === "perspective"  ? 
+                //     handleTransformChange(type, axis, e.target.value) : 
+                    handleTransformChange(type, axis, e.target.value)
               }
             />
           </div>
@@ -322,7 +324,7 @@ export default function Canvas() {
       mouseDownInformation.startY &&
 
       // real ugly hacks to improve performance by reducing the number of drawing per mouse move
-      e.nativeEvent.offsetX % 2 === 0 &&
+      // e.nativeEvent.offsetX % 2 === 0 &&
       e.nativeEvent.offsetY % 2 === 0
     ) {
       // console.log(cameraInformation.cameraAngleXRadians)
@@ -334,7 +336,7 @@ export default function Canvas() {
 
       const newCameraInformation = { ...cameraInformation };
       newCameraInformation.cameraAngleXRadians = newX;
-      newCameraInformation.cameraAngleYRadians = newY < degToRad(90) && newY > degToRad(-90) ? newY : newCameraInformation.cameraAngleYRadians;
+      newCameraInformation.cameraAngleYRadians = newY < degToRad(89) && newY > degToRad(-89) ? newY : newCameraInformation.cameraAngleYRadians;
 
       setCameraInformation(newCameraInformation);
       const newMouseDownInformation = {
@@ -357,12 +359,12 @@ export default function Canvas() {
       if (e.deltaY < 0) {
         // console.log("Zoom in");
         // make sure the radius is not a negative value
-        if (oldState.radius - 1 * (oldState.radius / 100) > 0.1) {
-          newState.radius = oldState.radius - 2 * (oldState.radius / 100);
+        if (oldState.radius - 5 * (oldState.radius / 10) > 0.1) {
+          newState.radius = oldState.radius - 5 * (oldState.radius / 100);
         }
       } else {
         // console.log("Zoom out");
-        newState.radius = oldState.radius + 2 * (oldState.radius / 100);
+        newState.radius = oldState.radius + 5 * (oldState.radius / 100);
       }
       if (scene) {
         drawer?.draw(scene, newState);
