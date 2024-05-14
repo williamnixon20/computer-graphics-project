@@ -152,8 +152,8 @@ export default function Canvas() {
   // Shading
   const [shading, setShading] = useState(false);
   const [color, setColor] = useState("#000099");
-  const [shininess, setShininess] = useState<number>(0);
-  const [specular, setSpecular] = useState<string>("#000000");
+  const [shininess, setShininess] = useState<number>(80);
+  const [specular, setSpecular] = useState<string>("#ffffff");
   const [diffuse, setDiffuse] = useState<string>("#000000");
   const [bumpTexture, setBumpTexture] = useState<string>('');
 
@@ -176,10 +176,13 @@ export default function Canvas() {
     return [r, g, b, alpha];
   };
 
+  const normalizeRGB = (rgb: number[]): number[] => {
+    return [rgb[0] / 255, rgb[1] / 255, rgb[2] / 255];
+  }
 
   useEffect(() => {
     setupWebGL();
-  }, [color, shading]);
+  }, [color, shading, shininess, specular]);
 
   function setupWebGL() {
     if (!canvasRef.current) {
@@ -207,8 +210,12 @@ export default function Canvas() {
     setScene(scene);
     setRefDict(refNode);
     
-    const shadingMode = shading ? 1 : 0;
-    scene.shadingMode = shadingMode;
+    // set shadingInfo
+    scene.setShadingMode(shading ? 1 : 0);
+    scene.setShininess(shininess);
+    const specularColor = normalizeRGB(hexToRGBAArray(specular, 1));
+    scene.setSpecularColor(specularColor);
+
     drawer.draw(scene, cameraInformation);
   }
 
@@ -474,7 +481,7 @@ export default function Canvas() {
         }>  
         </input>
         {shading && (
-        <div>
+        <div className="flex flex-col gap-2">
           <label className="text-base font-semibold text-white mb-2">
             Shininess:
             <input
