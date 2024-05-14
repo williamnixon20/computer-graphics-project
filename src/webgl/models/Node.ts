@@ -1,4 +1,4 @@
-import { ArticulatedDescriptions, CameraInformation, HollowDescriptions, Transforms } from '@/app/type';
+import { ArticulatedDescriptions, CameraInformation, HollowDescriptions, Transforms, ShadingInfo } from '@/app/type';
 import m4 from '../utils/m4';
 import * as primitives from '../utils/primitives';
 import TRS from '../utils/trs';
@@ -23,7 +23,7 @@ export class Node {
     };
     id: number;
     cameraInformation: CameraInformation;
-    shadingMode: number;
+    shadingInfo: ShadingInfo;
 
     constructor() {
         this.children = [];
@@ -45,7 +45,12 @@ export class Node {
             fieldOfViewRadians: -1,
             radius: -1
         };
-        this.shadingMode = 0;
+        this.shadingInfo = {
+            mode: 0,
+            shininess: 100,
+            specularColor: [1, 1, 1],
+            diffuseColor: [1, 1, 1],
+        }
     }
 
     setParent(parent: Node | null) {
@@ -194,14 +199,14 @@ export class Node {
                 ],
                 // u_matrix: [],
                 // u_color: [0, 1, 0.7, 1],
-                u_reverseLightDirection: [0.5, 0.7, 1],
+                u_reverseLightDirection: [1, 1, 1],
                 u_worldViewProjection: [],
                 // u_world: [],
                 u_worldInverseTranspose: [],
 
-                mode: 1,
-                u_shininess: 100,
-                u_specularColor: [1, 1, 1],
+                mode: this.shadingInfo.mode,
+                u_shininess: this.shadingInfo.shininess,
+                u_specularColor: this.shadingInfo.specularColor,
             }
             // uniforms.u_matrix = m4.multiply(viewProjectionMatrix, this.worldMatrix);
             const u_world = m4.yRotation(this.cameraInformation.cameraAngleXRadians);
@@ -260,8 +265,24 @@ export class Node {
         return null;
     }
 
-    setColor(color: number[], redrawCallback: () => void) {
-        this.color = color;
-        redrawCallback();
+    setShadingMode(shadingMode: number) {
+        this.shadingInfo.mode = shadingMode;
+        this.children.forEach((child) => {
+            child.setShadingMode(shadingMode);
+        })
+    }
+
+    setShininess(shininess: number) {
+        this.shadingInfo.shininess = shininess;
+        this.children.forEach((child) => {
+            child.setShininess(shininess);
+        })
+    }
+
+    setSpecularColor(specularColor: number[]) {
+        this.shadingInfo.specularColor = specularColor;
+        this.children.forEach((child) => {
+            child.setSpecularColor(specularColor);
+        })
     }
 }

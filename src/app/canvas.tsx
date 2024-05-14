@@ -41,7 +41,7 @@ var blockGuyNodeDescriptions: ArticulatedDescriptions = {
               children: [
                 {
                   name: "head",
-                  translation: [0, 1, 0],
+                  translation: [0, 1, 1], // head slightly forward to differentiate front and back side of the obj
                 },
               ],
             },
@@ -150,8 +150,8 @@ export default function Canvas() {
   // Shading
   const [shading, setShading] = useState(false);
   const [color, setColor] = useState("#000099");
-  const [shininess, setShininess] = useState<number>(0);
-  const [specular, setSpecular] = useState<string>("#000000");
+  const [shininess, setShininess] = useState<number>(80);
+  const [specular, setSpecular] = useState<string>("#ffffff");
   const [diffuse, setDiffuse] = useState<string>("#000000");
   const [bumpTexture, setBumpTexture] = useState<string>("");
 
@@ -182,9 +182,13 @@ export default function Canvas() {
     return [r, g, b, alpha];
   };
 
+  const normalizeRGB = (rgb: number[]): number[] => {
+    return [rgb[0] / 255, rgb[1] / 255, rgb[2] / 255];
+  }
+
   useEffect(() => {
     setupWebGL();
-  }, [color, shading]);
+  }, [color, shading, shininess, specular]);
 
   function setupWebGL() {
     if (!canvasRef.current) {
@@ -211,9 +215,13 @@ export default function Canvas() {
 
     setScene(scene);
     setRefDict(refNode);
+    
+    // set shadingInfo
+    scene.setShadingMode(shading ? 1 : 0);
+    scene.setShininess(shininess);
+    const specularColor = normalizeRGB(hexToRGBAArray(specular, 1));
+    scene.setSpecularColor(specularColor);
 
-    const shadingMode = shading ? 1 : 0;
-    scene.shadingMode = shadingMode;
     drawer.draw(scene, cameraInformation);
   }
 
@@ -503,46 +511,46 @@ export default function Canvas() {
           onChange={(e) => setColor(e.target.value)}
         ></input>
         {shading && (
-          <div>
-            <label className="text-base font-semibold text-white mb-2">
-              Shininess:
-              <input
-                type="range"
-                min={0}
-                max={100}
-                value={shininess}
-                onChange={(e) => setShininess(parseInt(e.target.value))}
-              />
-            </label>
-            <label className="text-base font-semibold text-white mb-2">
-              Specular:
-              <input
-                type="color"
-                value={specular}
-                onChange={(e) => setSpecular(e.target.value)}
-              />
-            </label>
-            <label className="text-base font-semibold text-white mb-2">
-              Diffuse:
-              <input
-                type="color"
-                value={diffuse}
-                onChange={(e) => setDiffuse(e.target.value)}
-              />
-            </label>
-            <label className="text-base font-semibold text-white mb-2">
-              Bump Texture:
-              <input
-                type="file"
-                onChange={(e) => {
-                  if (e.target.files) {
-                    setBumpTexture(e.target.files[0].name);
-                  }
-                }}
-              />
-            </label>
-          </div>
-        )}
+        <div className="flex flex-col gap-2">
+          <label className="text-base font-semibold text-white mb-2">
+            Shininess:
+            <input
+              type="range"
+              min={0}
+              max={100}
+              value={shininess}
+              onChange={(e) => setShininess(parseInt(e.target.value))}
+            />
+          </label>
+          <label className="text-base font-semibold text-white mb-2">
+            Specular:
+            <input
+              type="color"
+              value={specular}
+              onChange={(e) => setSpecular(e.target.value)}
+            />
+          </label>
+          <label className="text-base font-semibold text-white mb-2">
+            Diffuse:
+            <input
+              type="color"
+              value={diffuse}
+              onChange={(e) => setDiffuse(e.target.value)}
+            />
+          </label>
+          <label className="text-base font-semibold text-white mb-2">
+            Bump Texture:
+            <input
+              type="file"
+              onChange={(e) => {
+                if (e.target.files) {
+                  setBumpTexture(e.target.files[0].name);
+                }
+              }}
+            />
+          </label>
+        </div>
+      )}
       </div>
       <div>
         {refDict &&

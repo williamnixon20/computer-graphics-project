@@ -48,3 +48,11 @@ export interface AnimationClip {
   name: string,
   frames: AnimationPath[];
 }
+
+export interface ShadingInfo {
+  mode: number;
+  shininess: number;
+  specularColor: number[];
+  diffuseColor: number[];
+  texture?: WebGLTexture;
+}
