@@ -98,8 +98,8 @@ export class Drawer {
             var right = this.gl.canvas.clientWidth/64;
             var bottom = this.gl.canvas.clientHeight/64;
             var top = -this.gl.canvas.clientHeight/64;
-            var near = 20;
-            var far = -20;
+            var near = 50;
+            var far = -50;
             projectionMatrix = m4.orthographic(left, right, bottom, top, near, far);
             up[1] = -1;
 

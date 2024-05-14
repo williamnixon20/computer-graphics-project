@@ -116,8 +116,6 @@ var blockGuyNodeDescriptions: ArticulatedDescriptions = {
   ],
 };
 
-
-
 var jsonToDraw: ArticulatedDescriptions | HollowDescriptions =
   blockGuyNodeDescriptions;
 export default function Canvas() {
@@ -155,27 +153,34 @@ export default function Canvas() {
   const [shininess, setShininess] = useState<number>(0);
   const [specular, setSpecular] = useState<string>("#000000");
   const [diffuse, setDiffuse] = useState<string>("#000000");
-  const [bumpTexture, setBumpTexture] = useState<string>('');
+  const [bumpTexture, setBumpTexture] = useState<string>("");
 
   const hexToRGBAArray = (hex: string, alpha: number): number[] => {
-    let r = 0, g = 0, b = 0;
+    let r = 0,
+      g = 0,
+      b = 0;
     if (hex.length === 4) {
-        r = parseInt(hex[1] + hex[1], 16);
-        g = parseInt(hex[2] + hex[2], 16);
-        b = parseInt(hex[3] + hex[3], 16);
+      r = parseInt(hex[1] + hex[1], 16);
+      g = parseInt(hex[2] + hex[2], 16);
+      b = parseInt(hex[3] + hex[3], 16);
     } else if (hex.length === 7) {
-        r = parseInt(hex.slice(1, 3), 16);
-        g = parseInt(hex.slice(3, 5), 16);
-        b = parseInt(hex.slice(5, 7), 16);
+      r = parseInt(hex.slice(1, 3), 16);
+      g = parseInt(hex.slice(3, 5), 16);
+      b = parseInt(hex.slice(5, 7), 16);
     }
 
-    if (alpha === undefined || isNaN(alpha) || alpha < 0 || alpha > 1 || alpha === 1) {
-        alpha = 255;
+    if (
+      alpha === undefined ||
+      isNaN(alpha) ||
+      alpha < 0 ||
+      alpha > 1 ||
+      alpha === 1
+    ) {
+      alpha = 255;
     }
 
     return [r, g, b, alpha];
   };
-
 
   useEffect(() => {
     setupWebGL();
@@ -206,7 +211,7 @@ export default function Canvas() {
 
     setScene(scene);
     setRefDict(refNode);
-    
+
     const shadingMode = shading ? 1 : 0;
     scene.shadingMode = shadingMode;
     drawer.draw(scene, cameraInformation);
@@ -273,9 +278,9 @@ export default function Canvas() {
                 ] as number
               }
               onChange={(e) =>
-                // cameraInformation.projType === "perspective"  ? 
-                //     handleTransformChange(type, axis, e.target.value) : 
-                    handleTransformChange(type, axis, e.target.value)
+                // cameraInformation.projType === "perspective"  ?
+                //     handleTransformChange(type, axis, e.target.value) :
+                handleTransformChange(type, axis, e.target.value)
               }
             />
           </div>
@@ -322,7 +327,6 @@ export default function Canvas() {
       mouseDownInformation.isDown &&
       mouseDownInformation.startX &&
       mouseDownInformation.startY &&
-
       // real ugly hacks to improve performance by reducing the number of drawing per mouse move
       // e.nativeEvent.offsetX % 2 === 0 &&
       e.nativeEvent.offsetY % 2 === 0
@@ -336,7 +340,10 @@ export default function Canvas() {
 
       const newCameraInformation = { ...cameraInformation };
       newCameraInformation.cameraAngleXRadians = newX;
-      newCameraInformation.cameraAngleYRadians = newY < degToRad(89) && newY > degToRad(-89) ? newY : newCameraInformation.cameraAngleYRadians;
+      newCameraInformation.cameraAngleYRadians =
+        newY < degToRad(89) && newY > degToRad(-89)
+          ? newY
+          : newCameraInformation.cameraAngleYRadians;
 
       setCameraInformation(newCameraInformation);
       const newMouseDownInformation = {
@@ -376,7 +383,10 @@ export default function Canvas() {
   function runAnim(currentTime: number) {
     let lastFrameTime;
     // foxNode: Object3D. Sudah ditambahkan dalam scene
-    let foxAnim = new AnimationRunner('../../test/fox-anim.json', blockGuyNodeDescriptions);
+    let foxAnim = new AnimationRunner(
+      "../../test/fox-anim.json",
+      blockGuyNodeDescriptions
+    );
     if (lastFrameTime === undefined) lastFrameTime = currentTime;
     const deltaSecond = (currentTime - lastFrameTime) / 1000;
     foxAnim.update(deltaSecond);
@@ -400,7 +410,28 @@ export default function Canvas() {
       </div>
       <div className="flex flex-col h-full rounded-md bg-gray-black p-4">
         <label className="text-base font-semibold text-white mb-2">
-          Camera: <br></br>Choose FOV:
+          Camera:
+        </label>
+        <div className="text-base font-semibold text-black mb-2">
+          <select
+            onChange={(e) => {
+              const newValue = e.target.value;
+              setCameraInformation((prevState) => {
+                const newState = { ...prevState };
+                newState.projType = newValue;
+                if (scene) {
+                  drawer?.draw(scene, newState);
+                }
+                return newState;
+              });
+            }}
+          >
+            <option value="perspective">Perspective</option>
+            <option value="orthographic">Orthographic</option>
+          </select>
+        </div>
+        <label className="text-base font-semibold text-white mb-2">
+          Choose FOV:
         </label>
         <input
           type="range"
@@ -455,67 +486,63 @@ export default function Canvas() {
           }}
           className="w-full"
         ></input>
-         <label className="text-base font-semibold text-white mb-2">
+        <label className="text-base font-semibold text-white mb-2">
           Shading:
         </label>
         <input
-        type="checkbox"
-        checked={shading}
-        onChange={(e) =>
-          setShading(e.target.checked)
-        }>
-        </input>
+          type="checkbox"
+          checked={shading}
+          onChange={(e) => setShading(e.target.checked)}
+        ></input>
         <label className="text-base font-semibold text-white mb-2">
           Color:
         </label>
         <input
-        type="color"
-        value={color}
-        onChange={(e) =>
-          setColor(e.target.value)
-        }>  
-        </input>
+          type="color"
+          value={color}
+          onChange={(e) => setColor(e.target.value)}
+        ></input>
         {shading && (
-        <div>
-          <label className="text-base font-semibold text-white mb-2">
-            Shininess:
-            <input
-              type="range"
-              min={0}
-              max={100}
-              value={shininess}
-              onChange={(e) => setShininess(parseInt(e.target.value))}
-            />
-          </label>
-          <label className="text-base font-semibold text-white mb-2">
-            Specular:
-            <input
-              type="color"
-              value={specular}
-              onChange={(e) => setSpecular(e.target.value)}
-            />
-          </label>
-          <label className="text-base font-semibold text-white mb-2">
-            Diffuse:
-            <input
-              type="color"
-              value={diffuse}
-              onChange={(e) => setDiffuse(e.target.value)}
-            />
-          </label>
-          <label className="text-base font-semibold text-white mb-2">
-            Bump Texture:
-            <input
-              type="file"
-              onChange={(e) => {
-                if (e.target.files) {
-                  setBumpTexture(e.target.files[0].name);
-                }
-              }}
-            />
-          </label>
-        </div>
-      )}
+          <div>
+            <label className="text-base font-semibold text-white mb-2">
+              Shininess:
+              <input
+                type="range"
+                min={0}
+                max={100}
+                value={shininess}
+                onChange={(e) => setShininess(parseInt(e.target.value))}
+              />
+            </label>
+            <label className="text-base font-semibold text-white mb-2">
+              Specular:
+              <input
+                type="color"
+                value={specular}
+                onChange={(e) => setSpecular(e.target.value)}
+              />
+            </label>
+            <label className="text-base font-semibold text-white mb-2">
+              Diffuse:
+              <input
+                type="color"
+                value={diffuse}
+                onChange={(e) => setDiffuse(e.target.value)}
+              />
+            </label>
+            <label className="text-base font-semibold text-white mb-2">
+              Bump Texture:
+              <input
+                type="file"
+                onChange={(e) => {
+                  if (e.target.files) {
+                    setBumpTexture(e.target.files[0].name);
+                  }
+                }}
+              />
+            </label>
+          </div>
+        )}
       </div>
       <div>
         {refDict &&
