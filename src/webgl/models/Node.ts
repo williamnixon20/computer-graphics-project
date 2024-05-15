@@ -206,6 +206,7 @@ export class Node {
                 u_worldInverseTranspose: [],
 
                 mode: this.shadingInfo.mode,
+                u_diffuseColor: this.shadingInfo.diffuseColor,
                 u_shininess: this.shadingInfo.shininess,
                 u_specularColor: this.shadingInfo.specularColor,
             }
@@ -270,6 +271,13 @@ export class Node {
         this.shadingInfo.mode = shadingMode;
         this.children.forEach((child) => {
             child.setShadingMode(shadingMode);
+        })
+    }
+
+    setDiffuseColor(diffuseColor: number[]) {
+        this.shadingInfo.diffuseColor = diffuseColor;
+        this.children.forEach((child) => {
+            child.setDiffuseColor(diffuseColor);
         })
     }
 

@@ -151,7 +151,7 @@ export default function Canvas() {
   const [color, setColor] = useState("#000099");
   const [shininess, setShininess] = useState<number>(80);
   const [specular, setSpecular] = useState<string>("#ffffff");
-  const [diffuse, setDiffuse] = useState<string>("#000000");
+  const [diffuse, setDiffuse] = useState<string>("#6464FF");
   const [bumpTexture, setBumpTexture] = useState<string>("");
 
   const hexToRGBAArray = (hex: string, alpha: number): number[] => {
@@ -235,6 +235,8 @@ export default function Canvas() {
     if (scene) {
       scene.setShadingMode(shading ? 1 : 0);
       scene.setShininess(shininess);
+      const diffuseColor = normalizeRGB(hexToRGBAArray(diffuse, 1));
+      scene.setDiffuseColor(diffuseColor);
       const specularColor = normalizeRGB(hexToRGBAArray(specular, 1));
       scene.setSpecularColor(specularColor);
     }
