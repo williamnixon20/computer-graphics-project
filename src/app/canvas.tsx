@@ -184,7 +184,7 @@ export default function Canvas() {
 
   const normalizeRGB = (rgb: number[]): number[] => {
     return [rgb[0] / 255, rgb[1] / 255, rgb[2] / 255];
-  }
+  };
 
   useEffect(() => {
     setupWebGL();
@@ -215,7 +215,7 @@ export default function Canvas() {
 
     setScene(scene);
     setRefDict(refNode);
-    
+
     // set shadingInfo
     scene.setShadingMode(shading ? 1 : 0);
     scene.setShininess(shininess);
@@ -439,19 +439,23 @@ export default function Canvas() {
             <option value="oblique">Oblique</option>
           </select>
         </div>
-        <label className="text-base font-semibold text-white mb-2">
-          Choose FOV:
-        </label>
-        <input
-          type="range"
-          min="0"
-          defaultValue={"60"}
-          max="180"
-          onChange={(e) =>
-            handleFieldOfViewChange(degToRad(parseFloat(e.target.value)))
-          }
-          className="w-full"
-        />
+        {cameraInformation.projType === "perspective" && (
+          <>
+            <label className="text-base font-semibold text-white mb-2">
+              Choose FOV:
+            </label>
+            <input
+              type="range"
+              min="0"
+              defaultValue={"60"}
+              max="180"
+              onChange={(e) =>
+                handleFieldOfViewChange(degToRad(parseFloat(e.target.value)))
+              }
+              className="w-full"
+            />
+          </>
+        )}
         <label className="text-base font-semibold text-white mb-2">
           Turn on animation:
         </label>
@@ -512,46 +516,46 @@ export default function Canvas() {
           onChange={(e) => setColor(e.target.value)}
         ></input>
         {shading && (
-        <div className="flex flex-col gap-2">
-          <label className="text-base font-semibold text-white mb-2">
-            Shininess:
-            <input
-              type="range"
-              min={0}
-              max={100}
-              value={shininess}
-              onChange={(e) => setShininess(parseInt(e.target.value))}
-            />
-          </label>
-          <label className="text-base font-semibold text-white mb-2">
-            Specular:
-            <input
-              type="color"
-              value={specular}
-              onChange={(e) => setSpecular(e.target.value)}
-            />
-          </label>
-          <label className="text-base font-semibold text-white mb-2">
-            Diffuse:
-            <input
-              type="color"
-              value={diffuse}
-              onChange={(e) => setDiffuse(e.target.value)}
-            />
-          </label>
-          <label className="text-base font-semibold text-white mb-2">
-            Bump Texture:
-            <input
-              type="file"
-              onChange={(e) => {
-                if (e.target.files) {
-                  setBumpTexture(e.target.files[0].name);
-                }
-              }}
-            />
-          </label>
-        </div>
-      )}
+          <div className="flex flex-col gap-2">
+            <label className="text-base font-semibold text-white mb-2">
+              Shininess:
+              <input
+                type="range"
+                min={0}
+                max={100}
+                value={shininess}
+                onChange={(e) => setShininess(parseInt(e.target.value))}
+              />
+            </label>
+            <label className="text-base font-semibold text-white mb-2">
+              Specular:
+              <input
+                type="color"
+                value={specular}
+                onChange={(e) => setSpecular(e.target.value)}
+              />
+            </label>
+            <label className="text-base font-semibold text-white mb-2">
+              Diffuse:
+              <input
+                type="color"
+                value={diffuse}
+                onChange={(e) => setDiffuse(e.target.value)}
+              />
+            </label>
+            <label className="text-base font-semibold text-white mb-2">
+              Bump Texture:
+              <input
+                type="file"
+                onChange={(e) => {
+                  if (e.target.files) {
+                    setBumpTexture(e.target.files[0].name);
+                  }
+                }}
+              />
+            </label>
+          </div>
+        )}
       </div>
       <div>
         {refDict &&
