@@ -461,6 +461,17 @@
         return dst;
     }
 
+    function oblique(theta, phi){     
+        var cotTheta = 1 / Math.tan(theta);
+        var cotPhi = 1 / Math.tan(phi);
+        return [
+          1, 0, 0, 0,
+          0, 1, 0, 0,
+          cotTheta, cotPhi, 1, 0,
+          0, 0, 0, 1,
+        ];
+      }
+
     /**
      * Computes a 4-by-4 perspective transformation matrix given the left, right,
      * top, bottom, near and far clipping planes. The arguments define a frustum
@@ -1438,6 +1449,7 @@
         length: length,
         lengthSq: lengthSq,
         orthographic: orthographic,
+        oblique,
         frustum: frustum,
         perspective: perspective,
         translation: translation,
@@ -1479,6 +1491,7 @@
         length: length,
         lengthSq: lengthSq,
         orthographic: orthographic,
+        oblique,
         frustum: frustum,
         perspective: perspective,
         translation: translation,

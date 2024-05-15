@@ -27,7 +27,7 @@ var blockGuyNodeDescriptions: ArticulatedDescriptions = {
   children: [
     {
       name: "waist",
-      translation: [0, 3, 0],
+      translation: [0, 0, 0],
       rotation: [0, 1, 0],
       scale: [1, 1, 1],
       children: [
@@ -436,6 +436,7 @@ export default function Canvas() {
           >
             <option value="perspective">Perspective</option>
             <option value="orthographic">Orthographic</option>
+            <option value="oblique">Oblique</option>
           </select>
         </div>
         <label className="text-base font-semibold text-white mb-2">

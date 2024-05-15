@@ -43,7 +43,8 @@ export class Node {
             cameraAngleXRadians: -1,
             cameraAngleYRadians: -1,
             fieldOfViewRadians: -1,
-            radius: -1
+            radius: -1,
+            projType: "perspective",
         };
         this.shadingInfo = {
             mode: 0,

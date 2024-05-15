@@ -93,7 +93,7 @@ export class Drawer {
         if (cameraInformation.projType === "perspective") {
             projectionMatrix = m4.perspective(cameraInformation.fieldOfViewRadians, aspect, 1, 2000);
             cameraMatrix = m4.xRotate(cameraMatrix, cameraInformation.cameraAngleYRadians);
-        } else if (cameraInformation.projType === "orthographic") {
+        } else {
             var left = -this.gl.canvas.clientWidth/64;
             var right = this.gl.canvas.clientWidth/64;
             var bottom = this.gl.canvas.clientHeight/64;
@@ -103,8 +103,15 @@ export class Drawer {
             projectionMatrix = m4.orthographic(left, right, bottom, top, near, far);
             up[1] = -1;
 
+            if (cameraInformation.projType === "oblique") {
+                projectionMatrix = m4.multiply(
+                    projectionMatrix,
+                    m4.oblique(degToRad(75), degToRad(75))
+                  );
+            }
+
             cameraMatrix = m4.yRotation(cameraInformation.cameraAngleXRadians + degToRad(180));
-            cameraMatrix = m4.xRotate(cameraMatrix, -cameraInformation.cameraAngleYRadians);
+            cameraMatrix = m4.xRotate(cameraMatrix, -cameraInformation.cameraAngleYRadians);            
         }
 
         cameraMatrix = m4.translate(cameraMatrix, 0, 0, cameraInformation.radius);
