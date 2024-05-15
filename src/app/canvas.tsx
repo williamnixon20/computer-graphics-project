@@ -423,7 +423,7 @@ export default function Canvas() {
   }
 
   useEffect(() => {
-    if (!walkAnim) walkAnim = new AnimationRunner(scene!);
+    if (!walkAnim) walkAnim = new AnimationRunner(scene!, 60);
     if (animate) {
       console.log("Animation started");
       walkAnim.start();

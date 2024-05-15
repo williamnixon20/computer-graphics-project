@@ -9,7 +9,7 @@ export class AnimationRunner {
   private deltaFrame: number = 0;
   private currentAnimation?: AnimationClip;
 
-  constructor(root: Node, { fps = 30 } = {}) {
+  constructor(root: Node, fps: number) {
     this.currentAnimation = this.loadWalkingAnimation();
     this.fps = fps;
     this.root = root;
@@ -93,28 +93,32 @@ export class AnimationRunner {
 
     // Define the number of frames for the walking animation
     const numFrames = 60;
-    const stepAngle = 30; // Angle for leg movement
+    const stepAngle = 1; // Angle for leg movement
 
     // Iterate over the number of frames and create keyframes
     for (let i = 0; i < numFrames; i++) {
-      const angle = (i % (numFrames / 2)) < (numFrames / 4) ? stepAngle : -stepAngle;
+      let angle;
+      if (i < numFrames / 4) {
+        angle = i / (numFrames / 4 - 1) * stepAngle;
+      } else if (i < (3 * numFrames) / 4) {
+        angle = stepAngle - ((i - numFrames / 4) / (numFrames / 4 - 1)) * stepAngle;
+      } else {
+        angle = -stepAngle + ((i - (3 * numFrames) / 4) / (numFrames / 4 - 1)) * stepAngle;
+      }
+      console.log("Frame " + i + ": " + angle);
 
       // Calculate translation and rotation for left leg
-      const leftLegTranslation = [0, -Math.sin(angle * Math.PI / 180), 0];
       const leftLegRotation = [angle, 0, 0];
 
       // Calculate translation and rotation for right leg
-      const rightLegTranslation = [0, Math.sin(angle * Math.PI / 180), 0];
       const rightLegRotation = [-angle, 0, 0];
 
       // Create keyframes for both legs
       const leftLegKeyframe: AnimationTRS = {
-        translation: [leftLegTranslation[0], leftLegTranslation[1], leftLegTranslation[2]],
         rotation: [leftLegRotation[0], leftLegRotation[1], leftLegRotation[2]],
       };
 
       const rightLegKeyframe: AnimationTRS = {
-        translation: [rightLegTranslation[0], rightLegTranslation[1], rightLegTranslation[2]],
         rotation: [rightLegRotation[0], rightLegRotation[1], rightLegRotation[2]],
       };
 
