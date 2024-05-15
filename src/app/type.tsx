@@ -38,6 +38,7 @@ export interface AnimationTRS {
 }
 
 export interface AnimationPath {
+  name?: string;
   keyframe?: AnimationTRS;
   children?: {
     [childName: string]: AnimationPath;

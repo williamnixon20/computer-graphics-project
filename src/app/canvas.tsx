@@ -181,7 +181,6 @@ export default function Canvas() {
 
     return [r, g, b, alpha];
   };
-
   const normalizeRGB = (rgb: number[]): number[] => {
     return [rgb[0] / 255, rgb[1] / 255, rgb[2] / 255];
   };
@@ -405,20 +404,30 @@ export default function Canvas() {
     });
   }
 
+  // Animation
+  let walkAnim: AnimationRunner | undefined;
+  let lastFrameTime: number | undefined;
+
   function runAnim(currentTime: number) {
-    let lastFrameTime;
-    // foxNode: Object3D. Sudah ditambahkan dalam scene
-    let foxAnim = new AnimationRunner(
-      "../../test/fox-anim.json",
-      blockGuyNodeDescriptions
-    );
+    if (!animate) return;
+    if (!scene) return;
+
     if (lastFrameTime === undefined) lastFrameTime = currentTime;
     const deltaSecond = (currentTime - lastFrameTime) / 1000;
-    foxAnim.update(deltaSecond);
-    // Tambahkan render update, animasi, dan lainnya di sini
+
+    if (!walkAnim) walkAnim = new AnimationRunner(scene);
+    walkAnim.update(deltaSecond);
+    drawer?.draw(scene, cameraInformation);
+
     lastFrameTime = currentTime;
     requestAnimationFrame(runAnim);
   }
+
+  useEffect(() => {
+    if (animate) {
+      requestAnimationFrame(runAnim);
+    }
+  }, [animate]);
 
   return (
     <>
@@ -481,9 +490,6 @@ export default function Canvas() {
           checked={animate}
           onChange={(e) => {
             setAnimate(e.target.checked);
-            if (e.target.checked) {
-              requestAnimationFrame(runAnim);
-            }
           }}
           className="w-full"
         ></input>
