@@ -188,7 +188,7 @@ export default function Canvas() {
 
   useEffect(() => {
     setupWebGL();
-  }, [color, shading, shininess, specular]);
+  }, [color]);
 
   function setupWebGL() {
     if (!canvasRef.current) {
@@ -223,6 +223,23 @@ export default function Canvas() {
     scene.setSpecularColor(specularColor);
 
     drawer.draw(scene, cameraInformation);
+  }
+
+  useEffect(() => {
+    updateShading();
+    if(scene)
+    drawer?.draw(scene, cameraInformation);
+  }
+  , [shading, shininess, specular, diffuse, bumpTexture]);
+
+
+  const updateShading = () => {
+    if (scene) {
+      scene.setShadingMode(shading ? 1 : 0);
+      scene.setShininess(shininess);
+      const specularColor = normalizeRGB(hexToRGBAArray(specular, 1));
+      scene.setSpecularColor(specularColor);
+    }
   }
 
   const handleTransformChange = (
