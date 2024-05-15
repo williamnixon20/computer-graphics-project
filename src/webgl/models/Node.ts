@@ -49,6 +49,7 @@ export class Node {
         this.shadingInfo = {
             mode: 0,
             shininess: 100,
+            ambientColor: [1, 1, 1],
             specularColor: [1, 1, 1],
             diffuseColor: [1, 1, 1],
         }
@@ -96,7 +97,7 @@ export class Node {
         });
     }
 
-    buildArticulated(nodeDescription: ArticulatedDescriptions, color: number[]) {
+    buildArticulated(nodeDescription: ArticulatedDescriptions) {
         let trs = this.source
         trs.translation = nodeDescription.translation || trs.translation;
         trs.rotation = nodeDescription.rotation || trs.rotation;
@@ -111,7 +112,8 @@ export class Node {
         let cubeVertices = primitives.createCubeVertices(1);
         let vertices = primitives.deindexVertices(cubeVertices);
         // console.log(vertices)
-        vertices = primitives.makeColor(vertices, color);
+        // vertices = primitives.makeColor(vertices, this.shadingInfo.ambientColor);
+        console.log(this.shadingInfo.ambientColor)
         // vertices = primitives.makeRandomVertexColors(vertices, {
         //     vertsPerColor: 6,
         //     rand: function (ndx, channel) {
@@ -135,7 +137,7 @@ export class Node {
         return this;
     }
 
-    buildHollow(nodeDescription: HollowDescriptions, color: number[]) {
+    buildHollow(nodeDescription: HollowDescriptions) {
         this.draw = true;
         const lengthPoint = nodeDescription.positions.length / (3 * 6);
         console.log("LENGTH POINT", lengthPoint)
@@ -153,10 +155,10 @@ export class Node {
         for (let i = 0; i < lengthPoint; i++) {
             textureArr = textureArr.concat(textureArrBase);
         }
-        const colors = primitives.makeColorLen(nodeDescription.positions.length, color);
+        // const colors = primitives.makeColorLen(nodeDescription.positions.length, this.shadingInfo.ambientColor);
         this.arrayInfo = {
             position: nodeDescription.positions,
-            color: colors,
+            // color: colors,
             normal: nodeDescription.normals,
             texcoord: new Float32Array(textureArr)
         }
@@ -168,13 +170,12 @@ export class Node {
         return this;
     }
 
-    buildByDescription(nodeDescription: ArticulatedDescriptions | HollowDescriptions, color: number[]) {
-        if (nodeDescription.type === "articulated" && color) {
-            this.color = color;
-            return this.buildArticulated(nodeDescription as ArticulatedDescriptions, color);
+    buildByDescription(nodeDescription: ArticulatedDescriptions | HollowDescriptions) {
+        if (nodeDescription.type === "articulated" ) {
+            return this.buildArticulated(nodeDescription as ArticulatedDescriptions);
         }
         else {
-            return this.buildHollow(nodeDescription as HollowDescriptions, color);
+            return this.buildHollow(nodeDescription as HollowDescriptions);
         }
     }
 
@@ -182,7 +183,7 @@ export class Node {
         return nodeDescriptions ? nodeDescriptions.map((node) => {
             node["type"] = type;
             const childNode = new Node();
-            return childNode.buildByDescription(node, this.color)
+            return childNode.buildByDescription(node)
         }) : [];
     }
 
@@ -199,7 +200,7 @@ export class Node {
                     ((this.id >> 24) & 0xFF) / 0xFF,
                 ],
                 // u_matrix: [],
-                // u_color: [0, 1, 0.7, 1],
+                u_color: this.shadingInfo.ambientColor,
                 u_reverseLightDirection: [1, 1, 1],
                 u_worldViewProjection: [],
                 // u_world: [],
@@ -271,6 +272,13 @@ export class Node {
         this.shadingInfo.mode = shadingMode;
         this.children.forEach((child) => {
             child.setShadingMode(shadingMode);
+        })
+    }
+
+    setAmbientColor(ambientColor: number[]) {
+        this.shadingInfo.ambientColor = ambientColor;
+        this.children.forEach((child) => {
+            child.setAmbientColor(ambientColor);
         })
     }
 

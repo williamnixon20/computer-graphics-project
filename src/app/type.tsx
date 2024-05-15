@@ -52,6 +52,7 @@ export interface AnimationClip {
 
 export interface ShadingInfo {
   mode: number;
+  ambientColor: number[];
   shininess: number;
   specularColor: number[];
   diffuseColor: number[];

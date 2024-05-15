@@ -1,5 +1,5 @@
 attribute vec4 a_position;
-attribute vec4 a_color;
+// attribute vec4 a_color;
 attribute vec3 a_normal;
 attribute vec2 a_textureCoord;
 
@@ -7,6 +7,7 @@ attribute vec2 a_textureCoord;
 uniform mat4 u_worldViewProjection;
 uniform mat4 u_worldInverseTranspose;
 // uniform mat4 u_world;
+uniform vec4 u_color;
 
 varying vec4 v_color;
 varying vec3 v_normal;
@@ -18,7 +19,7 @@ void main() {
   gl_Position = u_worldViewProjection  * a_position;
 
   // Pass the color to the fragment shader.
-  v_color = a_color;
+  v_color = u_color;
 
   // Orient the normals and pass to the fragment shader
   v_normal = mat3(u_worldInverseTranspose) * a_normal;

@@ -186,7 +186,7 @@ export default function Canvas() {
 
   useEffect(() => {
     setupWebGL();
-  }, [color]);
+  }, []);
 
   function setupWebGL() {
     if (!canvasRef.current) {
@@ -207,21 +207,26 @@ export default function Canvas() {
     }
     let scene = null;
     let refNode = {};
-    const arr_color = hexToRGBAArray(color, 1);
-    scene = new Node().buildByDescription(jsonToDraw, arr_color);
+    scene = new Node().buildByDescription(jsonToDraw);
+    const arr_color = normalizeRGB(hexToRGBAArray(color, 1));
+    scene.setAmbientColor(arr_color.concat([1]));
+
     scene.procedureGetNodeRefDict(refNode);
 
     setScene(scene);
     setRefDict(refNode);
 
-    // set shadingInfo
-    scene.setShadingMode(shading ? 1 : 0);
-    scene.setShininess(shininess);
-    const specularColor = normalizeRGB(hexToRGBAArray(specular, 1));
-    scene.setSpecularColor(specularColor);
-
     drawer.draw(scene, cameraInformation);
   }
+
+  useEffect(() => {
+    if(scene){
+      const arr_color = normalizeRGB(hexToRGBAArray(color, 1));
+      scene.setAmbientColor(arr_color.concat([1]));
+      console.log(arr_color);
+      drawer?.draw(scene, cameraInformation);
+    }
+  }, [color]);
 
   useEffect(() => {
     updateShading();
@@ -553,8 +558,8 @@ export default function Canvas() {
               Shininess:
               <input
                 type="range"
-                min={0}
-                max={100}
+                min={1}
+                max={120}
                 value={shininess}
                 onChange={(e) => setShininess(parseInt(e.target.value))}
               />
