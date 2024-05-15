@@ -88,7 +88,7 @@ export class Drawer {
         var projectionMatrix;
         var target = [0, 0, 0];
         var up = [0, 1, 0];
-        
+
         var cameraMatrix = m4.yRotation(cameraInformation.cameraAngleXRadians);
         if (cameraInformation.projType === "perspective") {
             projectionMatrix = m4.perspective(cameraInformation.fieldOfViewRadians, aspect, 1, 2000);
@@ -115,12 +115,12 @@ export class Drawer {
         }
 
         cameraMatrix = m4.translate(cameraMatrix, 0, 0, cameraInformation.radius);
-    
+
         // Get the camera's position from the matrix we computed
-        var cameraPosition : number[] = [
-          cameraMatrix[12],
-          cameraMatrix[13],
-          cameraMatrix[14],
+        var cameraPosition: number[] = [
+            cameraMatrix[12],
+            cameraMatrix[13],
+            cameraMatrix[14],
         ];
 
         cameraMatrix = m4.lookAt(cameraPosition, target, up);
@@ -132,7 +132,7 @@ export class Drawer {
         scene.updateWorldMatrix(null);
 
         scene.updateCameraInformation(cameraInformation);
-        
+
         var adjust;
         var speed = 3;
         var c = time * speed;
@@ -220,7 +220,7 @@ export class Drawer {
         gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
         const positionBuffer = gl.createBuffer();
         gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
-        gl.bufferData(gl.ARRAY_BUFFER, new Float64Array([
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
             -1.0, -1.0,
             1.0, -1.0,
             -1.0, 1.0,
