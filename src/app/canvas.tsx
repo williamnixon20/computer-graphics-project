@@ -130,7 +130,6 @@ export default function Canvas() {
       projType: "perspective",
     }
   );
-  const [animate, setAnimate] = useState(false);
   const [refDict, setRefDict] = useState<{ [key: string]: any }>({});
   let [drawer, setDrawer] = useState<Drawer>();
   const [scene, setScene] = useState<Node>();
@@ -405,28 +404,36 @@ export default function Canvas() {
   }
 
   // Animation
+  const [animate, setAnimate] = useState(false);
   let walkAnim: AnimationRunner | undefined;
   let lastFrameTime: number | undefined;
+  let animationFrameId: number;
 
   function runAnim(currentTime: number) {
-    if (!animate) return;
-    if (!scene) return;
+    if (!animate || !scene) return;
 
     if (lastFrameTime === undefined) lastFrameTime = currentTime;
     const deltaSecond = (currentTime - lastFrameTime) / 1000;
 
-    if (!walkAnim) walkAnim = new AnimationRunner(scene);
-    walkAnim.update(deltaSecond);
+    walkAnim!.update(deltaSecond);
     drawer?.draw(scene, cameraInformation);
 
     lastFrameTime = currentTime;
-    requestAnimationFrame(runAnim);
+    animationFrameId = requestAnimationFrame(runAnim);
   }
 
   useEffect(() => {
+    if (!walkAnim) walkAnim = new AnimationRunner(scene!);
     if (animate) {
-      requestAnimationFrame(runAnim);
+      console.log("Animation started");
+      walkAnim.start();
+      animationFrameId = requestAnimationFrame(runAnim);
+    } else {
+      console.log("Animation stopped");
+      walkAnim.stop();
+      cancelAnimationFrame(animationFrameId);
     }
+    return () => cancelAnimationFrame(animationFrameId);
   }, [animate]);
 
   return (

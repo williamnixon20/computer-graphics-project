@@ -15,6 +15,14 @@ export class AnimationRunner {
     this.root = root;
   }
 
+  start() {
+    this.isPlaying = true;
+  }
+
+  stop() {
+    this.isPlaying = false;
+  }
+
   get Root() {
     return this.root;
   }
@@ -40,7 +48,6 @@ export class AnimationRunner {
   }
 
   update(deltaSecond: number) {
-    this.isPlaying = true;
     if (this.isPlaying) {
       this.deltaFrame += deltaSecond * this.fps;
       if (this.deltaFrame >= 1) { // 1 frame
