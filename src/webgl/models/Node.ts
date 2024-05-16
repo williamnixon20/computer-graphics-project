@@ -19,7 +19,7 @@ export class Node {
     cubeBufferInfo: any;
     name: string;
     arrayInfo: {
-        [index : string] : ArrayBuffer | number[];
+        [index: string]: ArrayBuffer | number[];
     };
     id: number;
     cameraInformation: CameraInformation;
@@ -155,6 +155,9 @@ export class Node {
         for (let i = 0; i < lengthPoint; i++) {
             textureArr = textureArr.concat(textureArrBase);
         }
+        for (let i = 0; i < nodeDescription.positions.length; i++) {
+            nodeDescription.positions[i] = nodeDescription.positions[i] * 0.01;
+        }
         // const colors = primitives.makeColorLen(nodeDescription.positions.length, this.shadingInfo.ambientColor);
         this.arrayInfo = {
             position: nodeDescription.positions,
@@ -171,7 +174,7 @@ export class Node {
     }
 
     buildByDescription(nodeDescription: ArticulatedDescriptions | HollowDescriptions) {
-        if (nodeDescription.type === "articulated" ) {
+        if (nodeDescription.type === "articulated") {
             return this.buildArticulated(nodeDescription as ArticulatedDescriptions);
         }
         else {
@@ -240,6 +243,16 @@ export class Node {
         })
     }
 
+    getCurrentMatrix() {
+        const source = this.source;
+        if (source) {
+            source.getMatrix(this.localMatrix);
+        }
+
+        m4.copy(this.localMatrix, this.worldMatrix);
+        return this.worldMatrix;
+    }
+
     procedureGetNodeRefDict(nodeDict: any, level = 0) {
         nodeDict[this.name] = {
             "node": this,
@@ -253,6 +266,10 @@ export class Node {
 
     addTransform(transform: Transforms) {
         this.source.setDelta(transform);
+    }
+
+    setTransform(transform: Transforms) {
+        this.source.setTransform(transform);
     }
 
     getById(id: number): Node | null {

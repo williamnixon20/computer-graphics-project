@@ -26,7 +26,7 @@ export class AnimationRunner {
   get Root() {
     return this.root;
   }
-   
+
   get CurrentFrame() {
     return this.currentFrame;
   }
@@ -38,7 +38,7 @@ export class AnimationRunner {
   get CurrentAnimation() {
     return this.currentAnimation;
   }
-   
+
   get length() {
     return this.currentAnimation!.frames.length;
   }
@@ -85,7 +85,7 @@ export class AnimationRunner {
   private updateNodeTRS(node: Node, trs: AnimationTRS) {
     // Update the node with the translation and rotation
     const transforms = this.convertToTransforms(trs);
-    node.addTransform(transforms);
+    node.setTransform(transforms);
   }
 
   private loadWalkingAnimation(): AnimationClip {
@@ -160,15 +160,15 @@ export class AnimationRunner {
     const translate = animationTRS.translation
       ? { x: animationTRS.translation[0], y: animationTRS.translation[1], z: animationTRS.translation[2] }
       : { x: 0, y: 0, z: 0 };
-  
+
     const rotate = animationTRS.rotation
       ? { x: animationTRS.rotation[0], y: animationTRS.rotation[1], z: animationTRS.rotation[2] }
       : { x: 0, y: 0, z: 0 };
-  
+
     const scale = animationTRS.scale
       ? { x: animationTRS.scale[0], y: animationTRS.scale[1], z: animationTRS.scale[2] }
       : { x: 1, y: 1, z: 1 };
-  
+
     return { translate, rotate, scale };
   }
 }

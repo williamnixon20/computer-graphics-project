@@ -52,6 +52,12 @@ class TRS {
     setDelta(transform: Transforms) {
         this.delta = transform;
     }
+
+    setTransform(transform: Transforms) {
+        this.translation = [transform.translate.x, transform.translate.y, transform.translate.z];
+        this.rotation = [transform.rotate.x, transform.rotate.y, transform.rotate.z];
+        this.scale = [transform.scale.x, transform.scale.y, transform.scale.z];
+    }
 }
 
 
