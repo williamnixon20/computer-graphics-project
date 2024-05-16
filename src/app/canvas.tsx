@@ -226,7 +226,7 @@ export default function Canvas() {
   }
 
   useEffect(() => {
-    if(scene){
+    if (scene) {
       const arr_color = normalizeRGB(hexToRGBAArray(color, 1));
       scene.setAmbientColor(arr_color.concat([1]));
       console.log(arr_color);
@@ -236,11 +236,8 @@ export default function Canvas() {
 
   useEffect(() => {
     updateShading();
-    if(scene)
-    drawer?.draw(scene, cameraInformation);
-  }
-  , [shading, shininess, specular, diffuse, bumpTexture]);
-
+    if (scene) drawer?.draw(scene, cameraInformation);
+  }, [shading, shininess, specular, diffuse, bumpTexture]);
 
   const updateShading = () => {
     if (scene) {
@@ -251,7 +248,7 @@ export default function Canvas() {
       const specularColor = normalizeRGB(hexToRGBAArray(specular, 1));
       scene.setSpecularColor(specularColor);
     }
-  }
+  };
 
   const handleTransformChange = (
     type: keyof Transforms,
@@ -342,7 +339,7 @@ export default function Canvas() {
     if (pickId) {
       resetTransforms();
       let selectedNode = scene?.getById(pickId);
-      console.log("position: ", selectedNode?.arrayInfo)
+      console.log("position: ", selectedNode?.arrayInfo);
       setSelectedName(selectedNode?.name);
     }
   }
@@ -418,30 +415,34 @@ export default function Canvas() {
   }
 
   const handleKeyDown = (e: KeyboardEvent<HTMLCanvasElement>) => {
-    const {key} = e
-    
+    const { key } = e;
+
     if (key === "w" || key === "a" || key === "s" || key === "d") {
-      const newCameraInformation = {...cameraInformation}
+      const newCameraInformation = { ...cameraInformation };
       if (key === "w") {
-        newCameraInformation.translateY += 2 * (newCameraInformation.radius / 100);
-      }
-      else if (key === "a") {
-        newCameraInformation.translateX -= 2 * (newCameraInformation.radius / 100);
-      }
-      else if (key === "s") {
-        newCameraInformation.translateY -= 2 * (newCameraInformation.radius / 100);
-      }
-      else {
-        newCameraInformation.translateX += 2 * (newCameraInformation.radius / 100);
+        newCameraInformation.translateY +=
+          2 * (newCameraInformation.radius / 100);
+      } else if (key === "a") {
+        newCameraInformation.translateX -=
+          2 * (newCameraInformation.radius / 100);
+      } else if (key === "s") {
+        newCameraInformation.translateY -=
+          2 * (newCameraInformation.radius / 100);
+      } else {
+        newCameraInformation.translateX +=
+          2 * (newCameraInformation.radius / 100);
       }
 
       setCameraInformation(newCameraInformation);
-      console.log(newCameraInformation.translateX, newCameraInformation.translateY)
+      console.log(
+        newCameraInformation.translateX,
+        newCameraInformation.translateY
+      );
       if (scene) {
         drawer?.draw(scene, newCameraInformation);
       }
     }
-  }
+  };
 
   // Animation
   const [animate, setAnimate] = useState(false);
@@ -498,6 +499,27 @@ export default function Canvas() {
         <label className="text-base font-semibold text-white mb-2">
           Camera:
         </label>
+        <button
+          onClick={() => {
+            const reset = {
+              cameraAngleXRadians: degToRad(0),
+              cameraAngleYRadians: degToRad(0),
+              fieldOfViewRadians: degToRad(60),
+              radius: 10,
+              projType: "perspective",
+              translateX: 0,
+              translateY: 0,
+            };
+            setCameraInformation(reset);
+
+            if (scene) {
+              drawer?.draw(scene, reset);
+            }
+          }}
+          className="w-full mb-4 bg-blue-500 text-white py-2"
+        >
+          Reset camera
+        </button>
         <div className="text-base font-semibold text-black mb-2">
           <select
             onChange={(e) => {
@@ -511,6 +533,7 @@ export default function Canvas() {
                 return newState;
               });
             }}
+            value={cameraInformation.projType}
           >
             <option value="perspective">Perspective</option>
             <option value="orthographic">Orthographic</option>
@@ -537,19 +560,26 @@ export default function Canvas() {
 
         <div>
           <div className="mb-4">
-            <span className="text-base font-semibold text-white">Current Frame: {currentFrame}</span>
-            <span className="text-base font-semibold text-white"> / {walkAnim!.length || 0}</span>
+            <span className="text-base font-semibold text-white">
+              Current Frame: {currentFrame}
+            </span>
+            <span className="text-base font-semibold text-white">
+              {" "}
+              / {walkAnim!.length || 0}
+            </span>
           </div>
 
           <button
             onClick={() => setAnimate(!animate)}
             className="w-full mb-4 bg-blue-500 text-white py-2"
           >
-            {animate ? 'Pause' : 'Play'}
+            {animate ? "Pause" : "Play"}
           </button>
 
           <div className="mb-4">
-            <label className="text-base font-semibold text-white mr-2">Reverse</label>
+            <label className="text-base font-semibold text-white mr-2">
+              Reverse
+            </label>
             <input
               type="checkbox"
               checked={reverse}
@@ -558,7 +588,9 @@ export default function Canvas() {
           </div>
 
           <div>
-            <label className="text-base font-semibold text-white mr-2">Auto-Replay</label>
+            <label className="text-base font-semibold text-white mr-2">
+              Auto-Replay
+            </label>
             <input
               type="checkbox"
               checked={autoReplay}
