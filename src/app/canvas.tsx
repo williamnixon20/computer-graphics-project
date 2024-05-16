@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { KeyboardEvent, useEffect, useRef, useState } from "react";
 import TRS from "../webgl/utils/trs";
 import { AnimationRunner } from "@/webgl/utils/animation";
 
@@ -28,9 +28,13 @@ var blockGuyNodeDescriptions: ArticulatedDescriptions = {
     {
       name: "waist",
       translation: [0, 0, 0],
-      rotation: [0, 1, 0],
+      rotation: [0, 0, 0],
       scale: [1, 1, 1],
       children: [
+        {
+          name: "test front",
+          translation: [6, 0, 0],
+        },
         {
           name: "torso",
           translation: [0, 2, 0],
@@ -128,6 +132,8 @@ export default function Canvas() {
       fieldOfViewRadians: degToRad(60),
       radius: 10,
       projType: "perspective",
+      translateX: 0,
+      translateY: 0,
     }
   );
   const [refDict, setRefDict] = useState<{ [key: string]: any }>({});
@@ -336,6 +342,7 @@ export default function Canvas() {
     if (pickId) {
       resetTransforms();
       let selectedNode = scene?.getById(pickId);
+      console.log("position: ", selectedNode?.arrayInfo)
       setSelectedName(selectedNode?.name);
     }
   }
@@ -371,7 +378,7 @@ export default function Canvas() {
       const newCameraInformation = { ...cameraInformation };
       newCameraInformation.cameraAngleXRadians = newX;
       newCameraInformation.cameraAngleYRadians =
-        newY < degToRad(89) && newY > degToRad(-89)
+        newY < degToRad(88) && newY > degToRad(-88)
           ? newY
           : newCameraInformation.cameraAngleYRadians;
 
@@ -408,6 +415,32 @@ export default function Canvas() {
       }
       return newState;
     });
+  }
+
+  const handleKeyDown = (e: KeyboardEvent<HTMLCanvasElement>) => {
+    const {key} = e
+    
+    if (key === "w" || key === "a" || key === "s" || key === "d") {
+      const newCameraInformation = {...cameraInformation}
+      if (key === "w") {
+        newCameraInformation.translateY += 2 * (newCameraInformation.radius / 100);
+      }
+      else if (key === "a") {
+        newCameraInformation.translateX -= 2 * (newCameraInformation.radius / 100);
+      }
+      else if (key === "s") {
+        newCameraInformation.translateY -= 2 * (newCameraInformation.radius / 100);
+      }
+      else {
+        newCameraInformation.translateX += 2 * (newCameraInformation.radius / 100);
+      }
+
+      setCameraInformation(newCameraInformation);
+      console.log(newCameraInformation.translateX, newCameraInformation.translateY)
+      if (scene) {
+        drawer?.draw(scene, newCameraInformation);
+      }
+    }
   }
 
   // Animation
@@ -455,6 +488,8 @@ export default function Canvas() {
           onMouseUp={handleMouseUp}
           onMouseMove={handleMouseMove}
           onWheel={handleScroll}
+          onKeyDown={handleKeyDown}
+          tabIndex={0}
           id="webgl-canvas"
           className="w-[720px] h-[720px] bg-white"
         />

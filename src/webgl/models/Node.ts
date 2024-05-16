@@ -45,6 +45,8 @@ export class Node {
             fieldOfViewRadians: -1,
             radius: -1,
             projType: "perspective",
+            translateX: 0,
+            translateY: 0,
         };
         this.shadingInfo = {
             mode: 0,
@@ -113,7 +115,7 @@ export class Node {
         let vertices = primitives.deindexVertices(cubeVertices);
         // console.log(vertices)
         // vertices = primitives.makeColor(vertices, this.shadingInfo.ambientColor);
-        console.log(this.shadingInfo.ambientColor)
+        // console.log(this.shadingInfo.ambientColor)
         // vertices = primitives.makeRandomVertexColors(vertices, {
         //     vertsPerColor: 6,
         //     rand: function (ndx, channel) {

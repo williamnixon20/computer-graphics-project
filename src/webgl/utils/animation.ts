@@ -105,7 +105,7 @@ export class AnimationRunner {
       } else {
         angle = -stepAngle + ((i - (3 * numFrames) / 4) / (numFrames / 4 - 1)) * stepAngle;
       }
-      console.log("Frame " + i + ": " + angle);
+      // console.log("Frame " + i + ": " + angle);
 
       // Calculate translation and rotation for left leg
       const leftLegRotation = [angle, 0, 0];

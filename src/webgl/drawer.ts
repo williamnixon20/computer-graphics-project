@@ -86,7 +86,8 @@ export class Drawer {
         // Compute the projection matrix
         var aspect = this.gl.canvas.clientWidth / this.gl.canvas.clientHeight;
         var projectionMatrix;
-        var target = [0, 0, 0];
+        // var target = [3, 0, 0];
+        var target = [cameraInformation.translateX, cameraInformation.translateY, 0];
         var up = [0, 1, 0];
 
         var cameraMatrix = m4.yRotation(cameraInformation.cameraAngleXRadians);
@@ -114,7 +115,7 @@ export class Drawer {
             cameraMatrix = m4.xRotate(cameraMatrix, -cameraInformation.cameraAngleYRadians);            
         }
 
-        cameraMatrix = m4.translate(cameraMatrix, 0, 0, cameraInformation.radius);
+        cameraMatrix = m4.translate(cameraMatrix, cameraInformation.translateX, cameraInformation.translateY, cameraInformation.radius);
 
         // Get the camera's position from the matrix we computed
         var cameraPosition: number[] = [
@@ -124,6 +125,11 @@ export class Drawer {
         ];
 
         cameraMatrix = m4.lookAt(cameraPosition, target, up);
+
+        cameraMatrix = m4.translate(cameraMatrix, 0, 0, 0);
+        // cameraMatrix = m4.translate(cameraMatrix, 0, 0, 0);
+        // cameraMatrix = m4.xRotate(cameraMatrix, 0);
+        // cameraMatrix = m4.yRotate(cameraMatrix, 0);
 
         var viewMatrix = m4.inverse(cameraMatrix);
 
