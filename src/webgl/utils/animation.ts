@@ -115,10 +115,12 @@ export class AnimationRunner {
 
       // Create keyframes for both legs
       const leftLegKeyframe: AnimationTRS = {
+        translation: [-1, -1, 0],
         rotation: [leftLegRotation[0], leftLegRotation[1], leftLegRotation[2]],
       };
 
       const rightLegKeyframe: AnimationTRS = {
+        translation: [1, -1, 0],
         rotation: [rightLegRotation[0], rightLegRotation[1], rightLegRotation[2]],
       };
 
@@ -127,7 +129,7 @@ export class AnimationRunner {
         name: "waist",
         keyframe: {
           translation: [0, 0, 0], // No translation for the torso
-          rotation: [0, 0, 0], // No rotation for the torso
+          rotation: [0, 1, 0], // No rotation for the torso
         },
         children: {
           "left-leg": {

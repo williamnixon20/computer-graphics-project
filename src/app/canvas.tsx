@@ -412,7 +412,10 @@ export default function Canvas() {
 
   // Animation
   const [animate, setAnimate] = useState(false);
-  let walkAnim: AnimationRunner | undefined;
+  const [reverse, setReverse] = useState(false);
+  const [autoReplay, setAutoReplay] = useState(false);
+  const [currentFrame, setCurrentFrame] = useState(0);
+  let walkAnim: AnimationRunner = new AnimationRunner(scene!, 60);
   let lastFrameTime: number | undefined;
   let animationFrameId: number;
 
@@ -423,6 +426,7 @@ export default function Canvas() {
     const deltaSecond = (currentTime - lastFrameTime) / 1000;
 
     walkAnim!.update(deltaSecond);
+    setCurrentFrame(walkAnim.CurrentFrame);
     drawer?.draw(scene, cameraInformation);
 
     lastFrameTime = currentTime;
@@ -430,7 +434,6 @@ export default function Canvas() {
   }
 
   useEffect(() => {
-    if (!walkAnim) walkAnim = new AnimationRunner(scene!, 60);
     if (animate) {
       console.log("Animation started");
       walkAnim.start();
@@ -496,17 +499,39 @@ export default function Canvas() {
             />
           </>
         )}
-        <label className="text-base font-semibold text-white mb-2">
-          Turn on animation:
-        </label>
-        <input
-          type="checkbox"
-          checked={animate}
-          onChange={(e) => {
-            setAnimate(e.target.checked);
-          }}
-          className="w-full"
-        ></input>
+
+        <div>
+          <div className="mb-4">
+            <span className="text-base font-semibold text-white">Current Frame: {currentFrame}</span>
+            <span className="text-base font-semibold text-white"> / {walkAnim!.length || 0}</span>
+          </div>
+
+          <button
+            onClick={() => setAnimate(!animate)}
+            className="w-full mb-4 bg-blue-500 text-white py-2"
+          >
+            {animate ? 'Pause' : 'Play'}
+          </button>
+
+          <div className="mb-4">
+            <label className="text-base font-semibold text-white mr-2">Reverse</label>
+            <input
+              type="checkbox"
+              checked={reverse}
+              onChange={(e) => setReverse(e.target.checked)}
+            />
+          </div>
+
+          <div>
+            <label className="text-base font-semibold text-white mr-2">Auto-Replay</label>
+            <input
+              type="checkbox"
+              checked={autoReplay}
+              onChange={(e) => setAutoReplay(e.target.checked)}
+            />
+          </div>
+        </div>
+
         <label className="text-base font-semibold text-white mb-2">
           Grayscale Postprocess:
         </label>
