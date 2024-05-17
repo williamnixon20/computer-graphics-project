@@ -61,5 +61,5 @@ export interface ShadingInfo {
   shininess: number;
   specularColor: number[];
   diffuseColor: number[];
-  texture?: WebGLTexture;
+  material?: number;
 }

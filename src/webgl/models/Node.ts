@@ -59,6 +59,7 @@ export class Node {
             ambientColor: [1, 1, 1],
             specularColor: [1, 1, 1],
             diffuseColor: [1, 1, 1],
+            material: 0,
         }
         this.texture = null;
     }
@@ -214,6 +215,7 @@ export class Node {
                 u_diffuseColor: this.shadingInfo.diffuseColor,
                 u_shininess: this.shadingInfo.shininess,
                 u_specularColor: this.shadingInfo.specularColor,
+                material: this.shadingInfo.material,
             }
             // uniforms.u_matrix = m4.multiply(viewProjectionMatrix, this.worldMatrix);
             const u_world = m4.yRotation(this.cameraInformation.cameraAngleXRadians);
@@ -327,6 +329,13 @@ export class Node {
         this.shadingInfo.specularColor = specularColor;
         this.children.forEach((child) => {
             child.setSpecularColor(specularColor);
+        })
+    }
+
+    setMaterial(material: number) {
+        this.shadingInfo.material = material;
+        this.children.forEach((child) => {
+            child.setMaterial(material);
         })
     }
 

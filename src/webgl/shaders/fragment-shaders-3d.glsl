@@ -17,21 +17,25 @@ uniform vec3 u_diffuseColor;
 uniform vec3 u_specularColor;
 
 uniform sampler2D u_texture;
+uniform int material;
 
 void main() {
+
+     vec4 color;
+
+     if (material == 1) {
+          color = texture2D(u_texture, v_texcoord);
+     } else {
+          color = v_color;
+     }
+
      if (mode == 0) {
-
-          gl_FragColor = v_color;
-
-     } else if (mode == 1) {
-
-          gl_FragColor = texture2D(u_texture, v_texcoord);      
-
+          gl_FragColor = color;
      } else {
           vec3 normal = normalize(v_normal);
           vec3 lightDirection = normalize(u_reverseLightDirection);
 
-          vec3 ambient = v_color.rgb;
+          vec3 ambient = color.rgb;
 
           float diffuseStrength = max(dot(normal, lightDirection), 0.0);
           vec3 diffuse = u_diffuseColor * diffuseStrength;
@@ -43,6 +47,6 @@ void main() {
 
           vec3 finalColor = (ambient + diffuse + specular);
 
-          gl_FragColor = vec4(finalColor, v_color.a);
+          gl_FragColor = vec4(finalColor, color.a);
      }
 }
