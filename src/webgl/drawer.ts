@@ -1,7 +1,6 @@
 import { Node } from './models/Node';
 import * as m4 from "./utils/m4";
 import * as webglUtils from "./utils/webGlUtils";
-import * as primitives from "./utils/primitives";
 
 import { createVertexShader, createFragmentShader, createVertexShaderPicking, createFragmentShaderPicking, createVertexPostProcessShader, createFragmentPostProcessShader } from "@/webgl/utils/create-shader";
 import { CameraInformation } from '@/app/type';
@@ -109,10 +108,10 @@ export class Drawer {
             cameraMatrix = m4.yRotation(cameraInformation.cameraAngleXRadians);
             cameraMatrix = m4.xRotate(cameraMatrix, cameraInformation.cameraAngleYRadians);
         } else {
-            var left = -this.gl.canvas.clientWidth / 128;
-            var right = this.gl.canvas.clientWidth / 128;
-            var bottom = this.gl.canvas.clientHeight / 128;
-            var top = -this.gl.canvas.clientHeight / 128;
+            var left = -this.gl.canvas.clientWidth / 64;
+            var right = this.gl.canvas.clientWidth / 64;
+            var bottom = this.gl.canvas.clientHeight / 64;
+            var top = -this.gl.canvas.clientHeight / 64;
             var near = 50;
             var far = -50;
             projectionMatrix = m4.orthographic(left, right, bottom, top, near, far);
