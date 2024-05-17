@@ -1,17 +1,15 @@
 "use client";
 
 import { KeyboardEvent, useEffect, useRef, useState } from "react";
-import TRS from "../webgl/utils/trs";
 import { AnimationRunner } from "@/webgl/utils/animation";
 
 // @ts-ignore
 import { Node } from "../webgl/models/Node";
-
-import * as m4 from "../webgl/utils/m4";
-import * as webglUtils from "../webgl/utils/webGlUtils";
-import * as primitives from "../webgl/utils/primitives";
 import { Drawer } from "@/webgl/drawer";
-import { cubeHollow } from "./cube-hollow";
+import { cubeHollow } from "../../test/hollow/cube-hollow";
+import { hexagon } from "../../test/hollow/hexagon";
+import { prism } from "../../test/hollow/prism";
+import { box } from "../../test/hollow/box";
 import {
   ArticulatedDescriptions,
   CameraInformation,
@@ -19,106 +17,10 @@ import {
   Transforms,
 } from "./type";
 import { degToRad } from "@/webgl/utils/radians";
-
-var blockGuyNodeDescriptions: ArticulatedDescriptions = {
-  type: "articulated",
-  name: "point between feet",
-  draw: false,
-  children: [
-    {
-      name: "waist",
-      translation: [0, 0, 0],
-      rotation: [0, 1, 0],
-      scale: [1, 1, 1],
-      children: [
-        {
-          name: "test front",
-          translation: [6, 0, 0],
-        },
-        {
-          name: "torso",
-          translation: [0, 2, 0],
-          children: [
-            {
-              name: "neck",
-              translation: [0, 1, 0],
-              children: [
-                {
-                  name: "head",
-                  translation: [0, 1, 1], // head slightly forward to differentiate front and back side of the obj
-                },
-              ],
-            },
-            {
-              name: "left-arm",
-              translation: [-1, 0, 0],
-              children: [
-                {
-                  name: "left-forearm",
-                  translation: [-1, 0, 0],
-                  children: [
-                    {
-                      name: "left-hand",
-                      translation: [-1, 0, 0],
-                    },
-                  ],
-                },
-              ],
-            },
-            {
-              name: "right-arm",
-              translation: [1, 0, 0],
-              children: [
-                {
-                  name: "right-forearm",
-                  translation: [1, 0, 0],
-                  children: [
-                    {
-                      name: "right-hand",
-                      translation: [1, 0, 0],
-                    },
-                  ],
-                },
-              ],
-            },
-          ],
-        },
-        {
-          name: "left-leg",
-          translation: [-1, -1, 0],
-          children: [
-            {
-              name: "left-calf",
-              translation: [0, -1, 0],
-              children: [
-                {
-                  name: "left-foot",
-                  translation: [0, -1, 0],
-                },
-              ],
-            },
-          ],
-        },
-        {
-          name: "right-leg",
-          translation: [1, -1, 0],
-          children: [
-            {
-              name: "right-calf",
-              translation: [0, -1, 0],
-              children: [
-                {
-                  name: "right-foot",
-                  translation: [0, -1, 0],
-                },
-              ],
-            },
-          ],
-        },
-      ],
-    },
-  ],
-};
+import { blockGuyNodeDescriptions } from "../../test/articulated/man";
+import { dog } from "../../test/articulated/dog";
+import { lamp } from "../../test/articulated/lamp";
+import { drone } from "../../test/articulated/drone";
 
 var jsonToDraw: ArticulatedDescriptions | HollowDescriptions =
   blockGuyNodeDescriptions;
@@ -217,6 +119,7 @@ export default function Canvas() {
     }
     let scene = null;
     let refNode = {};
+
     scene = new Node().buildByDescription(jsonToDraw);
     const arr_color = normalizeRGB(hexToRGBAArray(color, 1));
     scene.setAmbientColor(arr_color.concat([1]));
@@ -225,6 +128,7 @@ export default function Canvas() {
 
     setScene(scene);
     setRefDict(refNode);
+    setSelectedName(scene.name);
 
     drawer.draw(scene, cameraInformation);
   }
@@ -313,7 +217,7 @@ export default function Canvas() {
               step={0.1}
               value={
                 transforms[type][
-                  axis as keyof Transforms["translate"]
+                axis as keyof Transforms["translate"]
                 ] as number
               }
               onChange={(e) =>
@@ -488,6 +392,62 @@ export default function Canvas() {
     return () => cancelAnimationFrame(animationFrameId);
   }, [animate]);
 
+  // File handler
+  const [selectedShape, setSelectedShape] = useState("");
+  const [selectedArticulated, setSelectedArticulated] = useState("man");
+
+  const handleShapeChange = (e) => {
+    const shape = e.target.value;
+    setSelectedShape(shape);
+
+    let shapeData;
+    switch (shape) {
+      case 'cubeHollow':
+        shapeData = cubeHollow;
+        break;
+      case 'hexagon':
+        shapeData = hexagon;
+        break;
+      case 'prism':
+        shapeData = prism;
+        break;
+      case 'box':
+        shapeData = box;
+        break;
+      default:
+        shapeData = prism;
+        break;
+    }
+    jsonToDraw = shapeData;
+    console.log(shapeData);
+    setupWebGL();
+  };
+
+  const handleArticulatedChange = (e) => {
+    const articulated = e.target.value;
+    setSelectedArticulated(articulated);
+
+    let articulatedData;
+    switch (articulated) {
+      case "man":
+        articulatedData = blockGuyNodeDescriptions;
+        break;
+      case "dog":
+        articulatedData = dog;
+        break;
+      case "lamp":
+        articulatedData = lamp;
+        break;
+      case "drone":
+        articulatedData = drone;
+        break;
+      default:
+        articulatedData = blockGuyNodeDescriptions;
+        break;
+    }
+    jsonToDraw = articulatedData;
+    setupWebGL();
+  }
   return (
     <>
       <div className="w-full h-screen overflow-auto">
@@ -615,21 +575,49 @@ export default function Canvas() {
         </div>
         <div className="mb-2 flex flex-row justify-between">
           <label className="text-base font-semibold text-white mr-2">
-            Hollow Object
+            Model type
           </label>
-          <input
-            type="checkbox"
-            checked={hollow}
-            onChange={(e) => {
-              setHollow(e.target.checked);
-              setSelectedName(null);
-              jsonToDraw = e.target.checked
-                ? (cubeHollow as HollowDescriptions)
-                : blockGuyNodeDescriptions;
-              setupWebGL();
-            }}
-          ></input>
+          <select className="text-black" onChange={(e) => {
+            if (e.target.value === "hollow") {
+              setHollow(true);
+              setSelectedArticulated("");
+            } else {
+              setHollow(false);
+              setSelectedShape("");
+            }
+          }}>
+            <option value="articulate">Articulate</option>
+            <option value="hollow">Hollow</option>
+          </select>
         </div>
+        {hollow && (<>
+          <div className="mb-2 flex flex-row justify-between">
+            <label className="text-base font-semibold text-white mr-2">
+              Select hollow model
+            </label>
+            <select className="text-black" value={selectedShape} onChange={handleShapeChange}>
+              <option value="" disabled>Select a shape</option>
+              <option value="cubeHollow">Cube Hollow</option>
+              <option value="hexagon">Hexagon</option>
+              <option value="prism">Prism</option>
+              <option value="box">Box</option>
+            </select>
+          </div>
+        </>)}
+        {!hollow && (
+          <div className="mb-2 flex flex-row justify-between">
+            <label className="text-base font-semibold text-white mr-2">
+              Select articulated model
+            </label>
+            <select className="text-black" value={selectedArticulated} onChange={handleArticulatedChange}>
+              <option value="" disabled>Select a model</option>
+              <option value="man">Man</option>
+              <option value="dog">Dog</option>
+              <option value="lamp">Lamp</option>
+              <option value="drone">drone</option>
+            </select>
+          </div>
+        )}
         <div className="mb-2 flex flex-row justify-between">
           <label className="text-base font-semibold text-white mr-2">
             Shading
@@ -710,29 +698,28 @@ export default function Canvas() {
                   setSelectedName(name);
                   resetTransforms();
                 }}
-                className={`${
-                  selectedName === name ? "bg-teal-600" : "bg-blue-500"
-                } p-1 text-sm`}
+                className={`${selectedName === name ? "bg-teal-600" : "bg-blue-500"
+                  } p-1 text-sm`}
               >
                 {name}
               </button>
             </div>
           ))}
       </div>
-        <div className="p-4 min-w-44 h-screen">
-          {selectedName && (
-            <>
-              <p className="font-semibold">Transforms</p>
-              {Object.entries({
-                translate: "Translate",
-                scale: "Scale",
-                rotate: "Rotate",
-              }).map(([type, label]) =>
-                renderSliders(type as keyof Transforms, label)
-              )}
-            </>
-          )}
-        </div>
+      <div className="p-4 min-w-44 h-screen">
+        {selectedName && (
+          <>
+            <p className="font-semibold">Transforms</p>
+            {Object.entries({
+              translate: "Translate",
+              scale: "Scale",
+              rotate: "Rotate",
+            }).map(([type, label]) =>
+              renderSliders(type as keyof Transforms, label)
+            )}
+          </>
+        )}
+      </div>
     </>
   );
 }
