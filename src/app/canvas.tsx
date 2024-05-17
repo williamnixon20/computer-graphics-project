@@ -437,10 +437,10 @@ export default function Canvas() {
   const [currentFrame, setCurrentFrame] = useState(0);
   const [animate, setAnimate] = useState(false);
   const [reverse, setReverse] = useState(false);
-  const [autoReplay, setAutoReplay] = useState(false);
+  const [replay, setReplay] = useState(false);
   const [fps, setFps] = useState(1);
 
-  let animator = new Animator(walking, currentFrame, scene!, fps);
+  let animator = new Animator(walking, currentFrame, reverse, replay, scene!, fps);
   let lastFrameTime: number;
   let animationFrameId: number;
 
@@ -472,8 +472,8 @@ export default function Canvas() {
   }, [reverse]);
 
   useEffect(() => {
-    animator.isAutoReplay = autoReplay;
-  }, [autoReplay]);
+    animator.isReplay = replay;
+  }, [replay]);
 
   useEffect(() => {
     animator.fps = fps;
@@ -718,7 +718,7 @@ export default function Canvas() {
               Current Frame: {currentFrame}
             </span>
             <span className="text-base font-semibold text-white">
-              / {animator!.length || 0}
+              / {animator!.length-1 || 0}
             </span>
           </div>
 
@@ -746,8 +746,8 @@ export default function Canvas() {
             </label>
             <input
               type="checkbox"
-              checked={autoReplay}
-              onChange={(e) => setAutoReplay(e.target.checked)}
+              checked={replay}
+              onChange={(e) => setReplay(e.target.checked)}
             />
           </div>
 

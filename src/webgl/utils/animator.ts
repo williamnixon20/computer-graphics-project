@@ -4,15 +4,17 @@ import { Node } from "../models/Node";
 export class Animator {
   currentAnimation?: AnimationClip;
   currentFrame: number;
+  isReverse: boolean;
+  isReplay: boolean;
   root: Node;
   fps: number;
   deltaFrame: number = 0;
-  isReverse: boolean = false;
-  isAutoReplay: boolean = false;
 
-  constructor(animation: AnimationClip, currentFrame: number, root: Node, fps: number) {
+  constructor(animation: AnimationClip, currentFrame: number, isReverse: boolean, isReplay: boolean, root: Node, fps: number) {
     this.currentAnimation = animation;
     this.currentFrame = currentFrame;
+    this.isReverse = isReverse;
+    this.isReplay = isReplay;
     this.root = root;
     this.fps = fps;
   }
@@ -25,18 +27,14 @@ export class Animator {
     return this.currentAnimation!.frames[this.currentFrame];
   }
 
-  reverse() {
-    this.isReverse = !this.isReverse;
-  }
-
-  autoReplay() {
-    this.isAutoReplay = !this.isAutoReplay;
-  }
-
   update(deltaSecond: number) {
     this.deltaFrame += deltaSecond * this.fps;
     if (this.deltaFrame >= 1) {
-      this.currentFrame = (this.currentFrame + Math.floor(this.deltaFrame)) % this.length;
+      if (this.isReverse) {
+        this.currentFrame = (this.currentFrame - Math.floor(this.deltaFrame) + this.length) % this.length;
+      } else {
+        this.currentFrame = (this.currentFrame + Math.floor(this.deltaFrame)) % this.length;
+      }
       this.deltaFrame %= 1;
       this.updateSceneGraph();
     }
