@@ -28,7 +28,7 @@ var blockGuyNodeDescriptions: ArticulatedDescriptions = {
     {
       name: "waist",
       translation: [0, 0, 0],
-      rotation: [0, 0, 0],
+      rotation: [0, 1, 0],
       scale: [1, 1, 1],
       children: [
         {
@@ -240,8 +240,9 @@ export default function Canvas() {
 
   useEffect(() => {
     updateShading();
+    console.log("update");
     if (scene) drawer?.draw(scene, cameraInformation);
-  }, [shading, shininess, specular, diffuse, bumpTexture]);
+  }, [shading, shininess, specular, diffuse, bumpTexture, cameraInformation]);
 
   const updateShading = () => {
     if (scene) {
@@ -276,14 +277,15 @@ export default function Canvas() {
   };
 
   const handleFieldOfViewChange = (fieldOfView: number) => {
-    setCameraInformation((oldState) => {
-      const newState = { ...oldState };
-      newState.fieldOfViewRadians = fieldOfView;
-      if (scene) {
-        drawer?.draw(scene, newState);
-      }
-      return newState;
-    });
+    // const newCameraInfo = {...cameraInformation}
+    // newCameraInfo.fieldOfViewRadians = fieldOfView
+    // setCameraInformation(newCameraInfo)
+
+    // animate purposes
+    cameraInformation.fieldOfViewRadians = fieldOfView;
+    if (scene) {
+      drawer?.draw(scene, cameraInformation);
+    }
   };
 
   const resetTransforms = () => {
@@ -329,11 +331,10 @@ export default function Canvas() {
   function handleMouseDown(
     e: React.MouseEvent<HTMLCanvasElement, globalThis.MouseEvent>
   ) {
-    setMouseDownInformation({
-      isDown: true,
-      startX: e.nativeEvent.offsetX,
-      startY: e.nativeEvent.offsetY,
-    });
+    mouseDownInformation.isDown = true;
+    mouseDownInformation.startX = e.nativeEvent.offsetX;
+    mouseDownInformation.startY = e.nativeEvent.offsetY;
+
     // console.log("Mouse down", e.clientX, e.clientY);
     const rect = canvasRef.current?.getBoundingClientRect() as DOMRect;
     const mouseX = e.clientX - rect.left;
@@ -351,11 +352,9 @@ export default function Canvas() {
   function handleMouseUp(
     e: React.MouseEvent<HTMLCanvasElement, globalThis.MouseEvent>
   ) {
-    setMouseDownInformation({
-      isDown: false,
-      startX: undefined,
-      startY: undefined,
-    });
+    mouseDownInformation.isDown = false;
+    mouseDownInformation.startX = undefined;
+    mouseDownInformation.startY = undefined;
   }
 
   function handleMouseMove(
@@ -373,56 +372,50 @@ export default function Canvas() {
       const deltaX = mouseDownInformation.startX - e.nativeEvent.offsetX;
       const deltaY = mouseDownInformation.startY - e.nativeEvent.offsetY;
 
-      const newCameraInformation = { ...cameraInformation };
-
       if (isShiftPressed) {
         const newX = cameraInformation.rotateX + degToRad(deltaX / 10);
         const newY = cameraInformation.rotateY + degToRad(deltaY / 10);
-        newCameraInformation.rotateX = newX;
-        newCameraInformation.rotateY = newY;
+        cameraInformation.rotateX = newX;
+        cameraInformation.rotateY = newY;
       } else {
         const newX = cameraInformation.cameraAngleXRadians + degToRad(deltaX);
         const newY = cameraInformation.cameraAngleYRadians + degToRad(deltaY);
 
-        newCameraInformation.cameraAngleXRadians = newX;
-        newCameraInformation.cameraAngleYRadians =
+        cameraInformation.cameraAngleXRadians = newX;
+        cameraInformation.cameraAngleYRadians =
           newY < degToRad(88) && newY > degToRad(-88)
             ? newY
-            : newCameraInformation.cameraAngleYRadians;
+            : cameraInformation.cameraAngleYRadians;
       }
-      setCameraInformation(newCameraInformation);
-      const newMouseDownInformation = {
-        isDown: true,
-        startX: e.nativeEvent.offsetX,
-        startY: e.nativeEvent.offsetY,
-      };
-      setMouseDownInformation(newMouseDownInformation);
+
+      mouseDownInformation.isDown = true;
+      mouseDownInformation.startX = e.nativeEvent.offsetX;
+      mouseDownInformation.startY = e.nativeEvent.offsetY;
 
       if (scene) {
-        drawer?.draw(scene, newCameraInformation);
+        drawer?.draw(scene, cameraInformation);
       }
     }
   }
 
   function handleScroll(e: React.WheelEvent<HTMLCanvasElement>) {
-    setCameraInformation((oldState) => {
-      const newState = { ...oldState };
-
-      if (e.deltaY < 0) {
-        // console.log("Zoom in");
-        // make sure the radius is not a negative value
-        if (oldState.radius - 5 * (oldState.radius / 10) > 0.1) {
-          newState.radius = oldState.radius - 5 * (oldState.radius / 100);
-        }
-      } else {
-        // console.log("Zoom out");
-        newState.radius = oldState.radius + 5 * (oldState.radius / 100);
+    if (e.deltaY < 0) {
+      // make sure the radius is not a negative value
+      if (
+        cameraInformation.radius - 5 * (cameraInformation.radius / 10) >
+        0.1
+      ) {
+        cameraInformation.radius =
+          cameraInformation.radius - 5 * (cameraInformation.radius / 100);
       }
-      if (scene) {
-        drawer?.draw(scene, newState);
-      }
-      return newState;
-    });
+    } else {
+      // console.log("Zoom out");
+      cameraInformation.radius =
+        cameraInformation.radius + 5 * (cameraInformation.radius / 100);
+    }
+    if (scene) {
+      drawer?.draw(scene, cameraInformation);
+    }
   }
 
   const handleKeyDown = (e: KeyboardEvent<HTMLCanvasElement>) => {
@@ -430,34 +423,23 @@ export default function Canvas() {
     // console.log(key)
 
     if (key === "Shift") {
-      const newCameraInformation = { ...cameraInformation };
-      newCameraInformation.radiusRotate = newCameraInformation.radius;
+      cameraInformation.radiusRotate = cameraInformation.radius;
       setIsShiftPressed(true);
     }
 
     if (key === "w" || key === "a" || key === "s" || key === "d") {
-      const newCameraInformation = { ...cameraInformation };
       if (key === "w") {
-        newCameraInformation.translateY +=
-          2 * (newCameraInformation.radius / 100);
+        cameraInformation.translateY += 2 * (cameraInformation.radius / 100);
       } else if (key === "a") {
-        newCameraInformation.translateX -=
-          2 * (newCameraInformation.radius / 100);
+        cameraInformation.translateX -= 2 * (cameraInformation.radius / 100);
       } else if (key === "s") {
-        newCameraInformation.translateY -=
-          2 * (newCameraInformation.radius / 100);
+        cameraInformation.translateY -= 2 * (cameraInformation.radius / 100);
       } else {
-        newCameraInformation.translateX +=
-          2 * (newCameraInformation.radius / 100);
+        cameraInformation.translateX += 2 * (cameraInformation.radius / 100);
       }
 
-      setCameraInformation(newCameraInformation);
-      console.log(
-        newCameraInformation.translateX,
-        newCameraInformation.translateY
-      );
       if (scene) {
-        drawer?.draw(scene, newCameraInformation);
+        drawer?.draw(scene, cameraInformation);
       }
     }
   };
@@ -528,22 +510,19 @@ export default function Canvas() {
         </label>
         <button
           onClick={() => {
-            const reset = {
-              cameraAngleXRadians: degToRad(0),
-              cameraAngleYRadians: degToRad(0),
-              fieldOfViewRadians: degToRad(60),
-              radius: 10,
-              projType: "perspective",
-              translateX: 0,
-              translateY: 0,
-              rotateX: 0,
-              rotateY: 0,
-              radiusRotate: 10,
-            };
-            setCameraInformation(reset);
+            cameraInformation.cameraAngleXRadians = degToRad(0);
+            cameraInformation.cameraAngleYRadians = degToRad(0);
+            cameraInformation.fieldOfViewRadians = degToRad(60);
+            cameraInformation.radius = 10;
+            cameraInformation.projType = "perspective";
+            cameraInformation.translateX = 0;
+            cameraInformation.translateY = 0;
+            cameraInformation.rotateX = 0;
+            cameraInformation.rotateY = 0;
+            cameraInformation.radiusRotate = 10;
 
             if (scene) {
-              drawer?.draw(scene, reset);
+              drawer?.draw(scene, cameraInformation);
             }
           }}
           className="w-full mb-4 bg-blue-500 text-white py-2"
@@ -554,14 +533,7 @@ export default function Canvas() {
           <select
             onChange={(e) => {
               const newValue = e.target.value;
-              setCameraInformation((prevState) => {
-                const newState = { ...prevState };
-                newState.projType = newValue;
-                if (scene) {
-                  drawer?.draw(scene, newState);
-                }
-                return newState;
-              });
+              cameraInformation.projType = newValue
             }}
             value={cameraInformation.projType}
           >
@@ -590,11 +562,10 @@ export default function Canvas() {
 
         <div>
           <div className="mb-4">
-            <span className="text-base font-semibold text-white">
+            <span className="text-sm font-semibold text-white">
               Current Frame: {currentFrame}
             </span>
             <span className="text-base font-semibold text-white">
-              {" "}
               / {walkAnim!.length || 0}
             </span>
           </div>
@@ -731,7 +702,9 @@ export default function Canvas() {
                   setSelectedName(name);
                   resetTransforms();
                 }}
-                className={`${selectedName === name ? "bg-teal-600" : "bg-blue-500"} p-1 text-sm`}
+                className={`${
+                  selectedName === name ? "bg-teal-600" : "bg-blue-500"
+                } p-1 text-sm`}
               >
                 {name}
               </button>

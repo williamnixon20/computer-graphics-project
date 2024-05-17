@@ -99,7 +99,7 @@ export class Drawer {
 
         const targetZ = cameraInformation.radiusRotate * (1 - (Math.cos(cameraInformation.rotateY) * Math.cos(cameraInformation.rotateX))) 
         target = [targetX,  targetY , targetZ];
-        console.log("target: ", target);
+        // console.log("target: ", target);
         var up = [0, 1, 0];
 
         var cameraMatrix;

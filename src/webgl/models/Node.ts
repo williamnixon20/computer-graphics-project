@@ -241,7 +241,7 @@ export class Node {
 
             webglUtils.drawBufferInfo(gl, bufferInfo);
         } else {
-            console.log("NOT DRAWING!")
+            // console.log("NOT DRAWING!")
         }
 
         this.children.forEach((child) => {
