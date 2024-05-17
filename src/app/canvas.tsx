@@ -18,7 +18,7 @@ import {
   HollowDescriptions,
   Transforms,
 } from "./type";
-import { degToRad } from "@/webgl/utils/radians";
+import { degToRad, radToDeg } from "@/webgl/utils/radians";
 
 var blockGuyNodeDescriptions: ArticulatedDescriptions = {
   type: "articulated",
@@ -127,8 +127,8 @@ export default function Canvas() {
   const canvas1Ref = useRef<HTMLCanvasElement>(null);
   const canvas2Ref = useRef<HTMLCanvasElement>(null);
 
-  const [cameraInformation1, setCameraInformation1] = useState<CameraInformation>(
-    {
+  const [cameraInformation1, setCameraInformation1] =
+    useState<CameraInformation>({
       cameraAngleXRadians: degToRad(0),
       cameraAngleYRadians: degToRad(0),
       fieldOfViewRadians: degToRad(60),
@@ -139,10 +139,9 @@ export default function Canvas() {
       rotateX: degToRad(0),
       rotateY: degToRad(0),
       radiusRotate: 10,
-    }
-  );
-  const [cameraInformation2, setCameraInformation2] = useState<CameraInformation>(
-    {
+    });
+  const [cameraInformation2, setCameraInformation2] =
+    useState<CameraInformation>({
       cameraAngleXRadians: degToRad(0),
       cameraAngleYRadians: degToRad(0),
       fieldOfViewRadians: degToRad(60),
@@ -153,8 +152,7 @@ export default function Canvas() {
       rotateX: degToRad(0),
       rotateY: degToRad(0),
       radiusRotate: 10,
-    }
-  );
+    });
   const [refDict, setRefDict] = useState<{ [key: string]: any }>({});
   let [drawer1, setDrawer1] = useState<Drawer>();
   let [drawer2, setDrawer2] = useState<Drawer>();
@@ -314,16 +312,25 @@ export default function Canvas() {
     }
   };
 
-  const handleFieldOfViewChange = (fieldOfView: number) => {
-    // const newCameraInfo = {...cameraInformation}
-    // newCameraInfo.fieldOfViewRadians = fieldOfView
-    // setCameraInformation(newCameraInfo)
-
-    // animate purposes
-    cameraInformation1.fieldOfViewRadians = fieldOfView;
+  const handleFieldOfViewChange = (canvasId: number, fieldOfView: number) => {
+    let cameraInfo;
+    const drawer = canvasId === 0 ? drawer1 : drawer2;
+    if (animate) {
+      cameraInfo = canvasId === 0 ? cameraInformation1 : cameraInformation2;
+      cameraInfo.fieldOfViewRadians = fieldOfView;
+    } else {
+      cameraInfo = {
+        ...(canvasId === 0 ? cameraInformation1 : cameraInformation2),
+      };
+      cameraInfo.fieldOfViewRadians = fieldOfView;
+      if (canvasId === 0) {
+        setCameraInformation1(cameraInfo);
+      } else {
+        setCameraInformation2(cameraInfo);
+      }
+    }
     if (scene) {
-      drawer1?.draw(scene, cameraInformation1);
-      drawer2?.draw(scene, cameraInformation2);
+      drawer?.draw(scene, cameraInfo);
     }
   };
 
@@ -445,23 +452,44 @@ export default function Canvas() {
     }
   }
 
-  function handleScroll(e: React.WheelEvent<HTMLCanvasElement>) {
-    if (e.deltaY < 0) {
-      // make sure the radius is not a negative value
-      if (
-        cameraInformation1.radius - 5 * (cameraInformation1.radius / 10) >
-        0.1
-      ) {
-        cameraInformation1.radius =
-          cameraInformation1.radius - 5 * (cameraInformation1.radius / 100);
-      }
-    } else {
-      // console.log("Zoom out");
-      cameraInformation1.radius =
-        cameraInformation1.radius + 5 * (cameraInformation1.radius / 100);
+  function handleScroll(
+    canvasId: number,
+    e: React.WheelEvent<HTMLCanvasElement>
+  ) {
+    if (scene === undefined) {
+      return;
     }
-    if (scene) {
+    if (canvasId === 0) {
+      if (e.deltaY < 0) {
+        // make sure the radius is not a negative value
+        if (
+          cameraInformation1.radius - 5 * (cameraInformation1.radius / 10) >
+          0.1
+        ) {
+          cameraInformation1.radius =
+            cameraInformation1.radius - 5 * (cameraInformation1.radius / 100);
+        }
+      } else {
+        // console.log("Zoom out");
+        cameraInformation1.radius =
+          cameraInformation1.radius + 5 * (cameraInformation1.radius / 100);
+      }
       drawer1?.draw(scene, cameraInformation1);
+    } else if (canvasId === 1) {
+      if (e.deltaY < 0) {
+        // make sure the radius is not a negative value
+        if (
+          cameraInformation2.radius - 5 * (cameraInformation2.radius / 10) >
+          0.1
+        ) {
+          cameraInformation2.radius =
+            cameraInformation2.radius - 5 * (cameraInformation2.radius / 100);
+        }
+      } else {
+        // console.log("Zoom out");
+        cameraInformation2.radius =
+          cameraInformation2.radius + 5 * (cameraInformation2.radius / 100);
+      }
       drawer2?.draw(scene, cameraInformation2);
     }
   }
@@ -546,7 +574,7 @@ export default function Canvas() {
           onMouseDown={handleMouseDown}
           onMouseUp={handleMouseUp}
           onMouseMove={handleMouseMove}
-          onWheel={handleScroll}
+          onWheel={(e) => handleScroll(0, e)}
           onKeyDown={handleKeyDown}
           onKeyUp={handleKeyUp}
           tabIndex={0}
@@ -558,7 +586,7 @@ export default function Canvas() {
           onMouseDown={handleMouseDown}
           onMouseUp={handleMouseUp}
           onMouseMove={handleMouseMove}
-          onWheel={handleScroll}
+          onWheel={(e) => handleScroll(1, e)}
           onKeyDown={handleKeyDown}
           onKeyUp={handleKeyUp}
           tabIndex={0}
@@ -566,26 +594,35 @@ export default function Canvas() {
           className="w-full h-1/2 bg-white"
         />
       </div>
-      <div className="flex flex-col h-screen bg-gray-black p-4 w-72 border-r-2 border-r-blue-500">
+      <div className="flex flex-col h-screen bg-gray-black p-4 w-80 border-r-2 border-r-blue-500 max-h-screen overflow-y-auto scrollbar-hide">
         <label className="text-base font-semibold text-white mb-2">
-          Camera:
+          Camera 1:
         </label>
         <button
           onClick={() => {
-            cameraInformation1.cameraAngleXRadians = degToRad(0);
-            cameraInformation1.cameraAngleYRadians = degToRad(0);
-            cameraInformation1.fieldOfViewRadians = degToRad(60);
-            cameraInformation1.radius = 10;
-            cameraInformation1.projType = "perspective";
-            cameraInformation1.translateX = 0;
-            cameraInformation1.translateY = 0;
-            cameraInformation1.rotateX = 0;
-            cameraInformation1.rotateY = 0;
-            cameraInformation1.radiusRotate = 10;
+            let cameraInfo;
+            if (animate) {
+              cameraInfo = cameraInformation1;
+            } else {
+              cameraInfo = { ...cameraInformation1 };
+            }
+            cameraInfo.cameraAngleXRadians = degToRad(0);
+            cameraInfo.cameraAngleYRadians = degToRad(0);
+            cameraInfo.fieldOfViewRadians = degToRad(60);
+            cameraInfo.radius = 10;
+            cameraInfo.projType = "perspective";
+            cameraInfo.translateX = 0;
+            cameraInfo.translateY = 0;
+            cameraInfo.rotateX = 0;
+            cameraInfo.rotateY = 0;
+            cameraInfo.radiusRotate = 10;
+
+            if (!animate) {
+              setCameraInformation1(cameraInfo);
+            }
 
             if (scene) {
-              drawer1?.draw(scene, cameraInformation1);
-              drawer2?.draw(scene, cameraInformation2);
+              drawer1?.draw(scene, cameraInfo);
             }
           }}
           className="w-full mb-4 bg-blue-500 text-white py-2"
@@ -596,10 +633,18 @@ export default function Canvas() {
           <select
             onChange={(e) => {
               const newValue = e.target.value;
-              cameraInformation1.projType = newValue;
-              if (scene) {
-                drawer1?.draw(scene, cameraInformation1);
-                drawer2?.draw(scene, cameraInformation2);          
+              if (animate) {
+                cameraInformation1.projType = newValue;
+                if (scene) {
+                  drawer1?.draw(scene, cameraInformation1);
+                }
+              } else {
+                const newVal = { ...cameraInformation1 };
+                newVal.projType = newValue;
+                setCameraInformation1(newVal);
+                if (scene) {
+                  drawer1?.draw(scene, newVal);
+                }
               }
             }}
             value={cameraInformation1.projType}
@@ -618,9 +663,78 @@ export default function Canvas() {
               type="range"
               min="0"
               defaultValue={"60"}
+              value={radToDeg(cameraInformation1.fieldOfViewRadians)}
               max="180"
               onChange={(e) =>
-                handleFieldOfViewChange(degToRad(parseFloat(e.target.value)))
+                handleFieldOfViewChange(0, degToRad(parseFloat(e.target.value)))
+              }
+              className="w-full"
+            />
+          </>
+        )}
+        <label className="text-base font-semibold text-white mb-2">
+          Camera 2:
+        </label>
+        <button
+          onClick={() => {
+            let cameraInfo;
+            if (animate) {
+              cameraInfo = cameraInformation2;
+            } else {
+              cameraInfo = { ...cameraInformation2 };
+            }
+            cameraInfo.cameraAngleXRadians = degToRad(0);
+            cameraInfo.cameraAngleYRadians = degToRad(0);
+            cameraInfo.fieldOfViewRadians = degToRad(60);
+            cameraInfo.radius = 10;
+            cameraInfo.projType = "perspective";
+            cameraInfo.translateX = 0;
+            cameraInfo.translateY = 0;
+            cameraInfo.rotateX = 0;
+            cameraInfo.rotateY = 0;
+            cameraInfo.radiusRotate = 10;
+
+            if (!animate) {
+              setCameraInformation2(cameraInfo);
+            }
+
+            if (scene) {
+              drawer2?.draw(scene, cameraInfo);
+            }
+          }}
+          className="w-full mb-4 bg-blue-500 text-white py-2"
+        >
+          Reset camera
+        </button>
+        <div className="text-base font-semibold text-black mb-2">
+          <select
+            onChange={(e) => {
+              const newValue = e.target.value;
+              cameraInformation2.projType = newValue;
+              if (scene) {
+                drawer2?.draw(scene, cameraInformation2);
+              }
+            }}
+            value={cameraInformation2.projType}
+          >
+            <option value="perspective">Perspective</option>
+            <option value="orthographic">Orthographic</option>
+            <option value="oblique">Oblique</option>
+          </select>
+        </div>
+        {cameraInformation2.projType === "perspective" && (
+          <>
+            <label className="text-base font-semibold text-white mb-2">
+              Choose FOV:
+            </label>
+            <input
+              type="range"
+              min="0"
+              defaultValue={"60"}
+              value={radToDeg(cameraInformation2.fieldOfViewRadians)}
+              max="180"
+              onChange={(e) =>
+                handleFieldOfViewChange(1, degToRad(parseFloat(e.target.value)))
               }
               className="w-full"
             />
@@ -679,8 +793,8 @@ export default function Canvas() {
               drawer2?.setPostprocess(e.target.checked);
               if (scene) {
                 drawer1?.draw(scene, cameraInformation1);
-                drawer2?.draw(scene, cameraInformation2);          
-              };
+                drawer2?.draw(scene, cameraInformation2);
+              }
             }}
           ></input>
         </div>
