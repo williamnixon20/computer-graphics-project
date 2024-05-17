@@ -131,7 +131,7 @@ export default function Canvas() {
       cameraAngleYRadians: degToRad(0),
       fieldOfViewRadians: degToRad(60),
       radius: 10,
-      projType: "orthographic",
+      projType: "perspective",
       translateX: 0,
       translateY: 0,
       rotateX: degToRad(0),
