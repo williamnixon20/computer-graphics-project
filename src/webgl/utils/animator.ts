@@ -3,24 +3,18 @@ import { Node } from "../models/Node";
 
 export class Animator {
   currentAnimation?: AnimationClip;
+  currentFrame: number;
   root: Node;
   fps: number;
-  currentFrame: number = 0;
   deltaFrame: number = 0;
-  isPlaying: boolean = false;
+  isReverse: boolean = false;
+  isAutoReplay: boolean = false;
 
-  constructor(animation: AnimationClip, root: Node, fps: number) {
+  constructor(animation: AnimationClip, currentFrame: number, root: Node, fps: number) {
     this.currentAnimation = animation;
+    this.currentFrame = currentFrame;
     this.root = root;
     this.fps = fps;
-  }
-
-  start() {
-    this.isPlaying = true;
-  }
-
-  stop() {
-    this.isPlaying = false;
   }
 
   get length() {
@@ -31,23 +25,29 @@ export class Animator {
     return this.currentAnimation!.frames[this.currentFrame];
   }
 
+  reverse() {
+    this.isReverse = !this.isReverse;
+  }
+
+  autoReplay() {
+    this.isAutoReplay = !this.isAutoReplay;
+  }
+
   update(deltaSecond: number) {
-    if (this.isPlaying) {
-      this.deltaFrame += deltaSecond * this.fps;
-      if (this.deltaFrame >= 1) { // 1 frame
-        this.currentFrame = (this.currentFrame + Math.floor(this.deltaFrame)) % this.length;
-        this.deltaFrame %= 1;
-        this.updateSceneGraph();
-      }
+    this.deltaFrame += deltaSecond * this.fps;
+    if (this.deltaFrame >= 1) {
+      this.currentFrame = (this.currentFrame + Math.floor(this.deltaFrame)) % this.length;
+      this.deltaFrame %= 1;
+      this.updateSceneGraph();
     }
   }
 
-  private updateSceneGraph() {
+  updateSceneGraph() {
     const frame = this.frame;
     this.updateNode(this.root, frame);
   }
 
-  private updateNode(node: Node, frame: AnimationPath) {
+  updateNode(node: Node, frame: AnimationPath) {
     if (node.name === frame.name && frame.keyframe) {
       this.updateNodeTRS(node, frame.keyframe);
     }
@@ -56,18 +56,19 @@ export class Animator {
       const frameChild = frame.children[frameChildName];
       this.updateNode(node, frameChild);
     }
+
     for (const nodeChildName in node.children) {
       const nodeChild = node.children[nodeChildName];
       this.updateNode(nodeChild, frame);
     }
   }
 
-  private updateNodeTRS(node: Node, trs: AnimationTRS) {
+  updateNodeTRS(node: Node, trs: AnimationTRS) {
     const transforms = this.convertToTransforms(trs);
     node.setTransform(transforms);
   }
 
-  private convertToTransforms(animationTRS: AnimationTRS): Transforms {
+  convertToTransforms(animationTRS: AnimationTRS): Transforms {
     const translate = animationTRS.translation
       ? { x: animationTRS.translation[0], y: animationTRS.translation[1], z: animationTRS.translation[2] }
       : { x: 0, y: 0, z: 0 };

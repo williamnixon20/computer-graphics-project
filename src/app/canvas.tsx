@@ -434,12 +434,14 @@ export default function Canvas() {
   };
 
   // Animation
+  const [currentFrame, setCurrentFrame] = useState(0);
   const [animate, setAnimate] = useState(false);
   const [reverse, setReverse] = useState(false);
   const [autoReplay, setAutoReplay] = useState(false);
-  const [currentFrame, setCurrentFrame] = useState(0);
-  let animator: Animator = new Animator(walking, scene!, 4);
-  let lastFrameTime: number | undefined;
+  const [fps, setFps] = useState(1);
+
+  let animator = new Animator(walking, currentFrame, scene!, fps);
+  let lastFrameTime: number;
   let animationFrameId: number;
 
   function runAnim(currentTime: number) {
@@ -448,8 +450,9 @@ export default function Canvas() {
     if (lastFrameTime === undefined) lastFrameTime = currentTime;
     const deltaSecond = (currentTime - lastFrameTime) / 1000;
 
-    animator!.update(deltaSecond);
+    animator.update(deltaSecond);
     setCurrentFrame(animator.currentFrame);
+
     drawer1?.draw(scene, cameraInformation1);
     drawer2?.draw(scene, cameraInformation2);
 
@@ -459,16 +462,22 @@ export default function Canvas() {
 
   useEffect(() => {
     if (animate) {
-      console.log("Animation started");
-      animator.start();
       animationFrameId = requestAnimationFrame(runAnim);
-    } else {
-      console.log("Animation stopped");
-      animator.stop();
-      cancelAnimationFrame(animationFrameId);
     }
     return () => cancelAnimationFrame(animationFrameId);
   }, [animate]);
+
+  useEffect(() => {
+    animator.isReverse = reverse;
+  }, [reverse]);
+
+  useEffect(() => {
+    animator.isAutoReplay = autoReplay;
+  }, [autoReplay]);
+
+  useEffect(() => {
+    animator.fps = fps;
+  }, [fps]);
 
   // File handler
   const [selectedShape, setSelectedShape] = useState("");
@@ -741,7 +750,23 @@ export default function Canvas() {
               onChange={(e) => setAutoReplay(e.target.checked)}
             />
           </div>
+
+          <label className="text-base font-semibold text-white mb-2">
+            FPS: {fps}
+          </label>
+          <input
+            type="range"
+            min="1"
+            defaultValue={"1"}
+            value={fps}
+            max="60"
+            onChange={(e) =>
+              setFps(parseInt(e.target.value))
+            }
+            className="w-full"
+          />
         </div>
+
         <div className="mb-2 flex flex-row justify-between">
           <label className="text-base font-semibold text-white mr-2">
             Grayscale Postprocess
