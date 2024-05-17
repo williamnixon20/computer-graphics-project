@@ -25,6 +25,9 @@ export class Node {
     id: number;
     cameraInformation: CameraInformation;
     shadingInfo: ShadingInfo;
+    texture: WebGLTexture | null;
+    texture_url: string;
+    image: HTMLImageElement | null;
 
     constructor() {
         this.children = [];
@@ -39,6 +42,8 @@ export class Node {
         this.normal = [];
         this.arrayInfo = {};
         this.id = id_global;
+        this.texture_url = "";
+        this.image = null;
         id_global += 1;
         this.cameraInformation = {
             cameraAngleXRadians: 0,
@@ -58,7 +63,9 @@ export class Node {
             ambientColor: [1, 1, 1],
             specularColor: [1, 1, 1],
             diffuseColor: [1, 1, 1],
+            material: 0,
         }
+        this.texture = null;
     }
 
     setParent(parent: Node | null) {
@@ -146,6 +153,7 @@ export class Node {
     buildHollow(nodeDescription: HollowDescriptions) {
         this.draw = true;
         const lengthPoint = nodeDescription.positions.length / (3 * 6);
+        // console.log("LENGTH POINT", lengthPoint)
         let textureArrBase = [
             0, 0,
             0, 1,
@@ -188,29 +196,27 @@ export class Node {
         }) : [];
     }
 
-    drawNode(gl: WebGLRenderingContext, viewProjectionMatrix: number[], programInfo: any) {
+    async drawNode(gl: WebGLRenderingContext, viewProjectionMatrix: number[], programInfo: any, enableTexture: boolean = true) {
         if (this.draw) {
             // set shader uniforms
             let uniforms = {
-                // u_colorOffset: [0, 0, 0.6, 0],
-                // u_colorMult: [0.4, 0.4, 0.4, 1],
                 u_id: [
                     ((this.id >> 0) & 0xFF) / 0xFF,
                     ((this.id >> 8) & 0xFF) / 0xFF,
                     ((this.id >> 16) & 0xFF) / 0xFF,
                     ((this.id >> 24) & 0xFF) / 0xFF,
                 ],
-                // u_matrix: [],
+
                 u_color: this.shadingInfo.ambientColor,
                 u_reverseLightDirection: [1, 1, 1],
                 u_worldViewProjection: [],
-                // u_world: [],
                 u_worldInverseTranspose: [],
 
-                mode: this.shadingInfo.mode,
                 u_diffuseColor: this.shadingInfo.diffuseColor,
                 u_shininess: this.shadingInfo.shininess,
                 u_specularColor: this.shadingInfo.specularColor,
+                mode: this.shadingInfo.mode,
+                material: (this.shadingInfo.material && enableTexture) ? 1 : 0,
             }
             // uniforms.u_matrix = m4.multiply(viewProjectionMatrix, this.worldMatrix);
             const u_world = m4.yRotation(this.cameraInformation.cameraAngleXRadians);
@@ -229,15 +235,21 @@ export class Node {
 
             // This function will set all uniforms in the shaders.
             // This will pass all uniforms 
+            if (this.texture && uniforms.material) {
+                console.log("TEXTURE ENABLED")
+                // gl.bindTexture(gl.TEXTURE_2D, this.texture);
+                gl.uniform1i(gl.getUniformLocation(programInfo.program, "u_texture"), 2);
+            }
+
             webglUtils.setUniforms(programInfo, uniforms);
 
             webglUtils.drawBufferInfo(gl, bufferInfo);
         } else {
-            // console.log("NOT DRAWING!")
+            console.log("NOT DRAWING!")
         }
 
         this.children.forEach((child) => {
-            child.drawNode(gl, viewProjectionMatrix, programInfo);
+            child.drawNode(gl, viewProjectionMatrix, programInfo, enableTexture);
         })
     }
 
@@ -317,4 +329,77 @@ export class Node {
             child.setSpecularColor(specularColor);
         })
     }
+
+    setMaterial(material: number) {
+        this.shadingInfo.material = material;
+        this.children.forEach((child) => {
+            child.setMaterial(material);
+        })
+    }
+
+    setTexture(gl: any, url: any) {
+        this.texture = this.loadTexture(gl, url);
+        this.texture_url = url;
+        this.children.forEach((child) => {
+            child.setTexture(gl, url);
+        })
+    }
+
+    loadTexture(gl: WebGLRenderingContext, url: string) {
+        gl.activeTexture(gl.TEXTURE2);
+        const texture = gl.createTexture();
+        gl.bindTexture(gl.TEXTURE_2D, texture);
+
+        // temp texture
+        const level = 0;
+        const internalFormat = gl.RGBA;
+        const width = 1;
+        const height = 1;
+        const border = 0;
+        const srcFormat = gl.RGBA;
+        const srcType = gl.UNSIGNED_BYTE;
+        const pixel = new Uint8Array([0, 255, 255, 255]);
+        gl.texImage2D(
+            gl.TEXTURE_2D,
+            level,
+            internalFormat,
+            width,
+            height,
+            border,
+            srcFormat,
+            srcType,
+            pixel,
+        );
+
+        const image = new Image();
+        image.src = url;
+
+        image.onload = () => {
+            gl.bindTexture(gl.TEXTURE_2D, texture);
+            gl.texImage2D(
+                gl.TEXTURE_2D,
+                level,
+                internalFormat,
+                srcFormat,
+                srcType,
+                image,
+            );
+
+            if (this.isPowerOf2(image.width) && this.isPowerOf2(image.height)) {
+                gl.generateMipmap(gl.TEXTURE_2D);
+            } else {
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+            }
+        };
+        this.image = image;
+
+        return texture;
+    }
+
+    isPowerOf2(value: number) {
+        return (value & (value - 1)) === 0;
+    }
+
 }

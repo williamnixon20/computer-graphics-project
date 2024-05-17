@@ -1,7 +1,7 @@
 attribute vec4 a_position;
 // attribute vec4 a_color;
 attribute vec3 a_normal;
-attribute vec2 a_textureCoord;
+attribute vec2 a_texcoord;
 
 // uniform mat4 u_matrix;
 uniform mat4 u_worldViewProjection;
@@ -12,7 +12,7 @@ uniform vec4 u_color;
 varying vec4 v_color;
 varying vec3 v_normal;
 varying vec3 v_position;
-varying vec2 v_textureCoord;
+varying vec2 v_texcoord;
 
 void main() {
   // Multiply the position by the matrix.
@@ -26,5 +26,5 @@ void main() {
 
   v_position = (u_worldViewProjection * a_position).xyz;
 
-  // v_textureCoord = a_textureCoord;
+  v_texcoord = a_texcoord;
 }

@@ -82,7 +82,7 @@ export default function Canvas() {
   const [shininess, setShininess] = useState<number>(80);
   const [specular, setSpecular] = useState<string>("#ffffff");
   const [diffuse, setDiffuse] = useState<string>("#6464FF");
-  const [bumpTexture, setBumpTexture] = useState<string>("");
+  const [material, setMaterial] = useState(0);
 
   const hexToRGBAArray = (hex: string, alpha: number): number[] => {
     let r = 0,
@@ -149,6 +149,7 @@ export default function Canvas() {
     let refNode = {};
     newScene = new Node().buildByDescription(jsonToDraw);
     const arr_color = normalizeRGB(hexToRGBAArray(color, 1));
+    newScene.setTexture(gl, 'normalMap.png');
     newScene.setAmbientColor(arr_color.concat([1]));
 
     newScene.procedureGetNodeRefDict(refNode);
@@ -181,7 +182,7 @@ export default function Canvas() {
       drawer1?.draw(scene, cameraInformation1);
       drawer2?.draw(scene, cameraInformation2);
     }
-  }, [shading, shininess, specular, diffuse, bumpTexture]);
+  }, [shading, shininess, specular, diffuse, material]);
 
   const updateShading = () => {
     if (scene) {
@@ -191,7 +192,13 @@ export default function Canvas() {
       scene.setDiffuseColor(diffuseColor);
       const specularColor = normalizeRGB(hexToRGBAArray(specular, 1));
       scene.setSpecularColor(specularColor);
+      console.log("material: ", material)
+      scene.setMaterial(material);
     }
+  };
+
+  const handleMaterialChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setMaterial(parseInt(e.target.value));
   };
 
   const handleTransformChange = (
@@ -281,6 +288,7 @@ export default function Canvas() {
   function handleMouseDown(
     e: React.MouseEvent<HTMLCanvasElement, globalThis.MouseEvent>
   ) {
+    console.log("MOUSE PICK")
     mouseDownInformation.isDown = true;
     mouseDownInformation.startX = e.nativeEvent.offsetX;
     mouseDownInformation.startY = e.nativeEvent.offsetY;
@@ -309,6 +317,7 @@ export default function Canvas() {
   function handleMouseUp(
     e: React.MouseEvent<HTMLCanvasElement, globalThis.MouseEvent>
   ) {
+    console.log("MOUSE UP");
     mouseDownInformation.isDown = false;
     mouseDownInformation.startX = undefined;
     mouseDownInformation.startY = undefined;
@@ -360,6 +369,7 @@ export default function Canvas() {
     canvasId: number,
     e: React.WheelEvent<HTMLCanvasElement>
   ) {
+    console.log("SROLL")
     if (scene === undefined) {
       return;
     }
@@ -399,8 +409,8 @@ export default function Canvas() {
   }
 
   const handleKeyDown = (e: KeyboardEvent<HTMLCanvasElement>) => {
+    console.log("KEY DOWN")
     const { key } = e;
-    // console.log(key)
 
     if (key === "Shift") {
       cameraInformation1.radiusRotate = cameraInformation1.radius;
@@ -418,6 +428,10 @@ export default function Canvas() {
         cameraInformation1.translateX += 2 * (cameraInformation1.radius / 100);
       }
 
+      // console.log(
+      //   newCameraInformation.translateX,
+      //   newCameraInformation.translateY
+      // );
       if (scene) {
         drawer1?.draw(scene, cameraInformation1);
         drawer2?.draw(scene, cameraInformation2);
@@ -886,16 +900,12 @@ export default function Canvas() {
             </div>
             <div className="mb-2 flex flex-col justify-between">
               <label className="text-base font-semibold text-white mb-2">
-                Bump Texture
+                Material
               </label>
-              <input
-                type="file"
-                onChange={(e) => {
-                  if (e.target.files) {
-                    setBumpTexture(e.target.files[0].name);
-                  }
-                }}
-              />
+              <select className="text-base text-black mb-2" value={material} onChange={handleMaterialChange}>
+                <option value={0} selected>Basic Material</option>
+                <option value={1}>Bump Mapping</option>
+              </select>
             </div>
           </div>
         )}
