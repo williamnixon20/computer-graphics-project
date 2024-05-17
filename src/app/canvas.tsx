@@ -154,7 +154,7 @@ export default function Canvas() {
     startX: number | undefined;
     startY: number | undefined;
   }>({ isDown: false, startX: undefined, startY: undefined });
-  const [isShiftPressed, setIsShiftPressed] = useState(false)
+  const [isShiftPressed, setIsShiftPressed] = useState(false);
 
   // Shading
   const [shading, setShading] = useState(false);
@@ -296,7 +296,7 @@ export default function Canvas() {
 
   const renderSliders = (type: keyof Transforms, label: string) => {
     return (
-      <div key={type}>
+      <div key={type} className="mt-2">
         <p>{label}:</p>
         {["x", "y", "z"].map((axis) => (
           <div key={"div-" + axis} className="flex flex-row">
@@ -373,17 +373,17 @@ export default function Canvas() {
       const deltaX = mouseDownInformation.startX - e.nativeEvent.offsetX;
       const deltaY = mouseDownInformation.startY - e.nativeEvent.offsetY;
 
-      const newCameraInformation = { ...cameraInformation };      
+      const newCameraInformation = { ...cameraInformation };
 
       if (isShiftPressed) {
-        const newX = cameraInformation.rotateX + degToRad(deltaX/10);
-        const newY = cameraInformation.rotateY + degToRad(deltaY/10);
+        const newX = cameraInformation.rotateX + degToRad(deltaX / 10);
+        const newY = cameraInformation.rotateY + degToRad(deltaY / 10);
         newCameraInformation.rotateX = newX;
         newCameraInformation.rotateY = newY;
       } else {
         const newX = cameraInformation.cameraAngleXRadians + degToRad(deltaX);
         const newY = cameraInformation.cameraAngleYRadians + degToRad(deltaY);
-  
+
         newCameraInformation.cameraAngleXRadians = newX;
         newCameraInformation.cameraAngleYRadians =
           newY < degToRad(88) && newY > degToRad(-88)
@@ -430,8 +430,8 @@ export default function Canvas() {
     // console.log(key)
 
     if (key === "Shift") {
-      const newCameraInformation = {...cameraInformation}
-      newCameraInformation.radiusRotate = newCameraInformation.radius
+      const newCameraInformation = { ...cameraInformation };
+      newCameraInformation.radiusRotate = newCameraInformation.radius;
       setIsShiftPressed(true);
     }
 
@@ -468,7 +468,7 @@ export default function Canvas() {
     if (key === "Shift") {
       setIsShiftPressed(false);
     }
-  }
+  };
 
   // Animation
   const [animate, setAnimate] = useState(false);
@@ -508,7 +508,7 @@ export default function Canvas() {
 
   return (
     <>
-      <div className="w-full h-full max-h-screen overflow-auto">
+      <div className="w-full h-screen overflow-auto">
         <canvas
           ref={canvasRef}
           onMouseDown={handleMouseDown}
@@ -519,10 +519,10 @@ export default function Canvas() {
           onKeyUp={handleKeyUp}
           tabIndex={0}
           id="webgl-canvas"
-          className="w-[720px] h-[720px] bg-white"
+          className="w-full h-full bg-white"
         />
       </div>
-      <div className="flex flex-col h-full rounded-md bg-gray-black p-4">
+      <div className="flex flex-col h-full rounded-md bg-gray-black p-4 w-72">
         <label className="text-base font-semibold text-white mb-2">
           Camera:
         </label>
@@ -538,7 +538,7 @@ export default function Canvas() {
               translateY: 0,
               rotateX: 0,
               rotateY: 0,
-              radiusRotate: 10
+              radiusRotate: 10,
             };
             setCameraInformation(reset);
 
@@ -606,7 +606,7 @@ export default function Canvas() {
             {animate ? "Pause" : "Play"}
           </button>
 
-          <div className="mb-4">
+          <div className="mb-4 flex flex-row justify-between">
             <label className="text-base font-semibold text-white mr-2">
               Reverse
             </label>
@@ -617,7 +617,7 @@ export default function Canvas() {
             />
           </div>
 
-          <div>
+          <div className="mb-4 flex flex-row justify-between">
             <label className="text-base font-semibold text-white mr-2">
               Auto-Replay
             </label>
@@ -628,52 +628,57 @@ export default function Canvas() {
             />
           </div>
         </div>
-
-        <label className="text-base font-semibold text-white mb-2">
-          Grayscale Postprocess:
-        </label>
-        <input
-          type="checkbox"
-          checked={postProcess}
-          onChange={(e) => {
-            setPostprocess(e.target.checked);
-            drawer?.setPostprocess(e.target.checked);
-            if (scene) drawer?.draw(scene, cameraInformation);
-          }}
-          className="w-full"
-        ></input>
-        <label className="text-base font-semibold text-white mb-2">
-          Hollow Object:
-        </label>
-        <input
-          type="checkbox"
-          checked={hollow}
-          onChange={(e) => {
-            setHollow(e.target.checked);
-            setSelectedName(null);
-            jsonToDraw = e.target.checked
-              ? (cubeHollow as HollowDescriptions)
-              : blockGuyNodeDescriptions;
-            setupWebGL();
-          }}
-          className="w-full"
-        ></input>
-        <label className="text-base font-semibold text-white mb-2">
-          Shading:
-        </label>
-        <input
-          type="checkbox"
-          checked={shading}
-          onChange={(e) => setShading(e.target.checked)}
-        ></input>
-        <label className="text-base font-semibold text-white mb-2">
-          Color:
-        </label>
-        <input
-          type="color"
-          value={color}
-          onChange={(e) => setColor(e.target.value)}
-        ></input>
+        <div className="mb-4 flex flex-row justify-between">
+          <label className="text-base font-semibold text-white mr-2">
+            Grayscale Postprocess
+          </label>
+          <input
+            type="checkbox"
+            checked={postProcess}
+            onChange={(e) => {
+              setPostprocess(e.target.checked);
+              drawer?.setPostprocess(e.target.checked);
+              if (scene) drawer?.draw(scene, cameraInformation);
+            }}
+          ></input>
+        </div>
+        <div className="mb-4 flex flex-row justify-between">
+          <label className="text-base font-semibold text-white mr-2">
+            Hollow Object:
+          </label>
+          <input
+            type="checkbox"
+            checked={hollow}
+            onChange={(e) => {
+              setHollow(e.target.checked);
+              setSelectedName(null);
+              jsonToDraw = e.target.checked
+                ? (cubeHollow as HollowDescriptions)
+                : blockGuyNodeDescriptions;
+              setupWebGL();
+            }}
+          ></input>
+        </div>
+        <div className="mb-4 flex flex-row justify-between">
+          <label className="text-base font-semibold text-white mr-2">
+            Shading
+          </label>
+          <input
+            type="checkbox"
+            checked={shading}
+            onChange={(e) => setShading(e.target.checked)}
+          ></input>
+        </div>
+        <div className="mb-4 flex flex-row justify-between">
+          <label className="text-base font-semibold text-white mr-2">
+            Color:
+          </label>
+          <input
+            type="color"
+            value={color}
+            onChange={(e) => setColor(e.target.value)}
+          ></input>
+        </div>
         {shading && (
           <div className="flex flex-col gap-2">
             <label className="text-base font-semibold text-white mb-2">
@@ -717,6 +722,7 @@ export default function Canvas() {
         )}
       </div>
       <div>
+        <p className="font-semibold">Structure</p>
         {refDict &&
           Object.keys(refDict).map((name) => (
             <div key={name} style={{ marginLeft: refDict[name].level * 10 }}>
@@ -725,9 +731,7 @@ export default function Canvas() {
                   setSelectedName(name);
                   resetTransforms();
                 }}
-                style={{
-                  backgroundColor: selectedName === name ? "gray" : "blue",
-                }}
+                className={`${selectedName === name ? "bg-teal-600" : "bg-blue-500"} p-1 text-sm`}
               >
                 {name}
               </button>
@@ -735,8 +739,8 @@ export default function Canvas() {
           ))}
       </div>
       {selectedName && (
-        <div>
-          <h3>Transforms for {selectedName}:</h3>
+        <div className="px-3">
+          <p className="font-semibold">Transforms</p>
           {Object.entries({
             translate: "Translate",
             scale: "Scale",
