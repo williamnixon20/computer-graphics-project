@@ -504,7 +504,7 @@ export default function Canvas() {
           className="w-full h-full bg-white"
         />
       </div>
-      <div className="flex flex-col h-full rounded-md bg-gray-black p-4 w-72">
+      <div className="flex flex-col h-screen bg-gray-black p-4 w-72 border-r-2 border-r-blue-500">
         <label className="text-base font-semibold text-white mb-2">
           Camera:
         </label>
@@ -533,7 +533,7 @@ export default function Canvas() {
           <select
             onChange={(e) => {
               const newValue = e.target.value;
-              cameraInformation.projType = newValue
+              cameraInformation.projType = newValue;
             }}
             value={cameraInformation.projType}
           >
@@ -577,7 +577,7 @@ export default function Canvas() {
             {animate ? "Pause" : "Play"}
           </button>
 
-          <div className="mb-4 flex flex-row justify-between">
+          <div className="mb-2 flex flex-row justify-between">
             <label className="text-base font-semibold text-white mr-2">
               Reverse
             </label>
@@ -588,7 +588,7 @@ export default function Canvas() {
             />
           </div>
 
-          <div className="mb-4 flex flex-row justify-between">
+          <div className="mb-2 flex flex-row justify-between">
             <label className="text-base font-semibold text-white mr-2">
               Auto-Replay
             </label>
@@ -599,7 +599,7 @@ export default function Canvas() {
             />
           </div>
         </div>
-        <div className="mb-4 flex flex-row justify-between">
+        <div className="mb-2 flex flex-row justify-between">
           <label className="text-base font-semibold text-white mr-2">
             Grayscale Postprocess
           </label>
@@ -613,9 +613,9 @@ export default function Canvas() {
             }}
           ></input>
         </div>
-        <div className="mb-4 flex flex-row justify-between">
+        <div className="mb-2 flex flex-row justify-between">
           <label className="text-base font-semibold text-white mr-2">
-            Hollow Object:
+            Hollow Object
           </label>
           <input
             type="checkbox"
@@ -630,7 +630,7 @@ export default function Canvas() {
             }}
           ></input>
         </div>
-        <div className="mb-4 flex flex-row justify-between">
+        <div className="mb-2 flex flex-row justify-between">
           <label className="text-base font-semibold text-white mr-2">
             Shading
           </label>
@@ -640,9 +640,9 @@ export default function Canvas() {
             onChange={(e) => setShading(e.target.checked)}
           ></input>
         </div>
-        <div className="mb-4 flex flex-row justify-between">
+        <div className="mb-2 flex flex-row justify-between">
           <label className="text-base font-semibold text-white mr-2">
-            Color:
+            Color
           </label>
           <input
             type="color"
@@ -652,8 +652,10 @@ export default function Canvas() {
         </div>
         {shading && (
           <div className="flex flex-col gap-2">
-            <label className="text-base font-semibold text-white mb-2">
-              Shininess:
+            <div className="mb-2 flex flex-row justify-between">
+              <label className="text-base font-semibold text-white mr-2">
+                Shininess
+              </label>
               <input
                 type="range"
                 min={1}
@@ -661,25 +663,31 @@ export default function Canvas() {
                 value={shininess}
                 onChange={(e) => setShininess(parseInt(e.target.value))}
               />
-            </label>
-            <label className="text-base font-semibold text-white mb-2">
-              Specular:
+            </div>
+            <div className="mb-2 flex flex-row justify-between">
+              <label className="text-base font-semibold text-white mr-2">
+                Specular
+              </label>
               <input
                 type="color"
                 value={specular}
                 onChange={(e) => setSpecular(e.target.value)}
               />
-            </label>
-            <label className="text-base font-semibold text-white mb-2">
-              Diffuse:
+            </div>
+            <div className="mb-2 flex flex-row justify-between">
+              <label className="text-base font-semibold text-white mr-2">
+                Diffuse
+              </label>
               <input
                 type="color"
                 value={diffuse}
                 onChange={(e) => setDiffuse(e.target.value)}
               />
-            </label>
-            <label className="text-base font-semibold text-white mb-2">
-              Bump Texture:
+            </div>
+            <div className="mb-2 flex flex-col justify-between">
+              <label className="text-base font-semibold text-white mb-2">
+                Bump Texture
+              </label>
               <input
                 type="file"
                 onChange={(e) => {
@@ -688,11 +696,11 @@ export default function Canvas() {
                   }
                 }}
               />
-            </label>
+            </div>
           </div>
         )}
       </div>
-      <div>
+      <div className="px-2 border-r-2 border-r-blue-500 h-screen min-w-36 p-4">
         <p className="font-semibold">Structure</p>
         {refDict &&
           Object.keys(refDict).map((name) => (
@@ -711,18 +719,20 @@ export default function Canvas() {
             </div>
           ))}
       </div>
-      {selectedName && (
-        <div className="px-3">
-          <p className="font-semibold">Transforms</p>
-          {Object.entries({
-            translate: "Translate",
-            scale: "Scale",
-            rotate: "Rotate",
-          }).map(([type, label]) =>
-            renderSliders(type as keyof Transforms, label)
+        <div className="p-4 min-w-44 h-screen">
+          {selectedName && (
+            <>
+              <p className="font-semibold">Transforms</p>
+              {Object.entries({
+                translate: "Translate",
+                scale: "Scale",
+                rotate: "Rotate",
+              }).map(([type, label]) =>
+                renderSliders(type as keyof Transforms, label)
+              )}
+            </>
           )}
         </div>
-      )}
     </>
   );
 }
