@@ -26,6 +26,8 @@ export class Node {
     cameraInformation: CameraInformation;
     shadingInfo: ShadingInfo;
     texture: WebGLTexture | null;
+    texture_url: string;
+    image: HTMLImageElement | null;
 
     constructor() {
         this.children = [];
@@ -40,6 +42,8 @@ export class Node {
         this.normal = [];
         this.arrayInfo = {};
         this.id = id_global;
+        this.texture_url = "";
+        this.image = null;
         id_global += 1;
         this.cameraInformation = {
             cameraAngleXRadians: 0,
@@ -192,30 +196,27 @@ export class Node {
         }) : [];
     }
 
-    drawNode(gl: WebGLRenderingContext, viewProjectionMatrix: number[], programInfo: any) {
+    async drawNode(gl: WebGLRenderingContext, viewProjectionMatrix: number[], programInfo: any, enableTexture: boolean = true) {
         if (this.draw) {
             // set shader uniforms
             let uniforms = {
-                // u_colorOffset: [0, 0, 0.6, 0],
-                // u_colorMult: [0.4, 0.4, 0.4, 1],
                 u_id: [
                     ((this.id >> 0) & 0xFF) / 0xFF,
                     ((this.id >> 8) & 0xFF) / 0xFF,
                     ((this.id >> 16) & 0xFF) / 0xFF,
                     ((this.id >> 24) & 0xFF) / 0xFF,
                 ],
-                // u_matrix: [],
+
                 u_color: this.shadingInfo.ambientColor,
                 u_reverseLightDirection: [1, 1, 1],
                 u_worldViewProjection: [],
-                // u_world: [],
                 u_worldInverseTranspose: [],
 
-                mode: this.shadingInfo.mode,
                 u_diffuseColor: this.shadingInfo.diffuseColor,
                 u_shininess: this.shadingInfo.shininess,
                 u_specularColor: this.shadingInfo.specularColor,
-                material: this.shadingInfo.material,
+                mode: this.shadingInfo.mode,
+                material: (this.shadingInfo.material && enableTexture) ? 1 : 0,
             }
             // uniforms.u_matrix = m4.multiply(viewProjectionMatrix, this.worldMatrix);
             const u_world = m4.yRotation(this.cameraInformation.cameraAngleXRadians);
@@ -234,24 +235,21 @@ export class Node {
 
             // This function will set all uniforms in the shaders.
             // This will pass all uniforms 
-
-            if (this.texture) {
-                gl.activeTexture(gl.TEXTURE0);
-                gl.bindTexture(gl.TEXTURE_2D, this.texture);
-                gl.uniform1i(programInfo.uniformSetters.u_texture, 0);
+            if (this.texture && uniforms.material) {
+                console.log("TEXTURE ENABLED")
+                // gl.bindTexture(gl.TEXTURE_2D, this.texture);
+                gl.uniform1i(gl.getUniformLocation(programInfo.program, "u_texture"), 2);
             }
 
             webglUtils.setUniforms(programInfo, uniforms);
 
-
-
             webglUtils.drawBufferInfo(gl, bufferInfo);
         } else {
-            // console.log("NOT DRAWING!")
+            console.log("NOT DRAWING!")
         }
 
         this.children.forEach((child) => {
-            child.drawNode(gl, viewProjectionMatrix, programInfo);
+            child.drawNode(gl, viewProjectionMatrix, programInfo, enableTexture);
         })
     }
 
@@ -341,9 +339,14 @@ export class Node {
 
     setTexture(gl: any, url: any) {
         this.texture = this.loadTexture(gl, url);
+        this.texture_url = url;
+        this.children.forEach((child) => {
+            child.setTexture(gl, url);
+        })
     }
 
     loadTexture(gl: WebGLRenderingContext, url: string) {
+        gl.activeTexture(gl.TEXTURE2);
         const texture = gl.createTexture();
         gl.bindTexture(gl.TEXTURE_2D, texture);
 
@@ -390,9 +393,11 @@ export class Node {
                 gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
             }
         };
+        this.image = image;
 
         return texture;
     }
+
     isPowerOf2(value: number) {
         return (value & (value - 1)) === 0;
     }

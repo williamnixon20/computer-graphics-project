@@ -80,7 +80,7 @@ export default function Canvas() {
   const [shininess, setShininess] = useState<number>(80);
   const [specular, setSpecular] = useState<string>("#ffffff");
   const [diffuse, setDiffuse] = useState<string>("#6464FF");
-  const [material, setMaterial] = useState(0); 
+  const [material, setMaterial] = useState(0);
 
   const hexToRGBAArray = (hex: string, alpha: number): number[] => {
     let r = 0,
@@ -286,6 +286,7 @@ export default function Canvas() {
   function handleMouseDown(
     e: React.MouseEvent<HTMLCanvasElement, globalThis.MouseEvent>
   ) {
+    console.log("MOUSE PICK")
     mouseDownInformation.isDown = true;
     mouseDownInformation.startX = e.nativeEvent.offsetX;
     mouseDownInformation.startY = e.nativeEvent.offsetY;
@@ -314,6 +315,7 @@ export default function Canvas() {
   function handleMouseUp(
     e: React.MouseEvent<HTMLCanvasElement, globalThis.MouseEvent>
   ) {
+    console.log("MOUSE UP");
     mouseDownInformation.isDown = false;
     mouseDownInformation.startX = undefined;
     mouseDownInformation.startY = undefined;
@@ -365,6 +367,7 @@ export default function Canvas() {
     canvasId: number,
     e: React.WheelEvent<HTMLCanvasElement>
   ) {
+    console.log("SROLL")
     if (scene === undefined) {
       return;
     }
@@ -404,8 +407,8 @@ export default function Canvas() {
   }
 
   const handleKeyDown = (e: KeyboardEvent<HTMLCanvasElement>) => {
+    console.log("KEY DOWN")
     const { key } = e;
-    // console.log(key)
 
     if (key === "Shift") {
       cameraInformation1.radiusRotate = cameraInformation1.radius;
