@@ -2,7 +2,6 @@
 
 import { KeyboardEvent, RefObject, useEffect, useRef, useState } from "react";
 import TRS from "../webgl/utils/trs";
-import { AnimationRunner } from "@/webgl/utils/animation";
 
 // @ts-ignore
 import { Node } from "../webgl/models/Node";
@@ -22,6 +21,9 @@ import { dog } from "../../test/articulated/dog";
 import { lamp } from "../../test/articulated/lamp";
 import { drone } from "../../test/articulated/drone";
 import { degToRad, radToDeg } from "@/webgl/utils/radians";
+
+import { Animator } from "@/webgl/utils/animator";
+import { walking } from "../../test/animation/walking";
 
 var jsonToDraw: ArticulatedDescriptions | HollowDescriptions =
   blockGuyNodeDescriptions;
@@ -436,7 +438,7 @@ export default function Canvas() {
   const [reverse, setReverse] = useState(false);
   const [autoReplay, setAutoReplay] = useState(false);
   const [currentFrame, setCurrentFrame] = useState(0);
-  let walkAnim: AnimationRunner = new AnimationRunner(scene!, 60);
+  let animator: Animator = new Animator(walking, scene!, 4);
   let lastFrameTime: number | undefined;
   let animationFrameId: number;
 
@@ -446,8 +448,8 @@ export default function Canvas() {
     if (lastFrameTime === undefined) lastFrameTime = currentTime;
     const deltaSecond = (currentTime - lastFrameTime) / 1000;
 
-    walkAnim!.update(deltaSecond);
-    setCurrentFrame(walkAnim.CurrentFrame);
+    animator!.update(deltaSecond);
+    setCurrentFrame(animator.currentFrame);
     drawer1?.draw(scene, cameraInformation1);
     drawer2?.draw(scene, cameraInformation2);
 
@@ -458,11 +460,11 @@ export default function Canvas() {
   useEffect(() => {
     if (animate) {
       console.log("Animation started");
-      walkAnim.start();
+      animator.start();
       animationFrameId = requestAnimationFrame(runAnim);
     } else {
       console.log("Animation stopped");
-      walkAnim.stop();
+      animator.stop();
       cancelAnimationFrame(animationFrameId);
     }
     return () => cancelAnimationFrame(animationFrameId);
@@ -472,7 +474,7 @@ export default function Canvas() {
   const [selectedShape, setSelectedShape] = useState("");
   const [selectedArticulated, setSelectedArticulated] = useState("man");
 
-  const handleShapeChange = (e) => {
+  const handleShapeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const shape = e.target.value;
     setSelectedShape(shape);
 
@@ -500,7 +502,7 @@ export default function Canvas() {
     setupWebGL(1, canvas2Ref);
   };
 
-  const handleArticulatedChange = (e) => {
+  const handleArticulatedChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const articulated = e.target.value;
     setSelectedArticulated(articulated);
 
@@ -707,7 +709,7 @@ export default function Canvas() {
               Current Frame: {currentFrame}
             </span>
             <span className="text-base font-semibold text-white">
-              / {walkAnim!.length || 0}
+              / {animator!.length || 0}
             </span>
           </div>
 

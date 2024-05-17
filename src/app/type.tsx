@@ -37,9 +37,9 @@ export interface CameraInformation {
 }
 
 export interface AnimationTRS {
-  translation?: [number, number, number];
-  rotation?: [number, number, number];
-  scale?: [number, number, number];
+  translation?: number[];
+  rotation?: number[];
+  scale?: number[];
 }
 
 export interface AnimationPath {
