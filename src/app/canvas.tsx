@@ -177,7 +177,7 @@ export default function Canvas() {
   const [shininess, setShininess] = useState<number>(80);
   const [specular, setSpecular] = useState<string>("#ffffff");
   const [diffuse, setDiffuse] = useState<string>("#6464FF");
-  const [bumpTexture, setBumpTexture] = useState<string>("");
+  const [material, setMaterial] = useState(0); 
 
   const hexToRGBAArray = (hex: string, alpha: number): number[] => {
     let r = 0,
@@ -278,7 +278,7 @@ export default function Canvas() {
       drawer1?.draw(scene, cameraInformation1);
       drawer2?.draw(scene, cameraInformation2);
     }
-  }, [shading, shininess, specular, diffuse, bumpTexture]);
+  }, [shading, shininess, specular, diffuse, material]);
 
   const updateShading = () => {
     if (scene) {
@@ -288,7 +288,13 @@ export default function Canvas() {
       scene.setDiffuseColor(diffuseColor);
       const specularColor = normalizeRGB(hexToRGBAArray(specular, 1));
       scene.setSpecularColor(specularColor);
+      console.log("material: ", material)
+      scene.setMaterial(material);
     }
+  };
+
+  const handleMaterialChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setMaterial(parseInt(e.target.value));
   };
 
   const handleTransformChange = (
@@ -877,16 +883,12 @@ export default function Canvas() {
             </div>
             <div className="mb-2 flex flex-col justify-between">
               <label className="text-base font-semibold text-white mb-2">
-                Bump Texture
+                Material
               </label>
-              <input
-                type="file"
-                onChange={(e) => {
-                  if (e.target.files) {
-                    setBumpTexture(e.target.files[0].name);
-                  }
-                }}
-              />
+              <select className="text-base text-black mb-2" value={material} onChange={handleMaterialChange}>
+                <option value={0} selected>Basic Material</option>
+                <option value={1}>Bump Mapping</option>
+              </select>
             </div>
           </div>
         )}
