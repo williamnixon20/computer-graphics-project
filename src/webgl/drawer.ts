@@ -80,13 +80,13 @@ export class Drawer {
         // Tell WebGL how to convert from clip space to pixels
         this.gl.viewport(0, 0, this.gl.canvas.width, this.gl.canvas.height);
 
-        this.gl.enable(this.gl.CULL_FACE);
+        // this.gl.enable(this.gl.CULL_FACE);
         this.gl.enable(this.gl.DEPTH_TEST);
 
         // Compute the projection matrix
         var aspect = this.gl.canvas.clientWidth / this.gl.canvas.clientHeight;
         var projectionMatrix;
-        
+
         const targetX = cameraInformation.translateX - cameraInformation.radiusRotate * Math.sin(cameraInformation.rotateX);
         const targetY = cameraInformation.translateY + cameraInformation.radiusRotate * Math.sin(cameraInformation.rotateY);
         var target;
@@ -97,8 +97,8 @@ export class Drawer {
         //     target = [targetX,  targetY , 0];
         // }
 
-        const targetZ = cameraInformation.radiusRotate * (1 - (Math.cos(cameraInformation.rotateY) * Math.cos(cameraInformation.rotateX))) 
-        target = [targetX,  targetY , targetZ];
+        const targetZ = cameraInformation.radiusRotate * (1 - (Math.cos(cameraInformation.rotateY) * Math.cos(cameraInformation.rotateX)))
+        target = [targetX, targetY, targetZ];
         // console.log("target: ", target);
         var up = [0, 1, 0];
 
@@ -109,10 +109,10 @@ export class Drawer {
             cameraMatrix = m4.yRotation(cameraInformation.cameraAngleXRadians);
             cameraMatrix = m4.xRotate(cameraMatrix, cameraInformation.cameraAngleYRadians);
         } else {
-            var left = -this.gl.canvas.clientWidth/128;
-            var right = this.gl.canvas.clientWidth/128;
-            var bottom = this.gl.canvas.clientHeight/128;
-            var top = -this.gl.canvas.clientHeight/128;
+            var left = -this.gl.canvas.clientWidth / 128;
+            var right = this.gl.canvas.clientWidth / 128;
+            var bottom = this.gl.canvas.clientHeight / 128;
+            var top = -this.gl.canvas.clientHeight / 128;
             var near = 50;
             var far = -50;
             projectionMatrix = m4.orthographic(left, right, bottom, top, near, far);
@@ -122,11 +122,11 @@ export class Drawer {
                 projectionMatrix = m4.multiply(
                     projectionMatrix,
                     m4.oblique(degToRad(75), degToRad(75))
-                  );
+                );
             }
 
             cameraMatrix = m4.yRotation(cameraInformation.cameraAngleXRadians + degToRad(180));
-            cameraMatrix = m4.xRotate(cameraMatrix, -cameraInformation.cameraAngleYRadians);            
+            cameraMatrix = m4.xRotate(cameraMatrix, -cameraInformation.cameraAngleYRadians);
         }
 
         cameraMatrix = m4.translate(cameraMatrix, cameraInformation.translateX, cameraInformation.translateY, cameraInformation.radius);
@@ -161,39 +161,6 @@ export class Drawer {
         var speed = 3;
         var c = time * speed;
 
-        // adjust = Math.abs(Math.sin(c));
-        // nodeInfosByName["point between feet"].trs.translation[1] = adjust;
-        // adjust = Math.sin(c);
-        // nodeInfosByName["left-leg"].trs.rotation[0] = adjust;
-        // nodeInfosByName["right-leg"].trs.rotation[0] = -adjust;
-        // adjust = Math.sin(c + 0.1) * 0.4;
-        // nodeInfosByName["left-calf"].trs.rotation[0] = -adjust;
-        // nodeInfosByName["right-calf"].trs.rotation[0] = adjust;
-        // adjust = Math.sin(c + 0.1) * 0.4;
-        // nodeInfosByName["left-foot"].trs.rotation[0] = -adjust;
-        // nodeInfosByName["right-foot"].trs.rotation[0] = adjust;
-
-        // adjust = Math.sin(c) * 0.4;
-        // nodeInfosByName["left-arm"].trs.rotation[2] = adjust;
-        // nodeInfosByName["right-arm"].trs.rotation[2] = adjust;
-        // adjust = Math.sin(c + 0.1) * 0.4;
-        // nodeInfosByName["left-forearm"].trs.rotation[2] = adjust;
-        // nodeInfosByName["right-forearm"].trs.rotation[2] = adjust;
-        // adjust = Math.sin(c - 0.1) * 0.4;
-        // nodeInfosByName["left-hand"].trs.rotation[2] = adjust;
-        // nodeInfosByName["right-hand"].trs.rotation[2] = adjust;
-
-        // adjust = Math.sin(c) * 0.4;
-        // nodeInfosByName["waist"].trs.rotation[1] = adjust;
-        // adjust = Math.sin(c) * 0.4;
-        // nodeInfosByName["torso"].trs.rotation[1] = adjust;
-        // adjust = Math.sin(c + 0.25) * 0.4;
-        // nodeInfosByName["neck"].trs.rotation[1] = adjust;
-        // adjust = Math.sin(c + 0.5) * 0.4;
-        // nodeInfosByName["head"].trs.rotation[1] = adjust;
-        // adjust = Math.cos(c * 2) * 0.4;
-        // nodeInfosByName["head"].trs.rotation[0] = adjust;
-
         this.scene = scene;
         this.viewProjectionMatrix = viewProjectionMatrix;
 
@@ -213,7 +180,7 @@ export class Drawer {
         let scene = this.scene;
         let viewProjectionMatrix = this.viewProjectionMatrix;
 
-
+        // Create a texture to render to
         const targetTexture = gl.createTexture();
         gl.bindTexture(gl.TEXTURE_2D, targetTexture);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
@@ -223,25 +190,42 @@ export class Drawer {
         gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.canvas.width, gl.canvas.height, 0,
             gl.RGBA, gl.UNSIGNED_BYTE, null);
 
+        // Create a renderbuffer for depth
+        const depthBuffer = gl.createRenderbuffer();
+        gl.bindRenderbuffer(gl.RENDERBUFFER, depthBuffer);
+        gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_COMPONENT16, gl.canvas.width, gl.canvas.height);
 
+        // Create and bind the framebuffer
         const fb = gl.createFramebuffer();
         gl.bindFramebuffer(gl.FRAMEBUFFER, fb);
         gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, targetTexture, 0);
+        gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.RENDERBUFFER, depthBuffer);
 
-        // gl.enable(gl.BLEND);
-        // gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
-
-        gl.clear(gl.COLOR_BUFFER_BIT);
-        gl.clearColor(1, 1, 1, 1);
+        // Set viewport and enable depth testing
         gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
+        gl.enable(gl.DEPTH_TEST);
+
+        // Render the scene to the framebuffer
         scene.drawNode(gl, viewProjectionMatrix, this.programInfo);
 
+        // Unbind the framebuffer to render to the default framebuffer
         gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-        gl.clear(gl.COLOR_BUFFER_BIT);
 
+        // Clear the default framebuffer
+        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+        // Disable depth testing for post-processing
+        gl.disable(gl.DEPTH_TEST);
+
+        // Use the post-processing shader program
         gl.useProgram(this.postprocessProgramInfo.program);
+
+        // Bind the texture we rendered to
+        gl.activeTexture(gl.TEXTURE0);
         gl.bindTexture(gl.TEXTURE_2D, targetTexture);
-        gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
+        gl.uniform1i(gl.getUniformLocation(this.postprocessProgramInfo.program, "u_texture"), 0);
+
+        // Setup a full-screen quad
         const positionBuffer = gl.createBuffer();
         gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
         gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
@@ -258,17 +242,69 @@ export class Drawer {
         gl.enableVertexAttribArray(positionAttributeLocation);
         gl.vertexAttribPointer(positionAttributeLocation, 2, gl.FLOAT, false, 0, 0);
 
-        // Bind the texture to the texture unit
-        gl.activeTexture(gl.TEXTURE0);
-        gl.bindTexture(gl.TEXTURE_2D, targetTexture);
-        gl.uniform1i(gl.getUniformLocation(this.postprocessProgramInfo.program, "u_texture"), 0);
-
-        // Draw the rectangle
+        // Draw the full-screen quad
         gl.drawArrays(gl.TRIANGLES, 0, 6);
-        // SAMPLE THE WHOLE TEXTURE UP TO CANVAS
-
-        // scene.drawNode(gl, viewProjectionMatrix, this.postprocessProgramInfo);
     }
+
+
+    // postprocess() {
+    //     this.clear();
+    //     let gl = this.gl;
+    //     let scene = this.scene;
+    //     let viewProjectionMatrix = this.viewProjectionMatrix;
+
+    //     const targetTexture = gl.createTexture();
+    //     gl.bindTexture(gl.TEXTURE_2D, targetTexture);
+    //     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+    //     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+    //     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    //     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    //     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.canvas.width, gl.canvas.height, 0,
+    //         gl.RGBA, gl.UNSIGNED_BYTE, null);
+
+    //     const depthBuffer = gl.createRenderbuffer();
+    //     gl.bindRenderbuffer(gl.RENDERBUFFER, depthBuffer);
+    //     gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_COMPONENT16, gl.canvas.width, gl.canvas.height);
+
+    //     const fb = gl.createFramebuffer();
+    //     gl.bindFramebuffer(gl.FRAMEBUFFER, fb);
+    //     gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, targetTexture, 0);
+
+
+    //     gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
+    //     scene.drawNode(gl, viewProjectionMatrix, this.programInfo);
+
+    //     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+    //     gl.clear(gl.COLOR_BUFFER_BIT);
+
+    //     gl.useProgram(this.postprocessProgramInfo.program);
+    //     gl.bindTexture(gl.TEXTURE_2D, targetTexture);
+    //     gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
+
+    //     const positionBuffer = gl.createBuffer();
+    //     gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+    //     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
+    //         -1.0, -1.0,
+    //         1.0, -1.0,
+    //         -1.0, 1.0,
+    //         -1.0, 1.0,
+    //         1.0, -1.0,
+    //         1.0, 1.0,
+    //     ]), gl.STATIC_DRAW);
+
+    //     // Link the position attribute
+    //     const positionAttributeLocation = gl.getAttribLocation(this.postprocessProgramInfo.program, "a_position");
+    //     gl.enableVertexAttribArray(positionAttributeLocation);
+    //     gl.vertexAttribPointer(positionAttributeLocation, 2, gl.FLOAT, false, 0, 0);
+
+    //     // Bind the texture to the texture unit
+    //     gl.activeTexture(gl.TEXTURE0);
+    //     gl.bindTexture(gl.TEXTURE_2D, targetTexture);
+    //     gl.uniform1i(gl.getUniformLocation(this.postprocessProgramInfo.program, "u_texture"), 0);
+
+    //     // Draw the rectangle
+    //     gl.drawArrays(gl.TRIANGLES, 0, 6);
+    // }
 
 
     getPickingId(mouseX: number, mouseY: number) {
@@ -321,7 +357,7 @@ export class Drawer {
         gl.bindFramebuffer(gl.FRAMEBUFFER, fb);
         gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
 
-        gl.enable(gl.CULL_FACE);
+        // gl.enable(gl.CULL_FACE);
         gl.enable(gl.DEPTH_TEST);
 
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);

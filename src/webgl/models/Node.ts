@@ -146,7 +146,6 @@ export class Node {
     buildHollow(nodeDescription: HollowDescriptions) {
         this.draw = true;
         const lengthPoint = nodeDescription.positions.length / (3 * 6);
-        console.log("LENGTH POINT", lengthPoint)
         let textureArrBase = [
             0, 0,
             0, 1,
@@ -161,20 +160,13 @@ export class Node {
         for (let i = 0; i < lengthPoint; i++) {
             textureArr = textureArr.concat(textureArrBase);
         }
-        for (let i = 0; i < nodeDescription.positions.length; i++) {
-            nodeDescription.positions[i] = nodeDescription.positions[i] * 0.01;
-        }
-        // const colors = primitives.makeColorLen(nodeDescription.positions.length, this.shadingInfo.ambientColor);
+        let rescaledPositions = nodeDescription.positions.map((pos) => pos * 0.01);
+
         this.arrayInfo = {
-            position: nodeDescription.positions,
-            // color: colors,
+            position: rescaledPositions,
             normal: nodeDescription.normals,
             texcoord: new Float32Array(textureArr)
         }
-        // console.log(this.arrayInfo)
-        // this.position = nodeDescription.positions;
-        // this.color = nodeDescription.colors;
-        // this.normal = nodeDescription.normals;
         this.name = nodeDescription.name;
         return this;
     }
