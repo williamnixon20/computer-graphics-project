@@ -163,20 +163,13 @@ export class Node {
         for (let i = 0; i < lengthPoint; i++) {
             textureArr = textureArr.concat(textureArrBase);
         }
-        for (let i = 0; i < nodeDescription.positions.length; i++) {
-            nodeDescription.positions[i] = nodeDescription.positions[i] * 0.01;
-        }
-        // const colors = primitives.makeColorLen(nodeDescription.positions.length, this.shadingInfo.ambientColor);
+        let rescaledPositions = nodeDescription.positions.map((pos) => pos * 0.01);
+
         this.arrayInfo = {
-            position: nodeDescription.positions,
-            // color: colors,
+            position: rescaledPositions,
             normal: nodeDescription.normals,
             texcoord: new Float32Array(textureArr)
         }
-        // console.log(this.arrayInfo)
-        // this.position = nodeDescription.positions;
-        // this.color = nodeDescription.colors;
-        // this.normal = nodeDescription.normals;
         this.name = nodeDescription.name;
         return this;
     }
@@ -245,7 +238,7 @@ export class Node {
                 gl.bindTexture(gl.TEXTURE_2D, this.texture);
                 gl.uniform1i(programInfo.uniformSetters.u_texture, 0);
             }
-      
+
             webglUtils.setUniforms(programInfo, uniforms);
 
 
@@ -353,7 +346,7 @@ export class Node {
         const border = 0;
         const srcFormat = gl.RGBA;
         const srcType = gl.UNSIGNED_BYTE;
-        const pixel = new Uint8Array([0, 255, 255, 255]); 
+        const pixel = new Uint8Array([0, 255, 255, 255]);
         gl.texImage2D(
             gl.TEXTURE_2D,
             level,
@@ -372,12 +365,12 @@ export class Node {
         image.onload = () => {
             gl.bindTexture(gl.TEXTURE_2D, texture);
             gl.texImage2D(
-            gl.TEXTURE_2D,
-            level,
-            internalFormat,
-            srcFormat,
-            srcType,
-            image,
+                gl.TEXTURE_2D,
+                level,
+                internalFormat,
+                srcFormat,
+                srcType,
+                image,
             );
 
             if (this.isPowerOf2(image.width) && this.isPowerOf2(image.height)) {
@@ -391,8 +384,8 @@ export class Node {
 
         return texture;
     }
-        isPowerOf2(value: number) {
+    isPowerOf2(value: number) {
         return (value & (value - 1)) === 0;
     }
-  
+
 }
