@@ -86,19 +86,33 @@ export class Drawer {
         // Compute the projection matrix
         var aspect = this.gl.canvas.clientWidth / this.gl.canvas.clientHeight;
         var projectionMatrix;
-        // var target = [3, 0, 0];
-        var target = [cameraInformation.translateX, cameraInformation.translateY, 0];
+        
+        const targetX = cameraInformation.translateX - cameraInformation.radiusRotate * Math.sin(cameraInformation.rotateX);
+        const targetY = cameraInformation.translateY + cameraInformation.radiusRotate * Math.sin(cameraInformation.rotateY);
+        var target;
+        // if (cameraInformation.projType === "perspective") {
+        //     const targetZ = cameraInformation.radiusRotate * (1 - (Math.cos(cameraInformation.rotateY) * Math.cos(cameraInformation.rotateX))) 
+        //     target = [targetX,  targetY , targetZ];
+        // } else {
+        //     target = [targetX,  targetY , 0];
+        // }
+
+        const targetZ = cameraInformation.radiusRotate * (1 - (Math.cos(cameraInformation.rotateY) * Math.cos(cameraInformation.rotateX))) 
+        target = [targetX,  targetY , targetZ];
+        console.log("target: ", target);
         var up = [0, 1, 0];
 
-        var cameraMatrix = m4.yRotation(cameraInformation.cameraAngleXRadians);
+        var cameraMatrix;
         if (cameraInformation.projType === "perspective") {
             projectionMatrix = m4.perspective(cameraInformation.fieldOfViewRadians, aspect, 1, 2000);
+
+            cameraMatrix = m4.yRotation(cameraInformation.cameraAngleXRadians);
             cameraMatrix = m4.xRotate(cameraMatrix, cameraInformation.cameraAngleYRadians);
         } else {
-            var left = -this.gl.canvas.clientWidth/64;
-            var right = this.gl.canvas.clientWidth/64;
-            var bottom = this.gl.canvas.clientHeight/64;
-            var top = -this.gl.canvas.clientHeight/64;
+            var left = -this.gl.canvas.clientWidth/128;
+            var right = this.gl.canvas.clientWidth/128;
+            var bottom = this.gl.canvas.clientHeight/128;
+            var top = -this.gl.canvas.clientHeight/128;
             var near = 50;
             var far = -50;
             projectionMatrix = m4.orthographic(left, right, bottom, top, near, far);
@@ -126,10 +140,14 @@ export class Drawer {
 
         cameraMatrix = m4.lookAt(cameraPosition, target, up);
 
+
         cameraMatrix = m4.translate(cameraMatrix, 0, 0, 0);
-        // cameraMatrix = m4.translate(cameraMatrix, 0, 0, 0);
-        // cameraMatrix = m4.xRotate(cameraMatrix, 0);
-        // cameraMatrix = m4.yRotate(cameraMatrix, 0);
+        if (cameraInformation.projType === "perspective") {
+            cameraMatrix = m4.xRotate(cameraMatrix, cameraInformation.rotateY);
+        } else {
+            cameraMatrix = m4.xRotate(cameraMatrix, -cameraInformation.rotateY);
+        }
+        cameraMatrix = m4.yRotate(cameraMatrix, cameraInformation.rotateX);
 
         var viewMatrix = m4.inverse(cameraMatrix);
 

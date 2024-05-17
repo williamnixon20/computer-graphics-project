@@ -3,6 +3,7 @@ import m4 from '../utils/m4';
 import * as primitives from '../utils/primitives';
 import TRS from '../utils/trs';
 import * as webglUtils from "../utils/webGlUtils";
+import { degToRad } from '../utils/radians';
 
 var id_global = 1;
 export class Node {
@@ -40,13 +41,16 @@ export class Node {
         this.id = id_global;
         id_global += 1;
         this.cameraInformation = {
-            cameraAngleXRadians: -1,
-            cameraAngleYRadians: -1,
-            fieldOfViewRadians: -1,
-            radius: -1,
+            cameraAngleXRadians: 0,
+            cameraAngleYRadians: 0,
+            fieldOfViewRadians: degToRad(60),
+            radius: 10,
             projType: "perspective",
             translateX: 0,
             translateY: 0,
+            rotateX: 0,
+            rotateY: 0,
+            radiusRotate: 10,
         };
         this.shadingInfo = {
             mode: 0,

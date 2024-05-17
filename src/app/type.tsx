@@ -31,6 +31,9 @@ export interface CameraInformation {
   projType: string;
   translateX: number;
   translateY: number;
+  rotateX: number; // in radians
+  rotateY: number; // in radians
+  radiusRotate: number;
 }
 
 export interface AnimationTRS {

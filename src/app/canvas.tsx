@@ -131,9 +131,12 @@ export default function Canvas() {
       cameraAngleYRadians: degToRad(0),
       fieldOfViewRadians: degToRad(60),
       radius: 10,
-      projType: "perspective",
+      projType: "orthographic",
       translateX: 0,
       translateY: 0,
+      rotateX: degToRad(0),
+      rotateY: degToRad(0),
+      radiusRotate: 10,
     }
   );
   const [refDict, setRefDict] = useState<{ [key: string]: any }>({});
@@ -151,6 +154,7 @@ export default function Canvas() {
     startX: number | undefined;
     startY: number | undefined;
   }>({ isDown: false, startX: undefined, startY: undefined });
+  const [isShiftPressed, setIsShiftPressed] = useState(false)
 
   // Shading
   const [shading, setShading] = useState(false);
@@ -369,16 +373,23 @@ export default function Canvas() {
       const deltaX = mouseDownInformation.startX - e.nativeEvent.offsetX;
       const deltaY = mouseDownInformation.startY - e.nativeEvent.offsetY;
 
-      const newX = cameraInformation.cameraAngleXRadians + degToRad(deltaX);
-      const newY = cameraInformation.cameraAngleYRadians + degToRad(deltaY);
+      const newCameraInformation = { ...cameraInformation };      
 
-      const newCameraInformation = { ...cameraInformation };
-      newCameraInformation.cameraAngleXRadians = newX;
-      newCameraInformation.cameraAngleYRadians =
-        newY < degToRad(88) && newY > degToRad(-88)
-          ? newY
-          : newCameraInformation.cameraAngleYRadians;
-
+      if (isShiftPressed) {
+        const newX = cameraInformation.rotateX + degToRad(deltaX/10);
+        const newY = cameraInformation.rotateY + degToRad(deltaY/10);
+        newCameraInformation.rotateX = newX;
+        newCameraInformation.rotateY = newY;
+      } else {
+        const newX = cameraInformation.cameraAngleXRadians + degToRad(deltaX);
+        const newY = cameraInformation.cameraAngleYRadians + degToRad(deltaY);
+  
+        newCameraInformation.cameraAngleXRadians = newX;
+        newCameraInformation.cameraAngleYRadians =
+          newY < degToRad(88) && newY > degToRad(-88)
+            ? newY
+            : newCameraInformation.cameraAngleYRadians;
+      }
       setCameraInformation(newCameraInformation);
       const newMouseDownInformation = {
         isDown: true,
@@ -416,6 +427,13 @@ export default function Canvas() {
 
   const handleKeyDown = (e: KeyboardEvent<HTMLCanvasElement>) => {
     const { key } = e;
+    // console.log(key)
+
+    if (key === "Shift") {
+      const newCameraInformation = {...cameraInformation}
+      newCameraInformation.radiusRotate = newCameraInformation.radius
+      setIsShiftPressed(true);
+    }
 
     if (key === "w" || key === "a" || key === "s" || key === "d") {
       const newCameraInformation = { ...cameraInformation };
@@ -443,6 +461,14 @@ export default function Canvas() {
       }
     }
   };
+
+  const handleKeyUp = (e: KeyboardEvent<HTMLCanvasElement>) => {
+    const { key } = e;
+
+    if (key === "Shift") {
+      setIsShiftPressed(false);
+    }
+  }
 
   // Animation
   const [animate, setAnimate] = useState(false);
@@ -490,6 +516,7 @@ export default function Canvas() {
           onMouseMove={handleMouseMove}
           onWheel={handleScroll}
           onKeyDown={handleKeyDown}
+          onKeyUp={handleKeyUp}
           tabIndex={0}
           id="webgl-canvas"
           className="w-[720px] h-[720px] bg-white"
@@ -509,6 +536,9 @@ export default function Canvas() {
               projType: "perspective",
               translateX: 0,
               translateY: 0,
+              rotateX: 0,
+              rotateY: 0,
+              radiusRotate: 10
             };
             setCameraInformation(reset);
 
