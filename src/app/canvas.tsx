@@ -248,6 +248,7 @@ export default function Canvas() {
     let refNode = {};
     newScene = new Node().buildByDescription(jsonToDraw);
     const arr_color = normalizeRGB(hexToRGBAArray(color, 1));
+    newScene.setTexture(gl, 'normalMap.png');
     newScene.setAmbientColor(arr_color.concat([1]));
 
     newScene.procedureGetNodeRefDict(refNode);
@@ -486,6 +487,10 @@ export default function Canvas() {
         cameraInformation1.translateX += 2 * (cameraInformation1.radius / 100);
       }
 
+      // console.log(
+      //   newCameraInformation.translateX,
+      //   newCameraInformation.translateY
+      // );
       if (scene) {
         drawer1?.draw(scene, cameraInformation1);
         drawer2?.draw(scene, cameraInformation2);

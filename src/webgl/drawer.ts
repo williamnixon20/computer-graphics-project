@@ -272,7 +272,7 @@ export class Drawer {
 
 
     getPickingId(mouseX: number, mouseY: number) {
-        console.log("PICKING EXEC")
+        // console.log("PICKING EXEC")
         let gl = this.gl;
         let scene = this.scene;
         let viewProjectionMatrix = this.viewProjectionMatrix;
@@ -287,7 +287,7 @@ export class Drawer {
         gl.bindRenderbuffer(gl.RENDERBUFFER, depthBuffer);
 
         function setFramebufferAttachmentSizes(width: any, height: any) {
-            console.log("WIDTH", width, "HEIGHT", height)
+            // console.log("WIDTH", width, "HEIGHT", height)
             gl.bindTexture(gl.TEXTURE_2D, targetTexture);
             // define size and format of level 0
             const level = 0;

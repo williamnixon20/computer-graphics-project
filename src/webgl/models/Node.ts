@@ -25,6 +25,7 @@ export class Node {
     id: number;
     cameraInformation: CameraInformation;
     shadingInfo: ShadingInfo;
+    texture: WebGLTexture | null;
 
     constructor() {
         this.children = [];
@@ -59,6 +60,7 @@ export class Node {
             specularColor: [1, 1, 1],
             diffuseColor: [1, 1, 1],
         }
+        this.texture = null;
     }
 
     setParent(parent: Node | null) {
@@ -146,7 +148,7 @@ export class Node {
     buildHollow(nodeDescription: HollowDescriptions) {
         this.draw = true;
         const lengthPoint = nodeDescription.positions.length / (3 * 6);
-        console.log("LENGTH POINT", lengthPoint)
+        // console.log("LENGTH POINT", lengthPoint)
         let textureArrBase = [
             0, 0,
             0, 1,
@@ -237,7 +239,16 @@ export class Node {
 
             // This function will set all uniforms in the shaders.
             // This will pass all uniforms 
+
+            if (this.texture) {
+                gl.activeTexture(gl.TEXTURE0);
+                gl.bindTexture(gl.TEXTURE_2D, this.texture);
+                gl.uniform1i(programInfo.uniformSetters.u_texture, 0);
+            }
+      
             webglUtils.setUniforms(programInfo, uniforms);
+
+
 
             webglUtils.drawBufferInfo(gl, bufferInfo);
         } else {
@@ -325,4 +336,63 @@ export class Node {
             child.setSpecularColor(specularColor);
         })
     }
+
+    setTexture(gl: any, url: any) {
+        this.texture = this.loadTexture(gl, url);
+    }
+
+    loadTexture(gl: WebGLRenderingContext, url: string) {
+        const texture = gl.createTexture();
+        gl.bindTexture(gl.TEXTURE_2D, texture);
+
+        // temp texture
+        const level = 0;
+        const internalFormat = gl.RGBA;
+        const width = 1;
+        const height = 1;
+        const border = 0;
+        const srcFormat = gl.RGBA;
+        const srcType = gl.UNSIGNED_BYTE;
+        const pixel = new Uint8Array([0, 255, 255, 255]); 
+        gl.texImage2D(
+            gl.TEXTURE_2D,
+            level,
+            internalFormat,
+            width,
+            height,
+            border,
+            srcFormat,
+            srcType,
+            pixel,
+        );
+
+        const image = new Image();
+        image.src = url;
+
+        image.onload = () => {
+            gl.bindTexture(gl.TEXTURE_2D, texture);
+            gl.texImage2D(
+            gl.TEXTURE_2D,
+            level,
+            internalFormat,
+            srcFormat,
+            srcType,
+            image,
+            );
+
+            if (this.isPowerOf2(image.width) && this.isPowerOf2(image.height)) {
+                gl.generateMipmap(gl.TEXTURE_2D);
+            } else {
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+            }
+        };
+
+        return texture;
+    }
+        isPowerOf2(value: number) {
+        return (value & (value - 1)) === 0;
+    }
+  
 }
