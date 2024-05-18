@@ -163,7 +163,7 @@ export class Drawer {
 
         this.scene = scene;
         this.viewProjectionMatrix = viewProjectionMatrix;
-        
+
         // camera
         currCamera.updateWorldMatrix(null);
         currCamera.updateCameraInformation(cameraInformation);
@@ -257,7 +257,6 @@ export class Drawer {
 
 
     getPickingId(mouseX: number, mouseY: number) {
-        // console.log("PICKING EXEC")
         let gl = this.gl;
         let scene = this.scene;
         let viewProjectionMatrix = this.viewProjectionMatrix;
