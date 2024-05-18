@@ -1,3 +1,5 @@
+import TRS from "@/webgl/utils/trs";
+
 export interface Transforms {
   translate: { x: number; y: number; z: number };
   scale: { x: number; y: number; z: number };
@@ -62,4 +64,5 @@ export interface ShadingInfo {
   specularColor: number[];
   diffuseColor: number[];
   material?: number;
+  specularMap?: number;
 }

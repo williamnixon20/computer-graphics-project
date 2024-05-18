@@ -6,9 +6,6 @@ varying vec3 v_normal;
 varying vec3 v_position;
 varying vec2 v_texcoord;
 
-// uniform vec4 u_colorMult;
-// uniform vec4 u_colorOffset;
-
 uniform int mode;
 uniform vec3 u_reverseLightDirection;
 
@@ -51,6 +48,13 @@ void main() {
           vec3 viewDirection = normalize(-v_position);
           vec3 reflectionDirection = reflect(-lightDirection, normal);
           float specularStrength = pow(max(dot(reflectionDirection, viewDirection), 0.0), u_shininess);
+
+          if (specularMap == 1) {
+              float specularMapColor = texture2D(u_specularMap, v_texcoord).r;
+          //     float specularMapStrength = dot(specularMapColor, vec3(0.299, 0.587, 0.114));
+              specularStrength *= specularMapColor;
+          }
+
           vec3 specular = u_specularColor * specularStrength;
 
           vec3 finalColor = (ambient + diffuse + specular);
