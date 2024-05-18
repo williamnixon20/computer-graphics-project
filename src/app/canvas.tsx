@@ -29,8 +29,7 @@ import TRS from "@/webgl/utils/trs";
 
 var jsonToDraw: ArticulatedDescriptions | HollowDescriptions =
   blockGuyNodeDescriptions;
-const jsonCamera = cameraNodeDescriptions
-
+const jsonCamera = cameraNodeDescriptions;
 
 export default function Canvas() {
   const [selectedName, setSelectedName] = useState<string | null | undefined>();
@@ -170,24 +169,24 @@ export default function Canvas() {
     let refNode = {};
     newScene = new Node().buildByDescription(jsonToDraw);
     const arr_color = normalizeRGB(hexToRGBAArray(color, 1));
-    newScene.setTexture(gl, 'texture.png');
-    newScene.loadSpecularMap(gl, 'specular-texture.png');
-    
+    newScene.setTexture(gl, "texture.png");
+    newScene.loadSpecularMap(gl, "specular-texture.png");
+
     newScene.setAmbientColor(arr_color.concat([1]));
     newScene.procedureGetNodeRefDict(refNode);
 
     // refNode["head"].node.setTexture(gl, 'f-texture.png');
-    
+
     let cameraScene1 = null;
     cameraScene1 = new Node().buildByDescription(jsonCamera);
     cameraScene1.setTexture(gl, "normalMap.png");
-    cameraScene1.loadSpecularMap(gl, 'specular-texture.png');
+    cameraScene1.loadSpecularMap(gl, "specular-texture.png");
     cameraScene1.setAmbientColor(arr_color.concat([1]));
 
     let cameraScene2 = null;
     cameraScene2 = new Node().buildByDescription(jsonCamera);
     cameraScene2.setTexture(gl, "normalMap.png");
-    cameraScene2.loadSpecularMap(gl, 'specular-texture.png');    
+    cameraScene2.loadSpecularMap(gl, "specular-texture.png");
     cameraScene2.setAmbientColor(arr_color.concat([1]));
 
     setScene(newScene);
@@ -197,10 +196,10 @@ export default function Canvas() {
     setSelectedName(newScene.name);
 
     if (canvasId === 0 && drawer1) {
-      console.log("canvas 1 ready")
+      console.log("canvas 1 ready");
       drawer1.draw(newScene, cameraScene1, cameraScene2, cameraInformation1);
     } else if (canvasId === 1 && drawer2) {
-      console.log("canvas 2 ready")
+      console.log("canvas 2 ready");
       drawer2.draw(newScene, cameraScene2, cameraScene1, cameraInformation2);
     }
   }
@@ -252,19 +251,21 @@ export default function Canvas() {
 
   const handleSpecularChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setSpecularTexture(parseInt(e.target.value));
-  }
+  };
 
   const handleDiffuseChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setDiffuseTexture(parseInt(e.target.value));
-  }
+  };
 
-  const handleDisplacementChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+  const handleDisplacementChange = (
+    e: React.ChangeEvent<HTMLSelectElement>
+  ) => {
     setDisplacementMap(parseInt(e.target.value));
-  }
+  };
 
   const handleNormalChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setNormalMap(parseInt(e.target.value));
-  }
+  };
 
   const handleTransformChange = (
     type: keyof Transforms,
@@ -291,8 +292,8 @@ export default function Canvas() {
   const handleFieldOfViewChange = (canvasId: number, fieldOfView: number) => {
     let cameraInfo;
     const drawer = canvasId === 0 ? drawer1 : drawer2;
-    const otherCam = canvasId === 0 ? camera2 : camera1
-    const camera = canvasId === 0 ? camera1 : camera2
+    const otherCam = canvasId === 0 ? camera2 : camera1;
+    const camera = canvasId === 0 ? camera1 : camera2;
     if (animate) {
       cameraInfo = canvasId === 0 ? cameraInformation1 : cameraInformation2;
       cameraInfo.fieldOfViewRadians = fieldOfView;
@@ -337,7 +338,7 @@ export default function Canvas() {
               step={0.1}
               value={
                 transforms[type][
-                axis as keyof Transforms["translate"]
+                  axis as keyof Transforms["translate"]
                 ] as number
               }
               onChange={(e) =>
@@ -353,6 +354,7 @@ export default function Canvas() {
   };
 
   function handleMouseDown(
+    canvasId: number,
     e: React.MouseEvent<HTMLCanvasElement, globalThis.MouseEvent>
   ) {
     console.log("MOUSE PICK");
@@ -361,21 +363,20 @@ export default function Canvas() {
     mouseDownInformation.startY = e.nativeEvent.offsetY;
 
     // console.log("Mouse down", e.clientX, e.clientY);
-    const rect = canvas1Ref.current?.getBoundingClientRect() as DOMRect;
+    const rect = (
+      canvasId === 0
+        ? canvas1Ref.current?.getBoundingClientRect()
+        : canvas2Ref.current?.getBoundingClientRect()
+    ) as DOMRect;
+    const drawer = canvasId === 0 ? drawer1 : drawer2
     const mouseX = e.clientX - rect.left;
     const mouseY = e.clientY - rect.top;
 
-    let pickId1 = drawer1?.getPickingId(mouseX, mouseY);
-    let pickId2 = drawer2?.getPickingId(mouseX, mouseY);
+    let pickId = drawer?.getPickingId(mouseX, mouseY);
 
-    if (pickId1) {
+    if (pickId) {
       resetTransforms();
-      let selectedNode = scene?.getById(pickId1);
-      console.log("position: ", selectedNode?.arrayInfo);
-      setSelectedName(selectedNode?.name);
-    } else if (pickId2) {
-      resetTransforms();
-      let selectedNode = scene?.getById(pickId2);
+      let selectedNode = scene?.getById(pickId);
       console.log("position: ", selectedNode?.arrayInfo);
       setSelectedName(selectedNode?.name);
     }
@@ -445,7 +446,7 @@ export default function Canvas() {
             });
           else
             setCameraInformation2(() => {
-              drawer1?.draw(scene, camera1, camera2, cameraInformation1);          
+              drawer1?.draw(scene, camera1, camera2, cameraInformation1);
               drawer?.draw(scene, camera2, camera1, cameraInfo);
               return cameraInfo;
             });
@@ -479,7 +480,6 @@ export default function Canvas() {
         cameraInformation1.radius =
           cameraInformation1.radius + 5 * (cameraInformation1.radius / 100);
       }
-
     } else if (canvasId === 1) {
       if (e.deltaY < 0) {
         // make sure the radius is not a negative value
@@ -496,16 +496,22 @@ export default function Canvas() {
           cameraInformation2.radius + 5 * (cameraInformation2.radius / 100);
       }
     }
-    drawer1?.draw(scene, camera1, camera2, cameraInformation1);      
+    drawer1?.draw(scene, camera1, camera2, cameraInformation1);
     drawer2?.draw(scene, camera2, camera1, cameraInformation2);
   }
 
-  const handleKeyDown = (canvasId: number, e: KeyboardEvent<HTMLCanvasElement>) => {
+  const handleKeyDown = (
+    canvasId: number,
+    e: KeyboardEvent<HTMLCanvasElement>
+  ) => {
     // console.log("KEY DOWN");
     const { key } = e;
-    let cameraInfo = canvasId === 0 ? cameraInformation1 : cameraInformation2
-    let drawer = canvasId === 0 ? drawer1 : drawer2;
-    const cam = canvasId === 0 ? camera1 : camera2
+    let cameraInfo = canvasId === 0 ? cameraInformation1 : cameraInformation2;
+    const otherCamInfo =
+      canvasId === 0 ? cameraInformation2 : cameraInformation1;
+    const drawer = canvasId === 0 ? drawer1 : drawer2;
+    const otherDrawer = canvasId === 0 ? drawer2 : drawer1;
+    const cam = canvasId === 0 ? camera1 : camera2;
     const otherCam = canvasId === 0 ? camera2 : camera1;
 
     if (key === "Shift") {
@@ -526,6 +532,7 @@ export default function Canvas() {
 
       if (scene && cam && otherCam) {
         drawer?.draw(scene, cam, otherCam, cameraInfo);
+        otherDrawer?.draw(scene, otherCam, cam, otherCamInfo);
       }
     }
   };
@@ -584,7 +591,10 @@ export default function Canvas() {
     drawer2?.draw(scene, camera2, camera1, cameraInformation2);
 
     if (!animator.replay) {
-      if ((!animator.reverse && animator.currentFrame === animator.length - 1) || (animator.reverse && animator.currentFrame === 0)) {
+      if (
+        (!animator.reverse && animator.currentFrame === animator.length - 1) ||
+        (animator.reverse && animator.currentFrame === 0)
+      ) {
         setReset(true);
         setAnimate(false);
       }
@@ -616,7 +626,8 @@ export default function Canvas() {
   };
 
   const handlePreviousFrame = () => {
-    const prevFrame = (animator.currentFrame - 1 + animator.length) % animator.length;
+    const prevFrame =
+      (animator.currentFrame - 1 + animator.length) % animator.length;
     requestAnimationFrame(() => updateFrame(prevFrame));
   };
 
@@ -691,7 +702,7 @@ export default function Canvas() {
       <div className="w-full h-screen overflow-auto">
         <canvas
           ref={canvas1Ref}
-          onMouseDown={handleMouseDown}
+          onMouseDown={(e) => handleMouseDown(0, e)}
           onMouseUp={handleMouseUp}
           onMouseMove={(e) => handleMouseMove(0, e)}
           onWheel={(e) => handleScroll(0, e)}
@@ -703,7 +714,7 @@ export default function Canvas() {
         />
         <canvas
           ref={canvas2Ref}
-          onMouseDown={handleMouseDown}
+          onMouseDown={(e) => handleMouseDown(1, e)}
           onMouseUp={handleMouseUp}
           onMouseMove={(e) => handleMouseMove(1, e)}
           onWheel={(e) => handleScroll(1, e)}
@@ -1096,40 +1107,64 @@ export default function Canvas() {
             </div>
             <div className="mb-2 flex flex-col justify-between">
               <label className="text-base font-semibold text-white mb-2">
-              Diffuse Texture
+                Diffuse Texture
               </label>
-              <select className="text-base text-black mb-2" value={material} onChange={handleMaterialChange}>
-                <option value={0} selected>Basic Material</option>
+              <select
+                className="text-base text-black mb-2"
+                value={material}
+                onChange={handleMaterialChange}
+              >
+                <option value={0} selected>
+                  Basic Material
+                </option>
                 <option value={1}>Box Texture</option>
               </select>
             </div>
 
             <div className="mb-2 flex flex-col justify-between">
               <label className="text-base font-semibold text-white mb-2">
-              Specular Texture
+                Specular Texture
               </label>
-              <select className="text-base text-black mb-2" value={specularTexture} onChange={handleSpecularChange}>
-                <option value={0} selected>Basic Material</option>
+              <select
+                className="text-base text-black mb-2"
+                value={specularTexture}
+                onChange={handleSpecularChange}
+              >
+                <option value={0} selected>
+                  Basic Material
+                </option>
                 <option value={1}>Box Specular</option>
               </select>
             </div>
 
             <div className="mb-2 flex flex-col justify-between">
               <label className="text-base font-semibold text-white mb-2">
-              Displacement Map
+                Displacement Map
               </label>
-              <select className="text-base text-black mb-2" value={displacementMap} onChange={handleDisplacementChange}>
-                <option value={0} selected>No Displacement</option>
+              <select
+                className="text-base text-black mb-2"
+                value={displacementMap}
+                onChange={handleDisplacementChange}
+              >
+                <option value={0} selected>
+                  No Displacement
+                </option>
                 <option value={1}>Displacement 1</option>
               </select>
             </div>
 
             <div className="mb-2 flex flex-col justify-between">
               <label className="text-base font-semibold text-white mb-2">
-              Normal Map
+                Normal Map
               </label>
-              <select className="text-base text-black mb-2" value={normalMap} onChange={handleNormalChange}>
-                <option value={0} selected>No Normal</option>
+              <select
+                className="text-base text-black mb-2"
+                value={normalMap}
+                onChange={handleNormalChange}
+              >
+                <option value={0} selected>
+                  No Normal
+                </option>
                 <option value={1}>Normal 1</option>
               </select>
             </div>
@@ -1146,8 +1181,9 @@ export default function Canvas() {
                   setSelectedName(name);
                   resetTransforms();
                 }}
-                className={`${selectedName === name ? "bg-teal-600" : "bg-blue-500"
-                  } p-1 text-sm`}
+                className={`${
+                  selectedName === name ? "bg-teal-600" : "bg-blue-500"
+                } p-1 text-sm`}
               >
                 {name}
               </button>
@@ -1179,7 +1215,9 @@ export default function Canvas() {
                   max="10"
                   step="0.1"
                   value={lightDirection[0]}
-                  onChange={(e) => handleSliderChange(0, parseFloat(e.target.value))}
+                  onChange={(e) =>
+                    handleSliderChange(0, parseFloat(e.target.value))
+                  }
                 />
               </label>
             </div>
@@ -1192,7 +1230,9 @@ export default function Canvas() {
                   max="10"
                   step="0.1"
                   value={lightDirection[1]}
-                  onChange={(e) => handleSliderChange(1, parseFloat(e.target.value))}
+                  onChange={(e) =>
+                    handleSliderChange(1, parseFloat(e.target.value))
+                  }
                 />
               </label>
             </div>
@@ -1205,7 +1245,9 @@ export default function Canvas() {
                   max="10"
                   step="0.01"
                   value={lightDirection[2]}
-                  onChange={(e) => handleSliderChange(2, parseFloat(e.target.value))}
+                  onChange={(e) =>
+                    handleSliderChange(2, parseFloat(e.target.value))
+                  }
                 />
               </label>
             </div>

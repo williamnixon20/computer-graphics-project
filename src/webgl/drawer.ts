@@ -141,7 +141,7 @@ export class Drawer {
 
         cameraMatrix = m4.lookAt(cameraPosition, target, up);
 
-        cameraMatrix = m4.translate(cameraMatrix, 0, 0, 0);
+        // cameraMatrix = m4.translate(cameraMatrix, 0, 0, 0);
         if (cameraInformation.projType === "perspective") {
             cameraMatrix = m4.xRotate(cameraMatrix, cameraInformation.rotateY);
         } else {
