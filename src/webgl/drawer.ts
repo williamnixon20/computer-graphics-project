@@ -4,6 +4,8 @@ import * as utils from "./utils/utils";
 
 import { createVertexShader, createFragmentShader, createVertexShaderPicking, createFragmentShaderPicking, createVertexPostProcessShader, createFragmentPostProcessShader } from "@/webgl/utils/create-shader";
 import { CameraInformation } from '@/app/type';
+import { cameraNodeDescriptions } from "../../test/articulated/camera";
+import TRS from './utils/trs';
 
 function degToRad(d: any) {
     return d * Math.PI / 180;
@@ -61,12 +63,12 @@ export class Drawer {
         this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
     }
 
-    draw(scene: Node, cameraInformation: CameraInformation) {
-        this.drawScene(scene, cameraInformation, 0.01)
+    draw(scene: Node, currCamera: Node, otherCamera: Node, cameraInformation: CameraInformation) {
+        this.drawScene(scene, currCamera, otherCamera, cameraInformation, 0.01)
     }
 
     // Draw the scene.
-    drawScene(scene: Node, cameraInformation: CameraInformation, time: number) {
+    drawScene(scene: Node, currCamera: Node, otherCamera: Node, cameraInformation: CameraInformation, time: number) {
         if (!this.gl) {
             return;
         }
@@ -139,7 +141,6 @@ export class Drawer {
 
         cameraMatrix = m4.lookAt(cameraPosition, target, up);
 
-
         cameraMatrix = m4.translate(cameraMatrix, 0, 0, 0);
         if (cameraInformation.projType === "perspective") {
             cameraMatrix = m4.xRotate(cameraMatrix, cameraInformation.rotateY);
@@ -162,11 +163,17 @@ export class Drawer {
 
         this.scene = scene;
         this.viewProjectionMatrix = viewProjectionMatrix;
+        
+        // camera
+        currCamera.updateWorldMatrix(null);
+        currCamera.updateCameraInformation(cameraInformation);
+        currCamera.source.translation = cameraPosition
 
         if (this.isPostprocess) {
             this.postprocess();
         } else {
             scene.drawNode(this.gl, viewProjectionMatrix, this.programInfo);
+            otherCamera.drawNode(this.gl, viewProjectionMatrix, this.programInfo);
         }
         // if (this.animate) {
         //     requestAnimationFrame(this.drawScene(scene, time));

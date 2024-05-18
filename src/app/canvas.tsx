@@ -15,6 +15,7 @@ import {
   HollowDescriptions,
   Transforms,
 } from "./type";
+import * as utils from "../webgl/utils/utils";
 import { blockGuyNodeDescriptions } from "../../test/articulated/man";
 import { dog } from "../../test/articulated/dog";
 import { lamp } from "../../test/articulated/lamp";
@@ -23,9 +24,14 @@ import { degToRad, radToDeg } from "@/webgl/utils/radians";
 
 import { Animator } from "@/webgl/utils/animator";
 import { walking } from "../../test/animation/walking";
+import { cameraNodeDescriptions } from "../../test/articulated/camera";
+import TRS from "@/webgl/utils/trs";
 
 var jsonToDraw: ArticulatedDescriptions | HollowDescriptions =
   blockGuyNodeDescriptions;
+const jsonCamera = cameraNodeDescriptions
+
+
 export default function Canvas() {
   const [selectedName, setSelectedName] = useState<string | null | undefined>();
   const canvas1Ref = useRef<HTMLCanvasElement>(null);
@@ -61,6 +67,8 @@ export default function Canvas() {
   let [drawer1, setDrawer1] = useState<Drawer>();
   let [drawer2, setDrawer2] = useState<Drawer>();
   const [scene, setScene] = useState<Node>();
+  const [camera1, setCamera1] = useState<Node>();
+  const [camera2, setCamera2] = useState<Node>();
   const [hollow, setHollow] = useState(false);
   const [postProcess, setPostprocess] = useState(false);
   const [transforms, setTransforms] = useState<Transforms>({
@@ -148,33 +156,48 @@ export default function Canvas() {
     let refNode = {};
     newScene = new Node().buildByDescription(jsonToDraw);
     const arr_color = normalizeRGB(hexToRGBAArray(color, 1));
+
     newScene.setTexture(gl, "normalMap.png");
     newScene.setAmbientColor(arr_color.concat([1]));
-
     newScene.procedureGetNodeRefDict(refNode);
+
     // refNode["head"].node.setTexture(gl, 'f-texture.png');
+    
+    let cameraScene1 = null;
+    cameraScene1 = new Node().buildByDescription(jsonCamera);
+    cameraScene1.setTexture(gl, "normalMap.png");
+    cameraScene1.setAmbientColor(arr_color.concat([1]));
+
+    let cameraScene2 = null;
+    cameraScene2 = new Node().buildByDescription(jsonCamera);
+    cameraScene2.setTexture(gl, "normalMap.png");
+    cameraScene2.setAmbientColor(arr_color.concat([1]));
 
     setScene(newScene);
+    setCamera1(cameraScene1);
+    setCamera2(cameraScene2);
     setRefDict(refNode);
     setSelectedName(newScene.name);
 
     if (canvasId === 0 && drawer1) {
-      drawer1.draw(newScene, cameraInformation1);
+      console.log("canvas 1 ready")
+      drawer1.draw(newScene, cameraScene1, cameraScene2, cameraInformation1);
     } else if (canvasId === 1 && drawer2) {
-      drawer2.draw(newScene, cameraInformation2);
+      console.log("canvas 2 ready")
+      drawer2.draw(newScene, cameraScene2, cameraScene1, cameraInformation2);
     }
   }
 
   useEffect(() => {
-    if (scene) {
+    if (scene && camera1 && camera2) {
       const arr_color = normalizeRGB(hexToRGBAArray(color, 1));
       if (selectedName) {
         let selectedNode = refDict[selectedName].node;
         selectedNode.setAmbientColor(arr_color.concat([1]));
       }
       console.log(arr_color);
-      drawer1?.draw(scene, cameraInformation1);
-      drawer2?.draw(scene, cameraInformation2);
+      drawer1?.draw(scene, camera1, camera2, cameraInformation1);
+      drawer2?.draw(scene, camera2, camera1, cameraInformation2);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [color]);
@@ -182,9 +205,9 @@ export default function Canvas() {
   useEffect(() => {
     updateShading();
     console.log("update");
-    if (scene) {
-      drawer1?.draw(scene, cameraInformation1);
-      drawer2?.draw(scene, cameraInformation2);
+    if (scene && camera1 && camera2) {
+      drawer1?.draw(scene, camera1, camera2, cameraInformation1);
+      drawer2?.draw(scene, camera2, camera1, cameraInformation2);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [shading, shininess, specular, diffuse, material]);
@@ -224,15 +247,17 @@ export default function Canvas() {
     if (selectedName) {
       (refDict[selectedName].node as Node).addTransform(newTransforms);
     }
-    if (scene) {
-      drawer1?.draw(scene, cameraInformation1);
-      drawer2?.draw(scene, cameraInformation2);
+    if (scene && camera1 && camera2) {
+      drawer1?.draw(scene, camera1, camera2, cameraInformation1);
+      drawer2?.draw(scene, camera2, camera1, cameraInformation2);
     }
   };
 
   const handleFieldOfViewChange = (canvasId: number, fieldOfView: number) => {
     let cameraInfo;
     const drawer = canvasId === 0 ? drawer1 : drawer2;
+    const otherCam = canvasId === 0 ? camera2 : camera1
+    const camera = canvasId === 0 ? camera1 : camera2
     if (animate) {
       cameraInfo = canvasId === 0 ? cameraInformation1 : cameraInformation2;
       cameraInfo.fieldOfViewRadians = fieldOfView;
@@ -247,8 +272,8 @@ export default function Canvas() {
         setCameraInformation2(cameraInfo);
       }
     }
-    if (scene) {
-      drawer?.draw(scene, cameraInfo);
+    if (scene && camera && otherCam) {
+      drawer?.draw(scene, camera, otherCam, cameraInfo);
     }
   };
 
@@ -375,21 +400,23 @@ export default function Canvas() {
       mouseDownInformation.startX = e.nativeEvent.offsetX;
       mouseDownInformation.startY = e.nativeEvent.offsetY;
 
-      if (scene) {
+      if (scene && camera1 && camera2) {
         if (!animate) {
           if (canvasId === 0)
             setCameraInformation1(() => {
-              drawer?.draw(scene, cameraInfo);
+              drawer?.draw(scene, camera1, camera2, cameraInfo);
+              drawer2?.draw(scene, camera2, camera1, cameraInformation2);
               return cameraInfo;
             });
           else
             setCameraInformation2(() => {
-              drawer?.draw(scene, cameraInfo);
+              drawer1?.draw(scene, camera1, camera2, cameraInformation1);          
+              drawer?.draw(scene, camera2, camera1, cameraInfo);
               return cameraInfo;
             });
           return;
         }
-        drawer?.draw(scene, cameraInfo);
+        // drawer?.draw(scene, camera1, cameraTrs, cameraInfo);
       }
     }
   }
@@ -398,8 +425,8 @@ export default function Canvas() {
     canvasId: number,
     e: React.WheelEvent<HTMLCanvasElement>
   ) {
-    console.log("SROLL");
-    if (scene === undefined) {
+    // console.log("SROLL");
+    if (scene === undefined || camera1 === undefined || camera2 === undefined) {
       return;
     }
     if (canvasId === 0) {
@@ -417,7 +444,7 @@ export default function Canvas() {
         cameraInformation1.radius =
           cameraInformation1.radius + 5 * (cameraInformation1.radius / 100);
       }
-      drawer1?.draw(scene, cameraInformation1);
+
     } else if (canvasId === 1) {
       if (e.deltaY < 0) {
         // make sure the radius is not a negative value
@@ -433,8 +460,9 @@ export default function Canvas() {
         cameraInformation2.radius =
           cameraInformation2.radius + 5 * (cameraInformation2.radius / 100);
       }
-      drawer2?.draw(scene, cameraInformation2);
     }
+    drawer1?.draw(scene, camera1, camera2, cameraInformation1);      
+    drawer2?.draw(scene, camera2, camera1, cameraInformation2);
   }
 
   const handleKeyDown = (canvasId: number, e: KeyboardEvent<HTMLCanvasElement>) => {
@@ -442,6 +470,8 @@ export default function Canvas() {
     const { key } = e;
     let cameraInfo = canvasId === 0 ? cameraInformation1 : cameraInformation2
     let drawer = canvasId === 0 ? drawer1 : drawer2;
+    const cam = canvasId === 0 ? camera1 : camera2
+    const otherCam = canvasId === 0 ? camera2 : camera1;
 
     if (key === "Shift") {
       cameraInfo.radiusRotate = cameraInfo.radius;
@@ -459,8 +489,8 @@ export default function Canvas() {
         cameraInfo.translateX += 2 * (cameraInfo.radius / 100);
       }
 
-      if (scene) {
-        drawer?.draw(scene, cameraInfo);
+      if (scene && cam && otherCam) {
+        drawer?.draw(scene, cam, otherCam, cameraInfo);
       }
     }
   };
@@ -492,7 +522,7 @@ export default function Canvas() {
   let animationFrameId: number;
 
   function runAnim(currentTime: number) {
-    if (!animate || !scene) return;
+    if (!animate || !scene || !camera1 || !camera2) return;
 
     if (lastFrameTime === undefined) lastFrameTime = currentTime;
     const deltaSecond = (currentTime - lastFrameTime) / 1000;
@@ -500,8 +530,8 @@ export default function Canvas() {
     animator.update(deltaSecond);
     setCurrentFrame(animator.currentFrame);
 
-    drawer1?.draw(scene, cameraInformation1);
-    drawer2?.draw(scene, cameraInformation2);
+    drawer1?.draw(scene, camera1, camera2, cameraInformation1);
+    drawer2?.draw(scene, camera2, camera1, cameraInformation2);
 
     lastFrameTime = currentTime;
     animationFrameId = requestAnimationFrame(runAnim);
@@ -639,8 +669,8 @@ export default function Canvas() {
               setCameraInformation1(cameraInfo);
             }
 
-            if (scene) {
-              drawer1?.draw(scene, cameraInfo);
+            if (scene && camera1 && camera2) {
+              drawer1?.draw(scene, camera1, camera2, cameraInfo);
             }
           }}
           className="w-full mb-4 bg-blue-500 text-white py-2"
@@ -653,15 +683,15 @@ export default function Canvas() {
               const newValue = e.target.value;
               if (animate) {
                 cameraInformation1.projType = newValue;
-                if (scene) {
-                  drawer1?.draw(scene, cameraInformation1);
+                if (scene && camera1 && camera2) {
+                  drawer1?.draw(scene, camera1, camera2, cameraInformation1);
                 }
               } else {
                 const newVal = { ...cameraInformation1 };
                 newVal.projType = newValue;
                 setCameraInformation1(newVal);
-                if (scene) {
-                  drawer1?.draw(scene, newVal);
+                if (scene && camera1 && camera2) {
+                  drawer1?.draw(scene, camera1, camera2, newVal);
                 }
               }
             }}
@@ -716,8 +746,8 @@ export default function Canvas() {
               setCameraInformation2(cameraInfo);
             }
 
-            if (scene) {
-              drawer2?.draw(scene, cameraInfo);
+            if (scene && camera1 && camera2) {
+              drawer2?.draw(scene, camera2, camera1, cameraInfo);
             }
           }}
           className="w-full mb-4 bg-blue-500 text-white py-2"
@@ -730,15 +760,15 @@ export default function Canvas() {
               const newValue = e.target.value;
               if (animate) {
                 cameraInformation2.projType = newValue;
-                if (scene) {
-                  drawer2?.draw(scene, cameraInformation2);
+                if (scene && camera1 && camera2) {
+                  drawer2?.draw(scene, camera2, camera1, cameraInformation2);
                 }
               } else {
                 const newVal = { ...cameraInformation2 };
                 newVal.projType = newValue;
                 setCameraInformation2(newVal);
-                if (scene) {
-                  drawer2?.draw(scene, newVal);
+                if (scene && camera1 && camera2) {
+                  drawer2?.draw(scene, camera2, camera1, newVal);
                 }
               }
             }}
@@ -832,9 +862,9 @@ export default function Canvas() {
               setPostprocess(e.target.checked);
               drawer1?.setPostprocess(e.target.checked);
               drawer2?.setPostprocess(e.target.checked);
-              if (scene) {
-                drawer1?.draw(scene, cameraInformation1);
-                drawer2?.draw(scene, cameraInformation2);
+              if (scene && camera1 && camera2) {
+                drawer1?.draw(scene, camera1, camera2, cameraInformation1);
+                drawer2?.draw(scene, camera2, camera1, cameraInformation2);
               }
             }}
           ></input>

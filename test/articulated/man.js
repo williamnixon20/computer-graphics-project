@@ -3,6 +3,10 @@ export const blockGuyNodeDescriptions = {
     name: "point between feet",
     draw: false,
     children: [
+        // {
+        //     name: "camera",
+        //     translation: [0, 0, 10],
+        // },
         {
             name: "waist",
             translation: [0, 0, 0],
