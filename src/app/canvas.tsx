@@ -507,19 +507,26 @@ export default function Canvas() {
 
   // Animation
   const [animate, setAnimate] = useState(false);
-  const [currentFrame, setCurrentFrame] = useState(-1);
+  const [currentFrame, setCurrentFrame] = useState(0);
   const [reverse, setReverse] = useState(false);
   const [replay, setReplay] = useState(false);
   const [reset, setReset] = useState(false);
   const [fps, setFps] = useState(1);
 
-  let animator = new Animator(scene!, walking, currentFrame, reverse, replay, reset, fps);
+  let animator = new Animator(
+    scene!,
+    walking,
+    currentFrame,
+    reverse,
+    replay,
+    reset,
+    fps
+  );
   let lastFrameTime: number;
   let animationFrameId: number;
 
   function runAnim(currentTime: number) {
     if (!animate || !scene) return;
-
     if (lastFrameTime === undefined) lastFrameTime = currentTime;
     const deltaSecond = (currentTime - lastFrameTime) / 1000;
 
@@ -538,7 +545,6 @@ export default function Canvas() {
 
     animator.update(deltaSecond);
     setCurrentFrame(animator.currentFrame);
-
     drawer1?.draw(scene, cameraInformation1);
     drawer2?.draw(scene, cameraInformation2);
 
@@ -560,25 +566,32 @@ export default function Canvas() {
     return () => cancelAnimationFrame(animationFrameId);
   }, [animate]);
 
-  useEffect(() => {
-    animator.currentFrame = currentFrame;
-  }, [currentFrame]);
+  function updateFrame(frame: number) {
+    if (!scene) return;
+    animator.currentFrame = frame;
+    setCurrentFrame(frame);
+    animator.updateSceneGraph();
+    drawer1?.draw(scene, cameraInformation1);
+    drawer2?.draw(scene, cameraInformation2);
+  }
 
-  useEffect(() => {
-    animator.reverse = reverse;
-  }, [reverse]);
+  const handleNextFrame = () => {
+    const nextFrame = (animator.currentFrame + 1) % animator.length;
+    requestAnimationFrame(() => updateFrame(nextFrame));
+  };
 
-  useEffect(() => {
-    animator.replay = replay;
-  }, [replay]);
+  const handlePreviousFrame = () => {
+    const prevFrame = (animator.currentFrame - 1 + animator.length) % animator.length;
+    requestAnimationFrame(() => updateFrame(prevFrame));
+  };
 
-  useEffect(() => {
-    animator.reset = reset;
-  }, [reset]);
+  const handleFirstFrame = () => {
+    requestAnimationFrame(() => updateFrame(0));
+  };
 
-  useEffect(() => {
-    animator.fps = fps;
-  }, [fps]);
+  const handleLastFrame = () => {
+    requestAnimationFrame(() => updateFrame(animator.length - 1));
+  };
 
   // File handler
   const [selectedShape, setSelectedShape] = useState("");
@@ -824,21 +837,17 @@ export default function Canvas() {
 
         {/* Animation */}
         <div>
-          <div className="mb-4">
-            <span className="text-sm font-semibold text-white">
-              Current Frame: {currentFrame + 1}
-            </span>
-            <span className="text-base font-semibold text-white">
-              / {animator!.length}
-            </span>
+          <div className="mt-2 mb-2">
+            <label className="text-base font-semibold text-white mb-2">
+              Animation
+            </label>
           </div>
 
-          <button
-            onClick={() => setAnimate(!animate)}
-            className="w-full mb-4 bg-blue-500 text-white py-2"
-          >
-            {animate ? "Pause" : "Play"}
-          </button>
+          <div className="mb-2">
+            <span className="text-base font-semibold text-white mb-2">
+              Current Frame: {currentFrame + 1} / {animator!.length}
+            </span>
+          </div>
 
           <div className="mb-2 flex flex-row justify-between">
             <label className="text-base font-semibold text-white mr-2">
@@ -862,18 +871,58 @@ export default function Canvas() {
             />
           </div>
 
-          <label className="text-base font-semibold text-white mb-2">
-            FPS: {fps}
-          </label>
-          <input
-            type="range"
-            min="1"
-            defaultValue={"1"}
-            value={fps}
-            max="60"
-            onChange={(e) => setFps(parseInt(e.target.value))}
-            className="w-full"
-          />
+          <div className="mb-2">
+            <label className="text-base font-semibold text-white mb-2">
+              FPS: {fps}
+            </label>
+          </div>
+
+          <div className="mb-2">
+            <input
+              type="range"
+              min="1"
+              defaultValue={"1"}
+              value={fps}
+              max="30"
+              onChange={(e) => setFps(parseInt(e.target.value))}
+              className="w-full"
+            />
+          </div>
+
+          <button
+            onClick={() => setAnimate(!animate)}
+            className="w-full mb-4 bg-blue-500 text-white py-2"
+          >
+            {animate ? "Pause Animation" : "Play Animation"}
+          </button>
+
+          <button
+            onClick={handleNextFrame}
+            className="w-full mb-4 bg-blue-500 text-white py-2"
+          >
+            {"Next Frame"}
+          </button>
+
+          <button
+            onClick={handlePreviousFrame}
+            className="w-full mb-4 bg-blue-500 text-white py-2"
+          >
+            {"Previous Frame"}
+          </button>
+
+          <button
+            onClick={handleFirstFrame}
+            className="w-full mb-4 bg-blue-500 text-white py-2"
+          >
+            {"First Frame"}
+          </button>
+
+          <button
+            onClick={handleLastFrame}
+            className="w-full mb-4 bg-blue-500 text-white py-2"
+          >
+            {"Last Frame"}
+          </button>
         </div>
 
         <div className="mb-2 flex flex-row justify-between">
