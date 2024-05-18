@@ -9,6 +9,8 @@ var id_global = 1;
 var url_offset: any = {
 
 }
+
+var textures: any = {};
 var tex_offset = 0;
 
 var light_dir = [1, 1, 1];
@@ -35,6 +37,8 @@ export class Node {
     texture_url: string;
     specularMap: WebGLTexture | null;
     specular_url: string;
+    normalMap: WebGLTexture | null;
+    normal_url: string;
 
     constructor() {
         this.children = [];
@@ -74,6 +78,8 @@ export class Node {
         this.texture = null;
         this.specularMap = null;
         this.specular_url = "";
+        this.normalMap = null;
+        this.normal_url = "";
     }
 
     setParent(parent: Node | null) {
@@ -130,6 +136,7 @@ export class Node {
 
 
         let cubeVertices = utils.createCubeVertices(1);
+        // console.log(cubeVertices.normal.length);
         let vertices = utils.deindexVertices(cubeVertices);
         // vertices = primitives.makeColor(vertices, this.shadingInfo.ambientColor);
         this.arrayInfo = vertices;
@@ -214,6 +221,7 @@ export class Node {
                 mode: this.shadingInfo.mode,
                 material: (this.shadingInfo.material && enableTexture) ? 1 : 0,
                 specularMap: (this.shadingInfo.specularMap && enableTexture) ? 1 : 0,
+                normalMap: (this.shadingInfo.normalMap && enableTexture) ? 1 : 0,
             }
             const u_world = m4.yRotation(this.cameraInformation.cameraAngleXRadians);
 
@@ -235,8 +243,18 @@ export class Node {
 
             if (this.specularMap && uniforms.specularMap) {
                 const tex_offset = url_offset[this.specular_url];
+                // console.log("SPECULAR MAP", this.shadingInfo.specularMap, uniforms.specularMap, this.specular_url);
+                // console.log("URL OFFSET", url_offset, tex_offset)
                 gl.activeTexture(gl.TEXTURE2 + tex_offset);
                 gl.uniform1i(gl.getUniformLocation(programInfo.program, "u_specularMap"), 2 + tex_offset);
+            }
+            // console.log("NORMAL MAP", this.shadingInfo.normalMap, uniforms.normalMap)
+
+            if (this.normalMap && uniforms.normalMap) {
+                // console.log("applying normal map")
+                const tex_offset = url_offset[this.normal_url];
+                gl.activeTexture(gl.TEXTURE2 + tex_offset);
+                gl.uniform1i(gl.getUniformLocation(programInfo.program, "u_normalMap"), 2 + tex_offset);
             }
 
             utils.drawBufferInfo(gl, bufferInfo);
@@ -346,6 +364,21 @@ export class Node {
         this.texture_url = url;
         this.children.forEach((child) => {
             child.setTexture(gl, url);
+        })
+    }
+
+    setNormalMap(map: number) {
+        this.shadingInfo.normalMap = map;
+        this.children.forEach((child) => {
+            child.setNormalMap(map);
+        })
+    }
+
+    loadNormalMap(gl: any, url: any) {
+        this.normalMap = this.loadTexture(gl, url);
+        this.normal_url = url;
+        this.children.forEach((child) => {
+            child.loadNormalMap(gl, url);
         })
     }
 
