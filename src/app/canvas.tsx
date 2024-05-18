@@ -76,6 +76,16 @@ export default function Canvas() {
     scale: { x: 0, y: 0, z: 0 },
     rotate: { x: 0, y: 0, z: 0 },
   });
+
+  const [lightDirection, setLightDirection] = useState([0, 0, 1]);
+
+  // @ts-ignore
+  const handleSliderChange = (index, value) => {
+    const newDirection = [...lightDirection];
+    newDirection[index] = value;
+    setLightDirection(newDirection);
+  };
+
   const [mouseDownInformation, setMouseDownInformation] = useState<{
     isDown: boolean;
     startX: number | undefined;
@@ -90,6 +100,10 @@ export default function Canvas() {
   const [specular, setSpecular] = useState<string>("#ffffff");
   const [diffuse, setDiffuse] = useState<string>("#6464FF");
   const [material, setMaterial] = useState(0);
+  const [specularTexture, setSpecularTexture] = useState(0);
+  const [diffuseTexture, setDiffuseTexture] = useState(0);
+  const [displacementMap, setDisplacementMap] = useState(0);
+  const [normalMap, setNormalMap] = useState(0);
 
   const hexToRGBAArray = (hex: string, alpha: number): number[] => {
     let r = 0,
@@ -156,8 +170,9 @@ export default function Canvas() {
     let refNode = {};
     newScene = new Node().buildByDescription(jsonToDraw);
     const arr_color = normalizeRGB(hexToRGBAArray(color, 1));
-
-    newScene.setTexture(gl, "normalMap.png");
+    newScene.setTexture(gl, 'texture.png');
+    newScene.loadSpecularMap(gl, 'specular-texture.png');
+    
     newScene.setAmbientColor(arr_color.concat([1]));
     newScene.procedureGetNodeRefDict(refNode);
 
@@ -166,11 +181,13 @@ export default function Canvas() {
     let cameraScene1 = null;
     cameraScene1 = new Node().buildByDescription(jsonCamera);
     cameraScene1.setTexture(gl, "normalMap.png");
+    cameraScene1.loadSpecularMap(gl, 'specular-texture.png');
     cameraScene1.setAmbientColor(arr_color.concat([1]));
 
     let cameraScene2 = null;
     cameraScene2 = new Node().buildByDescription(jsonCamera);
     cameraScene2.setTexture(gl, "normalMap.png");
+    cameraScene2.loadSpecularMap(gl, 'specular-texture.png');    
     cameraScene2.setAmbientColor(arr_color.concat([1]));
 
     setScene(newScene);
@@ -210,7 +227,7 @@ export default function Canvas() {
       drawer2?.draw(scene, camera2, camera1, cameraInformation2);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [shading, shininess, specular, diffuse, material]);
+  }, [shading, shininess, specular, diffuse, material, lightDirection]);
 
   const updateShading = () => {
     if (scene && selectedName) {
@@ -224,12 +241,30 @@ export default function Canvas() {
       selectedNode.setSpecularColor(specularColor);
       console.log("material: ", material);
       selectedNode.setMaterial(material);
+      selectedNode.setSpecularMap(specularTexture);
+      selectedNode.setLightDirection(lightDirection);
     }
   };
 
   const handleMaterialChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setMaterial(parseInt(e.target.value));
   };
+
+  const handleSpecularChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setSpecularTexture(parseInt(e.target.value));
+  }
+
+  const handleDiffuseChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setDiffuseTexture(parseInt(e.target.value));
+  }
+
+  const handleDisplacementChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setDisplacementMap(parseInt(e.target.value));
+  }
+
+  const handleNormalChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setNormalMap(parseInt(e.target.value));
+  }
 
   const handleTransformChange = (
     type: keyof Transforms,
@@ -302,7 +337,7 @@ export default function Canvas() {
               step={0.1}
               value={
                 transforms[type][
-                  axis as keyof Transforms["translate"]
+                axis as keyof Transforms["translate"]
                 ] as number
               }
               onChange={(e) =>
@@ -504,18 +539,20 @@ export default function Canvas() {
   };
 
   // Animation
-  const [currentFrame, setCurrentFrame] = useState(0);
   const [animate, setAnimate] = useState(false);
+  const [currentFrame, setCurrentFrame] = useState(0);
   const [reverse, setReverse] = useState(false);
   const [replay, setReplay] = useState(false);
+  const [reset, setReset] = useState(false);
   const [fps, setFps] = useState(1);
 
   let animator = new Animator(
+    scene!,
     walking,
     currentFrame,
     reverse,
     replay,
-    scene!,
+    reset,
     fps
   );
   let lastFrameTime: number;
@@ -527,11 +564,31 @@ export default function Canvas() {
     if (lastFrameTime === undefined) lastFrameTime = currentTime;
     const deltaSecond = (currentTime - lastFrameTime) / 1000;
 
+    if (animator.reset) {
+      if (animator.reverse) {
+        animator.currentFrame = animator.length - 1;
+        setCurrentFrame(animator.length - 1);
+      } else {
+        animator.currentFrame = 0;
+        setCurrentFrame(0);
+      }
+      animator.updateSceneGraph();
+      animator.reset = false;
+      setReset(false);
+    }
+
     animator.update(deltaSecond);
     setCurrentFrame(animator.currentFrame);
 
     drawer1?.draw(scene, camera1, camera2, cameraInformation1);
     drawer2?.draw(scene, camera2, camera1, cameraInformation2);
+
+    if (!animator.replay) {
+      if ((!animator.reverse && animator.currentFrame === animator.length - 1) || (animator.reverse && animator.currentFrame === 0)) {
+        setReset(true);
+        setAnimate(false);
+      }
+    }
 
     lastFrameTime = currentTime;
     animationFrameId = requestAnimationFrame(runAnim);
@@ -544,17 +601,32 @@ export default function Canvas() {
     return () => cancelAnimationFrame(animationFrameId);
   }, [animate]);
 
-  useEffect(() => {
-    animator.isReverse = reverse;
-  }, [reverse]);
+  function updateFrame(frame: number) {
+    if (!scene || !camera1 || !camera2) return;
+    animator.currentFrame = frame;
+    setCurrentFrame(frame);
+    animator.updateSceneGraph();
+    drawer1?.draw(scene, camera1, camera2, cameraInformation1);
+    drawer2?.draw(scene, camera2, camera1, cameraInformation2);
+  }
 
-  useEffect(() => {
-    animator.isReplay = replay;
-  }, [replay]);
+  const handleNextFrame = () => {
+    const nextFrame = (animator.currentFrame + 1) % animator.length;
+    requestAnimationFrame(() => updateFrame(nextFrame));
+  };
 
-  useEffect(() => {
-    animator.fps = fps;
-  }, [fps]);
+  const handlePreviousFrame = () => {
+    const prevFrame = (animator.currentFrame - 1 + animator.length) % animator.length;
+    requestAnimationFrame(() => updateFrame(prevFrame));
+  };
+
+  const handleFirstFrame = () => {
+    requestAnimationFrame(() => updateFrame(0));
+  };
+
+  const handleLastFrame = () => {
+    requestAnimationFrame(() => updateFrame(animator.length - 1));
+  };
 
   // File handler
   const [selectedShape, setSelectedShape] = useState("");
@@ -798,22 +870,19 @@ export default function Canvas() {
           </>
         )}
 
+        {/* Animation */}
         <div>
-          <div className="mb-4">
-            <span className="text-sm font-semibold text-white">
-              Current Frame: {currentFrame}
-            </span>
-            <span className="text-base font-semibold text-white">
-              / {animator!.length - 1 || 0}
-            </span>
+          <div className="mt-2 mb-2">
+            <label className="text-base font-semibold text-white mb-2">
+              Animation
+            </label>
           </div>
 
-          <button
-            onClick={() => setAnimate(!animate)}
-            className="w-full mb-4 bg-blue-500 text-white py-2"
-          >
-            {animate ? "Pause" : "Play"}
-          </button>
+          <div className="mb-2">
+            <span className="text-base font-semibold text-white mb-2">
+              Current Frame: {currentFrame + 1} / {animator!.length}
+            </span>
+          </div>
 
           <div className="mb-2 flex flex-row justify-between">
             <label className="text-base font-semibold text-white mr-2">
@@ -837,18 +906,58 @@ export default function Canvas() {
             />
           </div>
 
-          <label className="text-base font-semibold text-white mb-2">
-            FPS: {fps}
-          </label>
-          <input
-            type="range"
-            min="1"
-            defaultValue={"1"}
-            value={fps}
-            max="60"
-            onChange={(e) => setFps(parseInt(e.target.value))}
-            className="w-full"
-          />
+          <div className="mb-2">
+            <label className="text-base font-semibold text-white mb-2">
+              FPS: {fps}
+            </label>
+          </div>
+
+          <div className="mb-2">
+            <input
+              type="range"
+              min="1"
+              defaultValue={"1"}
+              value={fps}
+              max="30"
+              onChange={(e) => setFps(parseInt(e.target.value))}
+              className="w-full"
+            />
+          </div>
+
+          <button
+            onClick={() => setAnimate(!animate)}
+            className="w-full mb-4 bg-blue-500 text-white py-2"
+          >
+            {animate ? "Pause Animation" : "Play Animation"}
+          </button>
+
+          <button
+            onClick={handleNextFrame}
+            className="w-full mb-4 bg-blue-500 text-white py-2"
+          >
+            {"Next Frame"}
+          </button>
+
+          <button
+            onClick={handlePreviousFrame}
+            className="w-full mb-4 bg-blue-500 text-white py-2"
+          >
+            {"Previous Frame"}
+          </button>
+
+          <button
+            onClick={handleFirstFrame}
+            className="w-full mb-4 bg-blue-500 text-white py-2"
+          >
+            {"First Frame"}
+          </button>
+
+          <button
+            onClick={handleLastFrame}
+            className="w-full mb-4 bg-blue-500 text-white py-2"
+          >
+            {"Last Frame"}
+          </button>
         </div>
 
         <div className="mb-2 flex flex-row justify-between">
@@ -987,17 +1096,41 @@ export default function Canvas() {
             </div>
             <div className="mb-2 flex flex-col justify-between">
               <label className="text-base font-semibold text-white mb-2">
-                Material
+              Diffuse Texture
               </label>
-              <select
-                className="text-base text-black mb-2"
-                value={material}
-                onChange={handleMaterialChange}
-              >
-                <option value={0} selected>
-                  Basic Material
-                </option>
-                <option value={1}>Bump Mapping</option>
+              <select className="text-base text-black mb-2" value={material} onChange={handleMaterialChange}>
+                <option value={0} selected>Basic Material</option>
+                <option value={1}>Box Texture</option>
+              </select>
+            </div>
+
+            <div className="mb-2 flex flex-col justify-between">
+              <label className="text-base font-semibold text-white mb-2">
+              Specular Texture
+              </label>
+              <select className="text-base text-black mb-2" value={specularTexture} onChange={handleSpecularChange}>
+                <option value={0} selected>Basic Material</option>
+                <option value={1}>Box Specular</option>
+              </select>
+            </div>
+
+            <div className="mb-2 flex flex-col justify-between">
+              <label className="text-base font-semibold text-white mb-2">
+              Displacement Map
+              </label>
+              <select className="text-base text-black mb-2" value={displacementMap} onChange={handleDisplacementChange}>
+                <option value={0} selected>No Displacement</option>
+                <option value={1}>Displacement 1</option>
+              </select>
+            </div>
+
+            <div className="mb-2 flex flex-col justify-between">
+              <label className="text-base font-semibold text-white mb-2">
+              Normal Map
+              </label>
+              <select className="text-base text-black mb-2" value={normalMap} onChange={handleNormalChange}>
+                <option value={0} selected>No Normal</option>
+                <option value={1}>Normal 1</option>
               </select>
             </div>
           </div>
@@ -1013,9 +1146,8 @@ export default function Canvas() {
                   setSelectedName(name);
                   resetTransforms();
                 }}
-                className={`${
-                  selectedName === name ? "bg-teal-600" : "bg-blue-500"
-                } p-1 text-sm`}
+                className={`${selectedName === name ? "bg-teal-600" : "bg-blue-500"
+                  } p-1 text-sm`}
               >
                 {name}
               </button>
@@ -1035,6 +1167,50 @@ export default function Canvas() {
             )}
           </>
         )}
+        <>
+          <p className="font-semibold">Light Controls</p>
+          <div>
+            <div>
+              <label>
+                X:
+                <input
+                  type="range"
+                  min="-10"
+                  max="10"
+                  step="0.1"
+                  value={lightDirection[0]}
+                  onChange={(e) => handleSliderChange(0, parseFloat(e.target.value))}
+                />
+              </label>
+            </div>
+            <div>
+              <label>
+                Y:
+                <input
+                  type="range"
+                  min="-10"
+                  max="10"
+                  step="0.1"
+                  value={lightDirection[1]}
+                  onChange={(e) => handleSliderChange(1, parseFloat(e.target.value))}
+                />
+              </label>
+            </div>
+            <div>
+              <label>
+                Z:
+                <input
+                  type="range"
+                  min="-10"
+                  max="10"
+                  step="0.01"
+                  value={lightDirection[2]}
+                  onChange={(e) => handleSliderChange(2, parseFloat(e.target.value))}
+                />
+              </label>
+            </div>
+          </div>
+        </>
       </div>
     </>
   );
