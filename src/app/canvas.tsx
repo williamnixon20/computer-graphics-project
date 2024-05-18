@@ -163,6 +163,7 @@ export default function Canvas() {
     newScene = new Node().buildByDescription(jsonToDraw);
     const arr_color = normalizeRGB(hexToRGBAArray(color, 1));
     newScene.setTexture(gl, 'texture.png');
+    newScene.loadSpecularMap(gl, 'specular-texture.png');
     
     newScene.setAmbientColor(arr_color.concat([1]));
 
@@ -216,6 +217,7 @@ export default function Canvas() {
       selectedNode.setSpecularColor(specularColor);
       console.log("material: ", material);
       selectedNode.setMaterial(material);
+      selectedNode.setSpecularMap(specularTexture);
       selectedNode.setLightDirection(lightDirection);
     }
   };

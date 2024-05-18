@@ -3,10 +3,8 @@ attribute vec4 a_position;
 attribute vec3 a_normal;
 attribute vec2 a_texcoord;
 
-// uniform mat4 u_matrix;
 uniform mat4 u_worldViewProjection;
 uniform mat4 u_worldInverseTranspose;
-// uniform mat4 u_world;
 uniform vec4 u_color;
 
 varying vec4 v_color;

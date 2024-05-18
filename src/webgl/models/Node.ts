@@ -33,6 +33,8 @@ export class Node {
     shadingInfo: ShadingInfo;
     texture: WebGLTexture | null;
     texture_url: string;
+    specularMap: WebGLTexture | null;
+    specular_url: string;
 
     constructor() {
         this.children = [];
@@ -70,6 +72,8 @@ export class Node {
             material: 0,
         }
         this.texture = null;
+        this.specularMap = null;
+        this.specular_url = "";
     }
 
     setParent(parent: Node | null) {
@@ -208,6 +212,7 @@ export class Node {
                 u_specularColor: this.shadingInfo.specularColor,
                 mode: this.shadingInfo.mode,
                 material: (this.shadingInfo.material && enableTexture) ? 1 : 0,
+                specularMap: (this.shadingInfo.specularMap && enableTexture) ? 1 : 0,
             }
             const u_world = m4.yRotation(this.cameraInformation.cameraAngleXRadians);
 
@@ -225,6 +230,12 @@ export class Node {
                 const tex_offset = url_offset[this.texture_url];
                 gl.activeTexture(gl.TEXTURE2 + tex_offset);
                 gl.uniform1i(gl.getUniformLocation(programInfo.program, "u_texture"), 2 + tex_offset);
+            }
+
+            if (this.specularMap && uniforms.specularMap) {
+                const tex_offset = url_offset[this.specular_url];
+                gl.activeTexture(gl.TEXTURE2 + tex_offset);
+                gl.uniform1i(gl.getUniformLocation(programInfo.program, "u_specularMap"), 2 + tex_offset);
             }
 
             utils.drawBufferInfo(gl, bufferInfo);
@@ -321,11 +332,27 @@ export class Node {
         })
     }
 
+    setSpecularMap(map: number) {
+        this.shadingInfo.specularMap = map;
+        console.log(map)
+        this.children.forEach((child) => {
+            child.setSpecularMap(map);
+        })
+    }
+
     setTexture(gl: any, url: any) {
         this.texture = this.loadTexture(gl, url);
         this.texture_url = url;
         this.children.forEach((child) => {
             child.setTexture(gl, url);
+        })
+    }
+
+    loadSpecularMap(gl: any, url: any) {
+        this.specularMap = this.loadTexture(gl, url);
+        this.specular_url = url;
+        this.children.forEach((child) => {
+            child.loadSpecularMap(gl, url);
         })
     }
 

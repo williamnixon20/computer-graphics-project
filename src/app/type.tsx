@@ -62,4 +62,5 @@ export interface ShadingInfo {
   specularColor: number[];
   diffuseColor: number[];
   material?: number;
+  specularMap?: number;
 }
