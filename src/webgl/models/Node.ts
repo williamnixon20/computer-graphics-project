@@ -33,8 +33,6 @@ export class Node {
     shadingInfo: ShadingInfo;
     texture: WebGLTexture | null;
     texture_url: string;
-    camera1Pos;
-    camera2Pos;
 
     constructor() {
         this.children = [];
@@ -130,8 +128,6 @@ export class Node {
         let cubeVertices = utils.createCubeVertices(1);
         let vertices = utils.deindexVertices(cubeVertices);
         // vertices = primitives.makeColor(vertices, this.shadingInfo.ambientColor);
-
-
         this.arrayInfo = vertices;
 
 

@@ -71,6 +71,7 @@ export default function Canvas() {
 
   const [lightDirection, setLightDirection] = useState([0, 0, 1]);
 
+  // @ts-ignore
   const handleSliderChange = (index, value) => {
     const newDirection = [...lightDirection];
     newDirection[index] = value;
