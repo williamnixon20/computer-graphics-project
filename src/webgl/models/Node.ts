@@ -10,6 +10,8 @@ var url_offset: any = {
 
 }
 var tex_offset = 0;
+
+var light_dir = [1, 1, 1];
 export class Node {
     position: number[];
     color: number[];
@@ -31,6 +33,8 @@ export class Node {
     shadingInfo: ShadingInfo;
     texture: WebGLTexture | null;
     texture_url: string;
+    camera1Pos;
+    camera2Pos;
 
     constructor() {
         this.children = [];
@@ -199,7 +203,7 @@ export class Node {
                 ],
 
                 u_color: this.shadingInfo.ambientColor,
-                u_reverseLightDirection: [1, 1, 1],
+                u_reverseLightDirection: light_dir,
                 u_worldViewProjection: [],
                 u_worldInverseTranspose: [],
 
@@ -390,4 +394,8 @@ export class Node {
         return (value & (value - 1)) === 0;
     }
 
+    // LIGHT DIR IS A GLOBAL VAR
+    setLightDirection(lightDirection: number[]) {
+        light_dir = lightDirection;
+    }
 }

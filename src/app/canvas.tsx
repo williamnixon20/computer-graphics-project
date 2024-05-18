@@ -68,6 +68,15 @@ export default function Canvas() {
     scale: { x: 0, y: 0, z: 0 },
     rotate: { x: 0, y: 0, z: 0 },
   });
+
+  const [lightDirection, setLightDirection] = useState([0, 0, 1]);
+
+  const handleSliderChange = (index, value) => {
+    const newDirection = [...lightDirection];
+    newDirection[index] = value;
+    setLightDirection(newDirection);
+  };
+
   const [mouseDownInformation, setMouseDownInformation] = useState<{
     isDown: boolean;
     startX: number | undefined;
@@ -187,7 +196,7 @@ export default function Canvas() {
       drawer2?.draw(scene, cameraInformation2);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [shading, shininess, specular, diffuse, material]);
+  }, [shading, shininess, specular, diffuse, material, lightDirection]);
 
   const updateShading = () => {
     if (scene && selectedName) {
@@ -201,6 +210,7 @@ export default function Canvas() {
       selectedNode.setSpecularColor(specularColor);
       console.log("material: ", material);
       selectedNode.setMaterial(material);
+      selectedNode.setLightDirection(lightDirection);
     }
   };
 
@@ -277,7 +287,7 @@ export default function Canvas() {
               step={0.1}
               value={
                 transforms[type][
-                  axis as keyof Transforms["translate"]
+                axis as keyof Transforms["translate"]
                 ] as number
               }
               onChange={(e) =>
@@ -974,9 +984,8 @@ export default function Canvas() {
                   setSelectedName(name);
                   resetTransforms();
                 }}
-                className={`${
-                  selectedName === name ? "bg-teal-600" : "bg-blue-500"
-                } p-1 text-sm`}
+                className={`${selectedName === name ? "bg-teal-600" : "bg-blue-500"
+                  } p-1 text-sm`}
               >
                 {name}
               </button>
@@ -996,6 +1005,50 @@ export default function Canvas() {
             )}
           </>
         )}
+        <>
+          <p className="font-semibold">Light Controls</p>
+          <div>
+            <div>
+              <label>
+                X:
+                <input
+                  type="range"
+                  min="-10"
+                  max="10"
+                  step="0.1"
+                  value={lightDirection[0]}
+                  onChange={(e) => handleSliderChange(0, parseFloat(e.target.value))}
+                />
+              </label>
+            </div>
+            <div>
+              <label>
+                Y:
+                <input
+                  type="range"
+                  min="-10"
+                  max="10"
+                  step="0.1"
+                  value={lightDirection[1]}
+                  onChange={(e) => handleSliderChange(1, parseFloat(e.target.value))}
+                />
+              </label>
+            </div>
+            <div>
+              <label>
+                Z:
+                <input
+                  type="range"
+                  min="-10"
+                  max="10"
+                  step="0.01"
+                  value={lightDirection[2]}
+                  onChange={(e) => handleSliderChange(2, parseFloat(e.target.value))}
+                />
+              </label>
+            </div>
+          </div>
+        </>
       </div>
     </>
   );
