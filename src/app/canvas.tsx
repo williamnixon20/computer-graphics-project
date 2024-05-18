@@ -148,7 +148,7 @@ export default function Canvas() {
     let refNode = {};
     newScene = new Node().buildByDescription(jsonToDraw);
     const arr_color = normalizeRGB(hexToRGBAArray(color, 1));
-    newScene.setTexture(gl, 'normalMap.png');
+    newScene.setTexture(gl, "normalMap.png");
     newScene.setAmbientColor(arr_color.concat([1]));
 
     newScene.procedureGetNodeRefDict(refNode);
@@ -168,13 +168,15 @@ export default function Canvas() {
   useEffect(() => {
     if (scene) {
       const arr_color = normalizeRGB(hexToRGBAArray(color, 1));
-      let selectedNode = refDict[selectedName].node;
-      selectedNode.setAmbientColor(arr_color.concat([1]));
-
+      if (selectedName) {
+        let selectedNode = refDict[selectedName].node;
+        selectedNode.setAmbientColor(arr_color.concat([1]));
+      }
       console.log(arr_color);
       drawer1?.draw(scene, cameraInformation1);
       drawer2?.draw(scene, cameraInformation2);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [color]);
 
   useEffect(() => {
@@ -184,10 +186,11 @@ export default function Canvas() {
       drawer1?.draw(scene, cameraInformation1);
       drawer2?.draw(scene, cameraInformation2);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [shading, shininess, specular, diffuse, material]);
 
   const updateShading = () => {
-    if (scene) {
+    if (scene && selectedName) {
       let selectedNode = refDict[selectedName].node;
 
       selectedNode.setShadingMode(shading ? 1 : 0);
@@ -196,7 +199,7 @@ export default function Canvas() {
       selectedNode.setDiffuseColor(diffuseColor);
       const specularColor = normalizeRGB(hexToRGBAArray(specular, 1));
       selectedNode.setSpecularColor(specularColor);
-      console.log("material: ", material)
+      console.log("material: ", material);
       selectedNode.setMaterial(material);
     }
   };
@@ -274,7 +277,7 @@ export default function Canvas() {
               step={0.1}
               value={
                 transforms[type][
-                axis as keyof Transforms["translate"]
+                  axis as keyof Transforms["translate"]
                 ] as number
               }
               onChange={(e) =>
@@ -292,7 +295,7 @@ export default function Canvas() {
   function handleMouseDown(
     e: React.MouseEvent<HTMLCanvasElement, globalThis.MouseEvent>
   ) {
-    console.log("MOUSE PICK")
+    console.log("MOUSE PICK");
     mouseDownInformation.isDown = true;
     mouseDownInformation.startX = e.nativeEvent.offsetX;
     mouseDownInformation.startY = e.nativeEvent.offsetY;
@@ -328,6 +331,7 @@ export default function Canvas() {
   }
 
   function handleMouseMove(
+    canvasId: number,
     e: React.MouseEvent<HTMLCanvasElement, globalThis.MouseEvent>
   ) {
     if (
@@ -348,14 +352,20 @@ export default function Canvas() {
         cameraInformation1.rotateX = newX;
         cameraInformation1.rotateY = newY;
       } else {
-        const newX = cameraInformation1.cameraAngleXRadians + degToRad(deltaX);
-        const newY = cameraInformation1.cameraAngleYRadians + degToRad(deltaY);
+        let cameraInfo;
+        if (canvasId === 0) {
+          cameraInfo = cameraInformation1;
+        } else {
+          cameraInfo = cameraInformation2;
+        }
+        const newX = cameraInfo.cameraAngleXRadians + degToRad(deltaX);
+        const newY = cameraInfo.cameraAngleYRadians + degToRad(deltaY);
 
-        cameraInformation1.cameraAngleXRadians = newX;
-        cameraInformation1.cameraAngleYRadians =
+        cameraInfo.cameraAngleXRadians = newX;
+        cameraInfo.cameraAngleYRadians =
           newY < degToRad(88) && newY > degToRad(-88)
             ? newY
-            : cameraInformation1.cameraAngleYRadians;
+            : cameraInfo.cameraAngleYRadians;
       }
 
       mouseDownInformation.isDown = true;
@@ -363,8 +373,11 @@ export default function Canvas() {
       mouseDownInformation.startY = e.nativeEvent.offsetY;
 
       if (scene) {
-        drawer1?.draw(scene, cameraInformation1);
-        drawer2?.draw(scene, cameraInformation2);
+        if (canvasId === 0) {
+          drawer1?.draw(scene, cameraInformation1);
+        } else {
+          drawer2?.draw(scene, cameraInformation2);
+        }
       }
     }
   }
@@ -373,7 +386,7 @@ export default function Canvas() {
     canvasId: number,
     e: React.WheelEvent<HTMLCanvasElement>
   ) {
-    console.log("SROLL")
+    console.log("SROLL");
     if (scene === undefined) {
       return;
     }
@@ -413,7 +426,7 @@ export default function Canvas() {
   }
 
   const handleKeyDown = (e: KeyboardEvent<HTMLCanvasElement>) => {
-    console.log("KEY DOWN")
+    console.log("KEY DOWN");
     const { key } = e;
 
     if (key === "Shift") {
@@ -458,7 +471,14 @@ export default function Canvas() {
   const [replay, setReplay] = useState(false);
   const [fps, setFps] = useState(1);
 
-  let animator = new Animator(walking, currentFrame, reverse, replay, scene!, fps);
+  let animator = new Animator(
+    walking,
+    currentFrame,
+    reverse,
+    replay,
+    scene!,
+    fps
+  );
   let lastFrameTime: number;
   let animationFrameId: number;
 
@@ -507,16 +527,16 @@ export default function Canvas() {
 
     let shapeData;
     switch (shape) {
-      case 'cubeHollow':
+      case "cubeHollow":
         shapeData = cubeHollow;
         break;
-      case 'hexagon':
+      case "hexagon":
         shapeData = hexagon;
         break;
-      case 'prism':
+      case "prism":
         shapeData = prism;
         break;
-      case 'box':
+      case "box":
         shapeData = box;
         break;
       default:
@@ -554,7 +574,7 @@ export default function Canvas() {
     jsonToDraw = articulatedData;
     setupWebGL(0, canvas1Ref);
     setupWebGL(1, canvas2Ref);
-  }
+  };
   return (
     <>
       <div className="w-full h-screen overflow-auto">
@@ -562,7 +582,7 @@ export default function Canvas() {
           ref={canvas1Ref}
           onMouseDown={handleMouseDown}
           onMouseUp={handleMouseUp}
-          onMouseMove={handleMouseMove}
+          onMouseMove={(e) => handleMouseMove(0, e)}
           onWheel={(e) => handleScroll(0, e)}
           onKeyDown={handleKeyDown}
           onKeyUp={handleKeyUp}
@@ -574,7 +594,7 @@ export default function Canvas() {
           ref={canvas2Ref}
           onMouseDown={handleMouseDown}
           onMouseUp={handleMouseUp}
-          onMouseMove={handleMouseMove}
+          onMouseMove={(e) => handleMouseMove(1, e)}
           onWheel={(e) => handleScroll(1, e)}
           onKeyDown={handleKeyDown}
           onKeyUp={handleKeyUp}
@@ -699,9 +719,18 @@ export default function Canvas() {
           <select
             onChange={(e) => {
               const newValue = e.target.value;
-              cameraInformation2.projType = newValue;
-              if (scene) {
-                drawer2?.draw(scene, cameraInformation2);
+              if (animate) {
+                cameraInformation2.projType = newValue;
+                if (scene) {
+                  drawer2?.draw(scene, cameraInformation2);
+                }
+              } else {
+                const newVal = { ...cameraInformation2 };
+                newVal.projType = newValue;
+                setCameraInformation2(newVal);
+                if (scene) {
+                  drawer2?.draw(scene, newVal);
+                }
               }
             }}
             value={cameraInformation2.projType}
@@ -778,9 +807,7 @@ export default function Canvas() {
             defaultValue={"1"}
             value={fps}
             max="60"
-            onChange={(e) =>
-              setFps(parseInt(e.target.value))
-            }
+            onChange={(e) => setFps(parseInt(e.target.value))}
             className="w-full"
           />
         </div>
@@ -807,40 +834,57 @@ export default function Canvas() {
           <label className="text-base font-semibold text-white mr-2">
             Model type
           </label>
-          <select className="text-black" onChange={(e) => {
-            if (e.target.value === "hollow") {
-              setHollow(true);
-              setSelectedArticulated("");
-            } else {
-              setHollow(false);
-              setSelectedShape("");
-            }
-          }}>
+          <select
+            className="text-black"
+            onChange={(e) => {
+              if (e.target.value === "hollow") {
+                setHollow(true);
+                setSelectedArticulated("");
+              } else {
+                setHollow(false);
+                setSelectedShape("");
+              }
+            }}
+          >
             <option value="articulate">Articulate</option>
             <option value="hollow">Hollow</option>
           </select>
         </div>
-        {hollow && (<>
-          <div className="mb-2 flex flex-row justify-between">
-            <label className="text-base font-semibold text-white mr-2">
-              Select hollow model
-            </label>
-            <select className="text-black" value={selectedShape} onChange={handleShapeChange}>
-              <option value="" disabled>Select a shape</option>
-              <option value="cubeHollow">Cube Hollow</option>
-              <option value="hexagon">Hexagon</option>
-              <option value="prism">Prism</option>
-              <option value="box">Box</option>
-            </select>
-          </div>
-        </>)}
+        {hollow && (
+          <>
+            <div className="mb-2 flex flex-row justify-between">
+              <label className="text-base font-semibold text-white mr-2">
+                Select hollow model
+              </label>
+              <select
+                className="text-black"
+                value={selectedShape}
+                onChange={handleShapeChange}
+              >
+                <option value="" disabled>
+                  Select a shape
+                </option>
+                <option value="cubeHollow">Cube Hollow</option>
+                <option value="hexagon">Hexagon</option>
+                <option value="prism">Prism</option>
+                <option value="box">Box</option>
+              </select>
+            </div>
+          </>
+        )}
         {!hollow && (
           <div className="mb-2 flex flex-row justify-between">
             <label className="text-base font-semibold text-white mr-2">
               Select articulated model
             </label>
-            <select className="text-black" value={selectedArticulated} onChange={handleArticulatedChange}>
-              <option value="" disabled>Select a model</option>
+            <select
+              className="text-black"
+              value={selectedArticulated}
+              onChange={handleArticulatedChange}
+            >
+              <option value="" disabled>
+                Select a model
+              </option>
               <option value="man">Man</option>
               <option value="dog">Dog</option>
               <option value="lamp">Lamp</option>
@@ -906,8 +950,14 @@ export default function Canvas() {
               <label className="text-base font-semibold text-white mb-2">
                 Material
               </label>
-              <select className="text-base text-black mb-2" value={material} onChange={handleMaterialChange}>
-                <option value={0} selected>Basic Material</option>
+              <select
+                className="text-base text-black mb-2"
+                value={material}
+                onChange={handleMaterialChange}
+              >
+                <option value={0} selected>
+                  Basic Material
+                </option>
                 <option value={1}>Bump Mapping</option>
               </select>
             </div>
@@ -924,8 +974,9 @@ export default function Canvas() {
                   setSelectedName(name);
                   resetTransforms();
                 }}
-                className={`${selectedName === name ? "bg-teal-600" : "bg-blue-500"
-                  } p-1 text-sm`}
+                className={`${
+                  selectedName === name ? "bg-teal-600" : "bg-blue-500"
+                } p-1 text-sm`}
               >
                 {name}
               </button>
