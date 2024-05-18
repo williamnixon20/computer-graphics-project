@@ -352,22 +352,25 @@ export default function Canvas() {
       // e.nativeEvent.offsetX % 2 === 0 &&
       e.nativeEvent.offsetY % 2 === 0
     ) {
-      // console.log(cameraInformation1.cameraAngleXRadians)
       const deltaX = mouseDownInformation.startX - e.nativeEvent.offsetX;
       const deltaY = mouseDownInformation.startY - e.nativeEvent.offsetY;
 
-      if (isShiftPressed) {
-        const newX = cameraInformation1.rotateX + degToRad(deltaX / 10);
-        const newY = cameraInformation1.rotateY + degToRad(deltaY / 10);
-        cameraInformation1.rotateX = newX;
-        cameraInformation1.rotateY = newY;
+      let cameraInfo;
+      let drawer;
+      if (canvasId === 0) {
+        cameraInfo = animate ? cameraInformation1 : { ...cameraInformation1 };
+        drawer = drawer1;
       } else {
-        let cameraInfo;
-        if (canvasId === 0) {
-          cameraInfo = cameraInformation1;
-        } else {
-          cameraInfo = cameraInformation2;
-        }
+        cameraInfo = animate ? cameraInformation2 : { ...cameraInformation2 };
+        drawer = drawer2;
+      }
+
+      if (isShiftPressed) {
+        const newX = cameraInfo.rotateX + degToRad(deltaX / 10);
+        const newY = cameraInfo.rotateY + degToRad(deltaY / 10);
+        cameraInfo.rotateX = newX;
+        cameraInfo.rotateY = newY;
+      } else {
         const newX = cameraInfo.cameraAngleXRadians + degToRad(deltaX);
         const newY = cameraInfo.cameraAngleYRadians + degToRad(deltaY);
 
@@ -383,11 +386,20 @@ export default function Canvas() {
       mouseDownInformation.startY = e.nativeEvent.offsetY;
 
       if (scene) {
-        if (canvasId === 0) {
-          drawer1?.draw(scene, cameraInformation1);
-        } else {
-          drawer2?.draw(scene, cameraInformation2);
+        if (!animate) {
+          if (canvasId === 0)
+            setCameraInformation1(() => {
+              drawer?.draw(scene, cameraInfo);
+              return cameraInfo;
+            });
+          else
+            setCameraInformation2(() => {
+              drawer?.draw(scene, cameraInfo);
+              return cameraInfo;
+            });
+          return;
         }
+        drawer?.draw(scene, cameraInfo);
       }
     }
   }
@@ -435,33 +447,30 @@ export default function Canvas() {
     }
   }
 
-  const handleKeyDown = (e: KeyboardEvent<HTMLCanvasElement>) => {
-    console.log("KEY DOWN");
+  const handleKeyDown = (canvasId: number, e: KeyboardEvent<HTMLCanvasElement>) => {
+    // console.log("KEY DOWN");
     const { key } = e;
+    let cameraInfo = canvasId === 0 ? cameraInformation1 : cameraInformation2
+    let drawer = canvasId === 0 ? drawer1 : drawer2;
 
     if (key === "Shift") {
-      cameraInformation1.radiusRotate = cameraInformation1.radius;
+      cameraInfo.radiusRotate = cameraInfo.radius;
       setIsShiftPressed(true);
     }
 
     if (key === "w" || key === "a" || key === "s" || key === "d") {
       if (key === "w") {
-        cameraInformation1.translateY += 2 * (cameraInformation1.radius / 100);
+        cameraInfo.translateY += 2 * (cameraInfo.radius / 100);
       } else if (key === "a") {
-        cameraInformation1.translateX -= 2 * (cameraInformation1.radius / 100);
+        cameraInfo.translateX -= 2 * (cameraInfo.radius / 100);
       } else if (key === "s") {
-        cameraInformation1.translateY -= 2 * (cameraInformation1.radius / 100);
+        cameraInfo.translateY -= 2 * (cameraInfo.radius / 100);
       } else {
-        cameraInformation1.translateX += 2 * (cameraInformation1.radius / 100);
+        cameraInfo.translateX += 2 * (cameraInfo.radius / 100);
       }
 
-      // console.log(
-      //   newCameraInformation.translateX,
-      //   newCameraInformation.translateY
-      // );
       if (scene) {
-        drawer1?.draw(scene, cameraInformation1);
-        drawer2?.draw(scene, cameraInformation2);
+        drawer?.draw(scene, cameraInfo);
       }
     }
   };
@@ -475,20 +484,14 @@ export default function Canvas() {
   };
 
   // Animation
-  const [currentFrame, setCurrentFrame] = useState(0);
   const [animate, setAnimate] = useState(false);
+  const [currentFrame, setCurrentFrame] = useState(-1);
   const [reverse, setReverse] = useState(false);
   const [replay, setReplay] = useState(false);
+  const [reset, setReset] = useState(false);
   const [fps, setFps] = useState(1);
 
-  let animator = new Animator(
-    walking,
-    currentFrame,
-    reverse,
-    replay,
-    scene!,
-    fps
-  );
+  let animator = new Animator(scene!, walking, currentFrame, reverse, replay, reset, fps);
   let lastFrameTime: number;
   let animationFrameId: number;
 
@@ -498,11 +501,31 @@ export default function Canvas() {
     if (lastFrameTime === undefined) lastFrameTime = currentTime;
     const deltaSecond = (currentTime - lastFrameTime) / 1000;
 
+    if (animator.reset) {
+      if (animator.reverse) {
+        animator.currentFrame = animator.length - 1;
+        setCurrentFrame(animator.length - 1);
+      } else {
+        animator.currentFrame = 0;
+        setCurrentFrame(0);
+      }
+      animator.updateSceneGraph();
+      animator.reset = false;
+      setReset(false);
+    }
+
     animator.update(deltaSecond);
     setCurrentFrame(animator.currentFrame);
 
     drawer1?.draw(scene, cameraInformation1);
     drawer2?.draw(scene, cameraInformation2);
+
+    if (!animator.replay) {
+      if ((!animator.reverse && animator.currentFrame === animator.length - 1) || (animator.reverse && animator.currentFrame === 0)) {
+        setReset(true);
+        setAnimate(false);
+      }
+    }
 
     lastFrameTime = currentTime;
     animationFrameId = requestAnimationFrame(runAnim);
@@ -516,12 +539,20 @@ export default function Canvas() {
   }, [animate]);
 
   useEffect(() => {
-    animator.isReverse = reverse;
+    animator.currentFrame = currentFrame;
+  }, [currentFrame]);
+
+  useEffect(() => {
+    animator.reverse = reverse;
   }, [reverse]);
 
   useEffect(() => {
-    animator.isReplay = replay;
+    animator.replay = replay;
   }, [replay]);
+
+  useEffect(() => {
+    animator.reset = reset;
+  }, [reset]);
 
   useEffect(() => {
     animator.fps = fps;
@@ -594,7 +625,7 @@ export default function Canvas() {
           onMouseUp={handleMouseUp}
           onMouseMove={(e) => handleMouseMove(0, e)}
           onWheel={(e) => handleScroll(0, e)}
-          onKeyDown={handleKeyDown}
+          onKeyDown={(e) => handleKeyDown(0, e)}
           onKeyUp={handleKeyUp}
           tabIndex={0}
           id="webgl-canvas"
@@ -606,7 +637,7 @@ export default function Canvas() {
           onMouseUp={handleMouseUp}
           onMouseMove={(e) => handleMouseMove(1, e)}
           onWheel={(e) => handleScroll(1, e)}
-          onKeyDown={handleKeyDown}
+          onKeyDown={(e) => handleKeyDown(1, e)}
           onKeyUp={handleKeyUp}
           tabIndex={0}
           id="webgl-canvas"
@@ -769,13 +800,14 @@ export default function Canvas() {
           </>
         )}
 
+        {/* Animation */}
         <div>
           <div className="mb-4">
             <span className="text-sm font-semibold text-white">
-              Current Frame: {currentFrame}
+              Current Frame: {currentFrame + 1}
             </span>
             <span className="text-base font-semibold text-white">
-              / {animator!.length - 1 || 0}
+              / {animator!.length}
             </span>
           </div>
 
