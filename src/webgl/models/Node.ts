@@ -1,11 +1,15 @@
 import { ArticulatedDescriptions, CameraInformation, HollowDescriptions, Transforms, ShadingInfo } from '@/app/type';
 import m4 from '../utils/m4';
-import * as primitives from '../utils/primitives';
 import TRS from '../utils/trs';
-import * as webglUtils from "../utils/webGlUtils";
+import * as utils from "../utils/utils";
 import { degToRad } from '../utils/radians';
 
 var id_global = 1;
+
+var url_offset: any = {
+
+}
+var tex_offset = 0;
 export class Node {
     position: number[];
     color: number[];
@@ -27,7 +31,6 @@ export class Node {
     shadingInfo: ShadingInfo;
     texture: WebGLTexture | null;
     texture_url: string;
-    image: HTMLImageElement | null;
 
     constructor() {
         this.children = [];
@@ -43,7 +46,6 @@ export class Node {
         this.arrayInfo = {};
         this.id = id_global;
         this.texture_url = "";
-        this.image = null;
         id_global += 1;
         this.cameraInformation = {
             cameraAngleXRadians: 0,
@@ -120,20 +122,11 @@ export class Node {
 
         this.draw = nodeDescription.draw !== false;
 
-        // Articulated model position, color normal is always cube (hardcode).
-        // TODO: make this dynamic
-        let cubeVertices = primitives.createCubeVertices(1);
-        let vertices = primitives.deindexVertices(cubeVertices);
-        // console.log(vertices)
+
+        let cubeVertices = utils.createCubeVertices(1);
+        let vertices = utils.deindexVertices(cubeVertices);
         // vertices = primitives.makeColor(vertices, this.shadingInfo.ambientColor);
-        // console.log(this.shadingInfo.ambientColor)
-        // vertices = primitives.makeRandomVertexColors(vertices, {
-        //     vertsPerColor: 6,
-        //     rand: function (ndx, channel) {
-        //         return channel < 3 ? ((128 + Math.random() * 128) | 0) : 255;
-        //     },
-        // });
-        // console.log(vertices.colors)
+
 
         this.arrayInfo = vertices;
 
@@ -153,7 +146,6 @@ export class Node {
     buildHollow(nodeDescription: HollowDescriptions) {
         this.draw = true;
         const lengthPoint = nodeDescription.positions.length / (3 * 6);
-        // console.log("LENGTH POINT", lengthPoint)
         let textureArrBase = [
             0, 0,
             0, 1,
@@ -163,7 +155,6 @@ export class Node {
             1, 1,
         ];
 
-        // NOT SURE ABOUT TEXTURE HERE
         let textureArr: number[] = [];
         for (let i = 0; i < lengthPoint; i++) {
             textureArr = textureArr.concat(textureArrBase);
@@ -218,32 +209,25 @@ export class Node {
                 mode: this.shadingInfo.mode,
                 material: (this.shadingInfo.material && enableTexture) ? 1 : 0,
             }
-            // uniforms.u_matrix = m4.multiply(viewProjectionMatrix, this.worldMatrix);
             const u_world = m4.yRotation(this.cameraInformation.cameraAngleXRadians);
 
             uniforms.u_worldViewProjection = m4.multiply(viewProjectionMatrix, this.worldMatrix);
             uniforms.u_worldInverseTranspose = m4.transpose(m4.inverse(u_world));
-            // console.log("ARRAYS INFO", this.arrayInfo)
 
-            let bufferInfo = webglUtils.createBufferInfoFromArrays(gl, this.arrayInfo);
+            let bufferInfo = utils.createBufferInfoFromArrays(gl, this.arrayInfo);
 
             gl.useProgram(programInfo.program);
 
-            // this function will set attribute vec4 in shader
-            // this will follow pass all attribs in bufferInfo
-            webglUtils.setBuffersAndAttributes(gl, programInfo, bufferInfo);
+            utils.setBuffersAndAttributes(gl, programInfo, bufferInfo);
+            utils.setUniforms(programInfo, uniforms);
 
-            // This function will set all uniforms in the shaders.
-            // This will pass all uniforms 
             if (this.texture && uniforms.material) {
-                console.log("TEXTURE ENABLED")
-                // gl.bindTexture(gl.TEXTURE_2D, this.texture);
-                gl.uniform1i(gl.getUniformLocation(programInfo.program, "u_texture"), 2);
+                const tex_offset = url_offset[this.texture_url];
+                gl.activeTexture(gl.TEXTURE2 + tex_offset);
+                gl.uniform1i(gl.getUniformLocation(programInfo.program, "u_texture"), 2 + tex_offset);
             }
 
-            webglUtils.setUniforms(programInfo, uniforms);
-
-            webglUtils.drawBufferInfo(gl, bufferInfo);
+            utils.drawBufferInfo(gl, bufferInfo);
         } else {
             console.log("NOT DRAWING!")
         }
@@ -346,7 +330,12 @@ export class Node {
     }
 
     loadTexture(gl: WebGLRenderingContext, url: string) {
-        gl.activeTexture(gl.TEXTURE2);
+        if (!(url in url_offset)) {
+            console.log("URL OFFSET", url_offset, tex_offset)
+            url_offset[url] = tex_offset;
+            tex_offset += 1;
+        }
+        gl.activeTexture(gl.TEXTURE2 + url_offset[url]);
         const texture = gl.createTexture();
         gl.bindTexture(gl.TEXTURE_2D, texture);
 
@@ -393,7 +382,6 @@ export class Node {
                 gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
             }
         };
-        this.image = image;
 
         return texture;
     }

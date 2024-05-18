@@ -1,7 +1,6 @@
 "use client";
 
 import { KeyboardEvent, RefObject, useEffect, useRef, useState } from "react";
-import TRS from "../webgl/utils/trs";
 
 // @ts-ignore
 import { Node } from "../webgl/models/Node";
@@ -153,6 +152,7 @@ export default function Canvas() {
     newScene.setAmbientColor(arr_color.concat([1]));
 
     newScene.procedureGetNodeRefDict(refNode);
+    refNode["head"].node.setTexture(gl, 'f-texture.png');
 
     setScene(newScene);
     setRefDict(refNode);
@@ -732,7 +732,7 @@ export default function Canvas() {
               Current Frame: {currentFrame}
             </span>
             <span className="text-base font-semibold text-white">
-              / {animator!.length-1 || 0}
+              / {animator!.length - 1 || 0}
             </span>
           </div>
 

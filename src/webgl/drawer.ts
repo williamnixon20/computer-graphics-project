@@ -1,6 +1,6 @@
 import { Node } from './models/Node';
 import * as m4 from "./utils/m4";
-import * as webglUtils from "./utils/webGlUtils";
+import * as utils from "./utils/utils";
 
 import { createVertexShader, createFragmentShader, createVertexShaderPicking, createFragmentShaderPicking, createVertexPostProcessShader, createFragmentPostProcessShader } from "@/webgl/utils/create-shader";
 import { CameraInformation } from '@/app/type';
@@ -43,17 +43,17 @@ export class Drawer {
         const vertexShader = createVertexShader(this.gl);
         const fragmentShader = createFragmentShader(this.gl);
         // @ts-ignore
-        this.programInfo = webglUtils.createProgramInfo(this.gl, [vertexShader, fragmentShader]);
+        this.programInfo = utils.createProgramInfo(this.gl, [vertexShader, fragmentShader]);
 
         const pickingShader = createVertexShaderPicking(this.gl);
         const pickingFragmentShader = createFragmentShaderPicking(this.gl);
         // @ts-ignore
-        this.pickingProgramInfo = webglUtils.createProgramInfo(this.gl, [pickingShader, pickingFragmentShader]);
+        this.pickingProgramInfo = utils.createProgramInfo(this.gl, [pickingShader, pickingFragmentShader]);
 
         const postProcessVertexShader = createVertexPostProcessShader(this.gl);
         const postProcessFragmentShader = createFragmentPostProcessShader(this.gl);
         // @ts-ignore
-        this.postprocessProgramInfo = webglUtils.createProgramInfo(this.gl, [postProcessVertexShader, postProcessFragmentShader]);
+        this.postprocessProgramInfo = utils.createProgramInfo(this.gl, [postProcessVertexShader, postProcessFragmentShader]);
 
     }
 
@@ -74,7 +74,7 @@ export class Drawer {
 
         time *= 0.001;
 
-        webglUtils.resizeCanvasToDisplaySize(this.gl.canvas);
+        utils.resizeCanvasToDisplaySize(this.gl.canvas);
 
         // Tell WebGL how to convert from clip space to pixels
         this.gl.viewport(0, 0, this.gl.canvas.width, this.gl.canvas.height);
