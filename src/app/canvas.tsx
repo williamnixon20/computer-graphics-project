@@ -152,7 +152,7 @@ export default function Canvas() {
     newScene.setAmbientColor(arr_color.concat([1]));
 
     newScene.procedureGetNodeRefDict(refNode);
-    refNode["head"].node.setTexture(gl, 'f-texture.png');
+    // refNode["head"].node.setTexture(gl, 'f-texture.png');
 
     setScene(newScene);
     setRefDict(refNode);
@@ -168,7 +168,9 @@ export default function Canvas() {
   useEffect(() => {
     if (scene) {
       const arr_color = normalizeRGB(hexToRGBAArray(color, 1));
-      scene.setAmbientColor(arr_color.concat([1]));
+      let selectedNode = refDict[selectedName].node;
+      selectedNode.setAmbientColor(arr_color.concat([1]));
+
       console.log(arr_color);
       drawer1?.draw(scene, cameraInformation1);
       drawer2?.draw(scene, cameraInformation2);
@@ -186,14 +188,16 @@ export default function Canvas() {
 
   const updateShading = () => {
     if (scene) {
-      scene.setShadingMode(shading ? 1 : 0);
-      scene.setShininess(shininess);
+      let selectedNode = refDict[selectedName].node;
+
+      selectedNode.setShadingMode(shading ? 1 : 0);
+      selectedNode.setShininess(shininess);
       const diffuseColor = normalizeRGB(hexToRGBAArray(diffuse, 1));
-      scene.setDiffuseColor(diffuseColor);
+      selectedNode.setDiffuseColor(diffuseColor);
       const specularColor = normalizeRGB(hexToRGBAArray(specular, 1));
-      scene.setSpecularColor(specularColor);
+      selectedNode.setSpecularColor(specularColor);
       console.log("material: ", material)
-      scene.setMaterial(material);
+      selectedNode.setMaterial(material);
     }
   };
 
