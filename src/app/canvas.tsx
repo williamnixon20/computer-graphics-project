@@ -170,10 +170,10 @@ export default function Canvas() {
     let refNode = {};
     newScene = new Node().buildByDescription(jsonToDraw);
     const arr_color = normalizeRGB(hexToRGBAArray(color, 1));
-    newScene.setTexture(gl, 'texture.png');
-    newScene.loadSpecularMap(gl, 'specular-texture.png');
+    // newScene.setTexture(gl, 'texture.png');
+    // newScene.loadSpecularMap(gl, 'specular-texture.png');
 
-    newScene.setAmbientColor(arr_color.concat([1]));
+    // newScene.setAmbientColor(arr_color.concat([1]));
     newScene.procedureGetNodeRefDict(refNode);
 
     // refNode["head"].node.setTexture(gl, 'f-texture.png');
@@ -593,6 +593,25 @@ export default function Canvas() {
     lastFrameTime = currentTime;
     animationFrameId = requestAnimationFrame(runAnim);
   }
+  const handleFileUpload = (event) => {
+    const file = event.target.files[0];
+    const reader = new FileReader();
+
+    reader.onload = (e) => {
+      const fileContent = e.target.result;
+      const jsonData = JSON.parse(fileContent);
+      if (scene) {
+        jsonToDraw = jsonData;
+        setupWebGL(0, canvas1Ref);
+        setupWebGL(1, canvas2Ref);
+        // scene.buildByDescription(jsonData);
+        // setScene(scene); // Update the scene state if needed
+      }
+    };
+    if (file) {
+      reader.readAsText(file);
+    }
+  };
 
   useEffect(() => {
     if (animate) {
@@ -1153,7 +1172,21 @@ export default function Canvas() {
               </button>
             </div>
           ))}
-      </div>
+        <div>
+          <button onClick={() => {
+            console.log(scene?.toJsonFormat());
+            scene?.buildByDescription(scene?.toJsonFormat());
+            // Download as json file
+            const element = document.createElement("a");
+            const file = new Blob([JSON.stringify(scene?.toJsonFormat())], { type: 'text/plain' });
+            element.href = URL.createObjectURL(file);
+            element.download = "scene.json";
+            document.body.appendChild(element); // Required for this to work in FireFox
+            element.click();
+          }}>Save</button>
+          <input type="file" accept=".json" onChange={handleFileUpload} />
+        </div>
+      </div >
       <div className="p-4 min-w-44 h-screen">
         {selectedName && (
           <>

@@ -178,11 +178,42 @@ export class Node {
     buildByDescription(nodeDescription: ArticulatedDescriptions | HollowDescriptions) {
         if (nodeDescription.type === "articulated") {
             return this.buildArticulated(nodeDescription as ArticulatedDescriptions);
-        }
-        else {
+        } else if (nodeDescription.type === "saved") {
+            return this.fromJSON(nodeDescription as any);
+        } else {
             return this.buildHollow(nodeDescription as HollowDescriptions);
         }
     }
+
+    fromJSON(json) {
+        let trs = this.source
+        trs.translation = json.translation || trs.translation;
+        trs.rotation = json.rotation || trs.rotation;
+        trs.scale = json.scale || trs.scale;
+
+        this.name = json.name;
+        this.draw = json.draw !== false;
+        this.arrayInfo = json.arrayInfo;
+        console.log("FROM JSON", new Float32Array(json.arrayInfo))
+        this.cameraInformation = json.cameraInformation;
+        this.shadingInfo = json.shadingInfo;
+        this.texture_url = json.texture_url;
+        this.specular_url = json.specular_url;
+
+        // this.texture = this.texture_url ? this.loadTexture(gl, this.texture_url) : null;
+        // this.specularMap = this.specular_url ? this.loadTexture(gl, this.specular_url) : null;
+
+        let childrenNodes = this.makeNodes(json.children, "saved")
+
+        // set parent to this for every childrenNodes
+        for (let i = 0; i < childrenNodes.length; i++) {
+            if (childrenNodes[i] instanceof Node) {
+                childrenNodes[i].setParent(this);
+            }
+        }
+        return this;
+    }
+
 
     makeNodes(nodeDescriptions: ArticulatedDescriptions[] | HollowDescriptions[] | undefined, type: string) {
         return nodeDescriptions ? nodeDescriptions.map((node) => {
@@ -421,5 +452,37 @@ export class Node {
     // LIGHT DIR IS A GLOBAL VAR
     setLightDirection(lightDirection: number[]) {
         light_dir = lightDirection;
+    }
+
+    toJsonFormat() {
+        let nodeDescription: any = {
+            "name": this.name,
+            "id": this.id,
+            "type": "saved",
+            "translation": this.source.getTranslateWDelta(),
+            "rotation": this.source.getRotateWDelta(),
+            "scale": this.source.getScaleWDelta(),
+            "draw": this.draw,
+            "arrayInfo": {
+                // @ts-ignore
+                "position": Array.from(this.arrayInfo.position),
+                // @ts-ignore
+                "normal": Array.from(this.arrayInfo.normal),
+                // @ts-ignore
+                "texcoord": Array.from(this.arrayInfo.texcoord)
+            },
+            "cameraInformation": this.cameraInformation,
+            "shadingInfo": this.shadingInfo,
+            "texture_url": this.texture_url,
+            "specular_url": this.specular_url,
+            "children": []
+        }
+
+        this.children.forEach((child) => {
+            nodeDescription.children.push(child.toJsonFormat());
+        })
+        console.log("SAVE INFO", nodeDescription.arrayInfo)
+
+        return nodeDescription;
     }
 }

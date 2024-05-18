@@ -58,6 +58,33 @@ class TRS {
         this.rotation = [transform.rotate.x, transform.rotate.y, transform.rotate.z];
         this.scale = [transform.scale.x, transform.scale.y, transform.scale.z];
     }
+
+    getTranslateWDelta() {
+        const t = this.translation.slice();
+        const d = this.delta.translate;
+        t[0] += d.x;
+        t[1] += d.y;
+        t[2] += d.z;
+        return t;
+    }
+
+    getRotateWDelta() {
+        const r = this.rotation.slice();
+        const d = this.delta.rotate;
+        r[0] += d.x;
+        r[1] += d.y;
+        r[2] += d.z;
+        return r;
+    }
+
+    getScaleWDelta() {
+        const s = this.scale.slice();
+        const d = this.delta.scale;
+        s[0] += d.x;
+        s[1] += d.y;
+        s[2] += d.z;
+        return s;
+    }
 }
 
 
