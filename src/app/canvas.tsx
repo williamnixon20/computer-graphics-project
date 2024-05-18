@@ -7,8 +7,8 @@ import { Node } from "../webgl/models/Node";
 import { Drawer } from "@/webgl/drawer";
 import { cubeHollow } from "../../test/hollow/cube-hollow";
 import { hexagon } from "../../test/hollow/hexagon";
+import { lockedPrism } from "../../test/hollow/locked-prism";
 import { prism } from "../../test/hollow/prism";
-import { box } from "../../test/hollow/box";
 import {
   ArticulatedDescriptions,
   CameraInformation,
@@ -169,8 +169,8 @@ export default function Canvas() {
     let refNode = {};
     newScene = new Node().buildByDescription(jsonToDraw);
     const arr_color = normalizeRGB(hexToRGBAArray(color, 1));
-    newScene.setTexture(gl, "texture.png");
-    newScene.loadSpecularMap(gl, "specular-texture.png");
+    newScene.setTexture(gl, 'texture.png');
+    newScene.loadSpecularMap(gl, 'specular-texture.png');
 
     newScene.setAmbientColor(arr_color.concat([1]));
     newScene.procedureGetNodeRefDict(refNode);
@@ -186,7 +186,7 @@ export default function Canvas() {
     let cameraScene2 = null;
     cameraScene2 = new Node().buildByDescription(jsonCamera);
     cameraScene2.setTexture(gl, "normalMap.png");
-    cameraScene2.loadSpecularMap(gl, "specular-texture.png");
+    cameraScene2.loadSpecularMap(gl, 'specular-texture.png');
     cameraScene2.setAmbientColor(arr_color.concat([1]));
 
     setScene(newScene);
@@ -658,8 +658,8 @@ export default function Canvas() {
       case "prism":
         shapeData = prism;
         break;
-      case "box":
-        shapeData = box;
+      case "lockedPrism":
+        shapeData = lockedPrism;
         break;
       default:
         shapeData = prism;
@@ -1026,7 +1026,7 @@ export default function Canvas() {
                 <option value="cubeHollow">Cube Hollow</option>
                 <option value="hexagon">Hexagon</option>
                 <option value="prism">Prism</option>
-                <option value="box">Box</option>
+                <option value="lockedPrism">Fancy Prism</option>
               </select>
             </div>
           </>
