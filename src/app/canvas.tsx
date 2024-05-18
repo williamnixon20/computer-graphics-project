@@ -7,8 +7,8 @@ import { Node } from "../webgl/models/Node";
 import { Drawer } from "@/webgl/drawer";
 import { cubeHollow } from "../../test/hollow/cube-hollow";
 import { hexagon } from "../../test/hollow/hexagon";
+import { lockedPrism } from "../../test/hollow/locked-prism";
 import { prism } from "../../test/hollow/prism";
-import { box } from "../../test/hollow/box";
 import {
   ArticulatedDescriptions,
   CameraInformation,
@@ -163,7 +163,7 @@ export default function Canvas() {
     newScene = new Node().buildByDescription(jsonToDraw);
     const arr_color = normalizeRGB(hexToRGBAArray(color, 1));
     newScene.setTexture(gl, 'texture.png');
-    
+
     newScene.setAmbientColor(arr_color.concat([1]));
 
     newScene.procedureGetNodeRefDict(refNode);
@@ -612,8 +612,8 @@ export default function Canvas() {
       case "prism":
         shapeData = prism;
         break;
-      case "box":
-        shapeData = box;
+      case "lockedPrism":
+        shapeData = lockedPrism;
         break;
       default:
         shapeData = prism;
@@ -980,7 +980,7 @@ export default function Canvas() {
                 <option value="cubeHollow">Cube Hollow</option>
                 <option value="hexagon">Hexagon</option>
                 <option value="prism">Prism</option>
-                <option value="box">Box</option>
+                <option value="lockedPrism">Fancy Prism</option>
               </select>
             </div>
           </>
@@ -1061,7 +1061,7 @@ export default function Canvas() {
             </div>
             <div className="mb-2 flex flex-col justify-between">
               <label className="text-base font-semibold text-white mb-2">
-              Diffuse Texture
+                Diffuse Texture
               </label>
               <select className="text-base text-black mb-2" value={material} onChange={handleMaterialChange}>
                 <option value={0} selected>Basic Material</option>
@@ -1071,7 +1071,7 @@ export default function Canvas() {
 
             <div className="mb-2 flex flex-col justify-between">
               <label className="text-base font-semibold text-white mb-2">
-              Specular Texture
+                Specular Texture
               </label>
               <select className="text-base text-black mb-2" value={specularTexture} onChange={handleSpecularChange}>
                 <option value={0} selected>Basic Material</option>
@@ -1081,7 +1081,7 @@ export default function Canvas() {
 
             <div className="mb-2 flex flex-col justify-between">
               <label className="text-base font-semibold text-white mb-2">
-              Displacement Map
+                Displacement Map
               </label>
               <select className="text-base text-black mb-2" value={displacementMap} onChange={handleDisplacementChange}>
                 <option value={0} selected>No Displacement</option>
@@ -1091,7 +1091,7 @@ export default function Canvas() {
 
             <div className="mb-2 flex flex-col justify-between">
               <label className="text-base font-semibold text-white mb-2">
-              Normal Map
+                Normal Map
               </label>
               <select className="text-base text-black mb-2" value={normalMap} onChange={handleNormalChange}>
                 <option value={0} selected>No Normal</option>

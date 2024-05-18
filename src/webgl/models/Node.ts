@@ -159,7 +159,8 @@ export class Node {
         for (let i = 0; i < lengthPoint; i++) {
             textureArr = textureArr.concat(textureArrBase);
         }
-        let rescaledPositions = nodeDescription.positions.map((pos) => pos * 0.01);
+        let rescaledPositions = nodeDescription.positions.map((pos) => pos * 0.03);
+        console.log(rescaledPositions)
 
         this.arrayInfo = {
             position: rescaledPositions,
