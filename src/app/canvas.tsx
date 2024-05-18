@@ -92,6 +92,10 @@ export default function Canvas() {
   const [specular, setSpecular] = useState<string>("#ffffff");
   const [diffuse, setDiffuse] = useState<string>("#6464FF");
   const [material, setMaterial] = useState(0);
+  const [specularTexture, setSpecularTexture] = useState(0);
+  const [diffuseTexture, setDiffuseTexture] = useState(0);
+  const [displacementMap, setDisplacementMap] = useState(0);
+  const [normalMap, setNormalMap] = useState(0);
 
   const hexToRGBAArray = (hex: string, alpha: number): number[] => {
     let r = 0,
@@ -158,7 +162,8 @@ export default function Canvas() {
     let refNode = {};
     newScene = new Node().buildByDescription(jsonToDraw);
     const arr_color = normalizeRGB(hexToRGBAArray(color, 1));
-    newScene.setTexture(gl, "normalMap.png");
+    newScene.setTexture(gl, 'texture.png');
+    
     newScene.setAmbientColor(arr_color.concat([1]));
 
     newScene.procedureGetNodeRefDict(refNode);
@@ -218,6 +223,22 @@ export default function Canvas() {
   const handleMaterialChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setMaterial(parseInt(e.target.value));
   };
+
+  const handleSpecularChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setSpecularTexture(parseInt(e.target.value));
+  }
+
+  const handleDiffuseChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setDiffuseTexture(parseInt(e.target.value));
+  }
+
+  const handleDisplacementChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setDisplacementMap(parseInt(e.target.value));
+  }
+
+  const handleNormalChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setNormalMap(parseInt(e.target.value));
+  }
 
   const handleTransformChange = (
     type: keyof Transforms,
@@ -991,17 +1012,41 @@ export default function Canvas() {
             </div>
             <div className="mb-2 flex flex-col justify-between">
               <label className="text-base font-semibold text-white mb-2">
-                Material
+              Diffuse Texture
               </label>
-              <select
-                className="text-base text-black mb-2"
-                value={material}
-                onChange={handleMaterialChange}
-              >
-                <option value={0} selected>
-                  Basic Material
-                </option>
-                <option value={1}>Bump Mapping</option>
+              <select className="text-base text-black mb-2" value={material} onChange={handleMaterialChange}>
+                <option value={0} selected>Basic Material</option>
+                <option value={1}>Box Texture</option>
+              </select>
+            </div>
+
+            <div className="mb-2 flex flex-col justify-between">
+              <label className="text-base font-semibold text-white mb-2">
+              Specular Texture
+              </label>
+              <select className="text-base text-black mb-2" value={specularTexture} onChange={handleSpecularChange}>
+                <option value={0} selected>Basic Material</option>
+                <option value={1}>Box Specular</option>
+              </select>
+            </div>
+
+            <div className="mb-2 flex flex-col justify-between">
+              <label className="text-base font-semibold text-white mb-2">
+              Displacement Map
+              </label>
+              <select className="text-base text-black mb-2" value={displacementMap} onChange={handleDisplacementChange}>
+                <option value={0} selected>No Displacement</option>
+                <option value={1}>Displacement 1</option>
+              </select>
+            </div>
+
+            <div className="mb-2 flex flex-col justify-between">
+              <label className="text-base font-semibold text-white mb-2">
+              Normal Map
+              </label>
+              <select className="text-base text-black mb-2" value={normalMap} onChange={handleNormalChange}>
+                <option value={0} selected>No Normal</option>
+                <option value={1}>Normal 1</option>
               </select>
             </div>
           </div>
