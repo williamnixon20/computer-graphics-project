@@ -474,20 +474,14 @@ export default function Canvas() {
   };
 
   // Animation
-  const [currentFrame, setCurrentFrame] = useState(0);
   const [animate, setAnimate] = useState(false);
+  const [currentFrame, setCurrentFrame] = useState(-1);
   const [reverse, setReverse] = useState(false);
   const [replay, setReplay] = useState(false);
+  const [reset, setReset] = useState(false);
   const [fps, setFps] = useState(1);
 
-  let animator = new Animator(
-    walking,
-    currentFrame,
-    reverse,
-    replay,
-    scene!,
-    fps
-  );
+  let animator = new Animator(scene!, walking, currentFrame, reverse, replay, reset, fps);
   let lastFrameTime: number;
   let animationFrameId: number;
 
@@ -497,11 +491,31 @@ export default function Canvas() {
     if (lastFrameTime === undefined) lastFrameTime = currentTime;
     const deltaSecond = (currentTime - lastFrameTime) / 1000;
 
+    if (animator.reset) {
+      if (animator.reverse) {
+        animator.currentFrame = animator.length - 1;
+        setCurrentFrame(animator.length - 1);
+      } else {
+        animator.currentFrame = 0;
+        setCurrentFrame(0);
+      }
+      animator.updateSceneGraph();
+      animator.reset = false;
+      setReset(false);
+    }
+
     animator.update(deltaSecond);
     setCurrentFrame(animator.currentFrame);
 
     drawer1?.draw(scene, cameraInformation1);
     drawer2?.draw(scene, cameraInformation2);
+
+    if (!animator.replay) {
+      if ((!animator.reverse && animator.currentFrame === animator.length - 1) || (animator.reverse && animator.currentFrame === 0)) {
+        setReset(true);
+        setAnimate(false);
+      }
+    }
 
     lastFrameTime = currentTime;
     animationFrameId = requestAnimationFrame(runAnim);
@@ -515,12 +529,20 @@ export default function Canvas() {
   }, [animate]);
 
   useEffect(() => {
-    animator.isReverse = reverse;
+    animator.currentFrame = currentFrame;
+  }, [currentFrame]);
+
+  useEffect(() => {
+    animator.reverse = reverse;
   }, [reverse]);
 
   useEffect(() => {
-    animator.isReplay = replay;
+    animator.replay = replay;
   }, [replay]);
+
+  useEffect(() => {
+    animator.reset = reset;
+  }, [reset]);
 
   useEffect(() => {
     animator.fps = fps;
@@ -768,13 +790,14 @@ export default function Canvas() {
           </>
         )}
 
+        {/* Animation */}
         <div>
           <div className="mb-4">
             <span className="text-sm font-semibold text-white">
-              Current Frame: {currentFrame}
+              Current Frame: {currentFrame + 1}
             </span>
             <span className="text-base font-semibold text-white">
-              / {animator!.length - 1 || 0}
+              / {animator!.length}
             </span>
           </div>
 

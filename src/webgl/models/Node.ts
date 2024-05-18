@@ -229,7 +229,7 @@ export class Node {
 
             utils.drawBufferInfo(gl, bufferInfo);
         } else {
-            console.log("NOT DRAWING!")
+            // console.log("NOT DRAWING!")
         }
 
         this.children.forEach((child) => {

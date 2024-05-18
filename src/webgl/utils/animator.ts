@@ -2,20 +2,22 @@ import { Transforms, AnimationTRS, AnimationPath, AnimationClip } from "@/app/ty
 import { Node } from "../models/Node";
 
 export class Animator {
-  currentAnimation?: AnimationClip;
-  currentFrame: number;
-  isReverse: boolean;
-  isReplay: boolean;
   root: Node;
-  fps: number;
+  currentAnimation: AnimationClip;
   deltaFrame: number = 0;
+  currentFrame: number;
+  reverse: boolean;
+  replay: boolean;
+  reset: boolean;
+  fps: number;
 
-  constructor(animation: AnimationClip, currentFrame: number, isReverse: boolean, isReplay: boolean, root: Node, fps: number) {
+  constructor(root: Node, animation: AnimationClip, currentFrame: number, reverse: boolean, replay: boolean, reset: boolean, fps: number) {
+    this.root = root;
     this.currentAnimation = animation;
     this.currentFrame = currentFrame;
-    this.isReverse = isReverse;
-    this.isReplay = isReplay;
-    this.root = root;
+    this.reverse = reverse;
+    this.replay = replay;
+    this.reset = reset;
     this.fps = fps;
   }
 
@@ -30,7 +32,7 @@ export class Animator {
   update(deltaSecond: number) {
     this.deltaFrame += deltaSecond * this.fps;
     if (this.deltaFrame >= 1) {
-      if (this.isReverse) {
+      if (this.reverse) {
         this.currentFrame = (this.currentFrame - Math.floor(this.deltaFrame) + this.length) % this.length;
       } else {
         this.currentFrame = (this.currentFrame + Math.floor(this.deltaFrame)) % this.length;
