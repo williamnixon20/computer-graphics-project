@@ -548,9 +548,23 @@ export function createCubeVertices(size) {
     const normals = createAugmentedTypedArray(3, numVertices);
     const texCoords = createAugmentedTypedArray(2, numVertices);
     const indices = createAugmentedTypedArray(3, 6 * 2, Uint16Array);
+    const tangents = createAugmentedTypedArray(3, numVertices);
+    const bitangents = createAugmentedTypedArray(3, numVertices);
 
     for (let f = 0; f < 6; ++f) {
         const faceIndices = CUBE_FACE_INDICES[f];
+        const positionsForFace = [];
+        const uvsForFace = [];
+        
+        for (let v = 0; v < 4; ++v) {
+            const position = cornerVertices[faceIndices[v]];
+            const uv = uvCoords[v];
+            positionsForFace.push(position);
+            uvsForFace.push(uv);
+        }
+
+        const {tangent, bitangent} = calculateTB(positionsForFace, uvsForFace);
+
         for (let v = 0; v < 4; ++v) {
             const position = cornerVertices[faceIndices[v]];
             const normal = faceNormals[f];
@@ -561,6 +575,8 @@ export function createCubeVertices(size) {
             positions.push(position);
             normals.push(normal);
             texCoords.push(uv);
+            tangents.push(tangent);
+            bitangents.push(bitangent);
         }
         // Two triangles make a square face.
         const offset = 4 * f;
@@ -573,5 +589,43 @@ export function createCubeVertices(size) {
         normal: normals,
         texcoord: texCoords,
         indices: indices,
+        tangent: tangents,
+        bitangent: bitangents,
     };
+}
+
+function calculateTB(positions, uvs) {
+    const edge1 = subtractVectors(positions[1], positions[0]);
+    const edge2 = subtractVectors(positions[2], positions[0]);
+    const deltaUV1 = subtractVectors(uvs[1], uvs[0]);
+    const deltaUV2 = subtractVectors(uvs[2], uvs[0]);
+
+    const r = 1.0 / (deltaUV1[0] * deltaUV2[1] - deltaUV2[0] * deltaUV1[1]);
+
+    const tangent = [
+        r * (deltaUV2[1] * edge1[0] - deltaUV1[1] * edge2[0]),
+        r * (deltaUV2[1] * edge1[1] - deltaUV1[1] * edge2[1]),
+        r * (deltaUV2[1] * edge1[2] - deltaUV1[1] * edge2[2]),
+    ];
+
+    const bitangent = [
+        r * (-deltaUV2[0] * edge1[0] + deltaUV1[0] * edge2[0]),
+        r * (-deltaUV2[0] * edge1[1] + deltaUV1[0] * edge2[1]),
+        r * (-deltaUV2[0] * edge1[2] + deltaUV1[0] * edge2[2]),
+    ];
+
+    return {
+        tangent: tangent,
+        bitangent: bitangent,
+    };
+}
+
+
+function subtractVectors(a, b) {
+    return [a[0] - b[0], a[1] - b[1], a[2] - b[2]];
+}
+
+function normalize(v) {
+    const length = Math.sqrt(v[0] * v[0] + v[1] * v[1] + v[2] * v[2]);
+    return [v[0] / length, v[1] / length, v[2] / length];
 }

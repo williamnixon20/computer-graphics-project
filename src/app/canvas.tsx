@@ -100,7 +100,7 @@ export default function Canvas() {
   const [diffuse, setDiffuse] = useState<string>("#6464FF");
   const [material, setMaterial] = useState(0);
   const [specularTexture, setSpecularTexture] = useState(0);
-  const [diffuseTexture, setDiffuseTexture] = useState(0);
+  // const [diffuseTexture, setDiffuseTexture] = useState(0);
   const [displacementMap, setDisplacementMap] = useState(0);
   const [normalMap, setNormalMap] = useState(0);
 
@@ -171,7 +171,8 @@ export default function Canvas() {
     const arr_color = normalizeRGB(hexToRGBAArray(color, 1));
     newScene.setTexture(gl, 'texture.png');
     newScene.loadSpecularMap(gl, 'specular-texture.png');
-
+    newScene.loadNormalMap(gl, 'bump_normal.png');
+    
     newScene.setAmbientColor(arr_color.concat([1]));
     newScene.procedureGetNodeRefDict(refNode);
 
@@ -238,9 +239,9 @@ export default function Canvas() {
       selectedNode.setDiffuseColor(diffuseColor);
       const specularColor = normalizeRGB(hexToRGBAArray(specular, 1));
       selectedNode.setSpecularColor(specularColor);
-      console.log("material: ", material);
       selectedNode.setMaterial(material);
       selectedNode.setSpecularMap(specularTexture);
+      selectedNode.setNormalMap(normalMap);
       selectedNode.setLightDirection(lightDirection);
     }
   };
@@ -253,9 +254,9 @@ export default function Canvas() {
     setSpecularTexture(parseInt(e.target.value));
   };
 
-  const handleDiffuseChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setDiffuseTexture(parseInt(e.target.value));
-  };
+  // const handleDiffuseChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+  //   setDiffuseTexture(parseInt(e.target.value));
+  // }
 
   const handleDisplacementChange = (
     e: React.ChangeEvent<HTMLSelectElement>

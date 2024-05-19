@@ -9,6 +9,7 @@ var id_global = 1;
 var url_offset: any = {
 
 }
+
 var tex_offset = 0;
 
 var light_dir = [1, 1, 1];
@@ -35,6 +36,8 @@ export class Node {
     texture_url: string;
     specularMap: WebGLTexture | null;
     specular_url: string;
+    normalMap: WebGLTexture | null;
+    normal_url: string;
 
     constructor() {
         this.children = [];
@@ -74,6 +77,8 @@ export class Node {
         this.texture = null;
         this.specularMap = null;
         this.specular_url = "";
+        this.normalMap = null;
+        this.normal_url = "";
     }
 
     setParent(parent: Node | null) {
@@ -130,6 +135,7 @@ export class Node {
 
 
         let cubeVertices = utils.createCubeVertices(1);
+        // console.log(cubeVertices.normal.length);
         let vertices = utils.deindexVertices(cubeVertices);
         // vertices = primitives.makeColor(vertices, this.shadingInfo.ambientColor);
         this.arrayInfo = vertices;
@@ -214,6 +220,7 @@ export class Node {
                 mode: this.shadingInfo.mode,
                 material: (this.shadingInfo.material && enableTexture) ? 1 : 0,
                 specularMap: (this.shadingInfo.specularMap && enableTexture) ? 1 : 0,
+                normalMap: (this.shadingInfo.normalMap && enableTexture) ? 1 : 0,
             }
             const u_world = m4.yRotation(this.cameraInformation.cameraAngleXRadians);
 
@@ -228,15 +235,19 @@ export class Node {
             utils.setUniforms(programInfo, uniforms);
 
             if (this.texture && uniforms.material) {
-                const tex_offset = url_offset[this.texture_url];
-                gl.activeTexture(gl.TEXTURE2 + tex_offset);
+                let tex_offset = url_offset[this.texture_url];
                 gl.uniform1i(gl.getUniformLocation(programInfo.program, "u_texture"), 2 + tex_offset);
             }
 
             if (this.specularMap && uniforms.specularMap) {
-                const tex_offset = url_offset[this.specular_url];
-                gl.activeTexture(gl.TEXTURE2 + tex_offset);
+                let tex_offset = url_offset[this.specular_url];
                 gl.uniform1i(gl.getUniformLocation(programInfo.program, "u_specularMap"), 2 + tex_offset);
+            }
+            // console.log("NORMAL MAP", this.shadingInfo.normalMap, uniforms.normalMap)
+
+            if (this.normalMap && uniforms.normalMap) {
+                const tex_offset = url_offset[this.normal_url];
+                gl.uniform1i(gl.getUniformLocation(programInfo.program, "u_normalMap"), 2 + tex_offset);
             }
 
             utils.drawBufferInfo(gl, bufferInfo);
@@ -349,6 +360,21 @@ export class Node {
         })
     }
 
+    setNormalMap(map: number) {
+        this.shadingInfo.normalMap = map;
+        this.children.forEach((child) => {
+            child.setNormalMap(map);
+        })
+    }
+
+    loadNormalMap(gl: any, url: any) {
+        this.normalMap = this.loadTexture(gl, url);
+        this.normal_url = url;
+        this.children.forEach((child) => {
+            child.loadNormalMap(gl, url);
+        })
+    }
+
     loadSpecularMap(gl: any, url: any) {
         this.specularMap = this.loadTexture(gl, url);
         this.specular_url = url;
@@ -357,7 +383,26 @@ export class Node {
         })
     }
 
-    loadTexture(gl: WebGLRenderingContext, url: string) {
+    loadTexture(gl: any, url: any) {
+        bindTexture(gl, url);
+        return true;
+    }
+
+    // LIGHT DIR IS A GLOBAL VAR
+    setLightDirection(lightDirection: number[]) {
+        light_dir = lightDirection;
+    }
+}
+
+function isPowerOf2(value: number) {
+    return (value & (value - 1)) === 0;
+}
+
+function bindTexture(gl: WebGLRenderingContext, url: string) {
+    const image = new Image();
+    image.src = url;
+
+    image.onload = () => {
         if (!(url in url_offset)) {
             console.log("URL OFFSET", url_offset, tex_offset)
             url_offset[url] = tex_offset;
@@ -376,50 +421,37 @@ export class Node {
         const srcFormat = gl.RGBA;
         const srcType = gl.UNSIGNED_BYTE;
         const pixel = new Uint8Array([0, 255, 255, 255]);
+        // gl.texImage2D(
+        //     gl.TEXTURE_2D,
+        //     level,
+        //     internalFormat,
+        //     width,
+        //     height,
+        //     border,
+        //     srcFormat,
+        //     srcType,
+        //     pixel,
+        // );
+
+        console.log("LOADED", url, url_offset[url])
         gl.texImage2D(
             gl.TEXTURE_2D,
             level,
             internalFormat,
-            width,
-            height,
-            border,
             srcFormat,
             srcType,
-            pixel,
+            image,
         );
 
-        const image = new Image();
-        image.src = url;
+        if (isPowerOf2(image.width) && isPowerOf2(image.height)) {
+            gl.generateMipmap(gl.TEXTURE_2D);
+        } else {
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+        }
+        gl.activeTexture(gl.TEXTURE1);
+    };
 
-        image.onload = () => {
-            gl.bindTexture(gl.TEXTURE_2D, texture);
-            gl.texImage2D(
-                gl.TEXTURE_2D,
-                level,
-                internalFormat,
-                srcFormat,
-                srcType,
-                image,
-            );
-
-            if (this.isPowerOf2(image.width) && this.isPowerOf2(image.height)) {
-                gl.generateMipmap(gl.TEXTURE_2D);
-            } else {
-                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-            }
-        };
-
-        return texture;
-    }
-
-    isPowerOf2(value: number) {
-        return (value & (value - 1)) === 0;
-    }
-
-    // LIGHT DIR IS A GLOBAL VAR
-    setLightDirection(lightDirection: number[]) {
-        light_dir = lightDirection;
-    }
+    gl.activeTexture(gl.TEXTURE1);
 }

@@ -5,6 +5,7 @@ varying vec4 v_color;
 varying vec3 v_normal;
 varying vec3 v_position;
 varying vec2 v_texcoord;
+varying mat3 v_tbn;
 
 uniform int mode;
 uniform vec3 u_reverseLightDirection;
@@ -26,19 +27,27 @@ uniform int normalMap;
 void main() {
 
      vec4 color = v_color;
-     vec3 albedo = u_diffuseColor;
-
-     if (material == 1) {
-          albedo = texture2D(u_texture, v_texcoord).rgb * u_diffuseColor;
-          color = vec4(albedo, 1.0) * v_color;
-     }
 
      if (mode == 0) {
           gl_FragColor = color;
 
      } else {
+
+          vec3 albedo = u_diffuseColor;
           vec3 normal = normalize(v_normal);
           vec3 lightDirection = normalize(u_reverseLightDirection);
+
+          if (material == 1) {
+               albedo = texture2D(u_texture, v_texcoord).rgb * u_diffuseColor;
+               color = vec4(albedo, 1.0) * v_color;
+          }
+
+          if (normalMap == 1) {
+               vec3 normalMap = texture2D(u_normalMap, v_texcoord).rgb;
+               normalMap = normalize(normalMap * 2.0 - 1.0);
+               vec3 normalTangentSpace = normalize(v_tbn * normalMap);
+               normal = normalTangentSpace;
+          }
 
           vec3 ambient = color.rgb;
 
