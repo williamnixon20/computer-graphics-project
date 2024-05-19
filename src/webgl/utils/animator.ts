@@ -39,7 +39,66 @@ export class Animator {
       }
       this.deltaFrame %= 1;
       this.updateSceneGraph();
+    } else {
+      const nextFrame = this.reverse ? (this.currentFrame - 1 + this.length) % this.length : (this.currentFrame + 1) % this.length;
+      this.updateInterpolation(nextFrame);
     }
+  }
+
+  updateInterpolation(nextFrame: number) {
+    const frame = this.frame;
+    const nextFrameData = this.currentAnimation.frames[nextFrame];
+    this.interpolateNode(this.root, frame, nextFrameData);
+  }
+
+  interpolateNode(node: Node, frame: AnimationPath, nextFrame: AnimationPath) {
+    if (node.name === frame.name && frame.keyframe) {
+      this.interpolateNodeTRS(node, frame.keyframe, nextFrame.keyframe!);
+    }
+
+    for (const frameChildName in frame.children) {
+      const frameChild = frame.children[frameChildName];
+      const nextFrameChild = nextFrame.children![frameChildName];
+      this.interpolateNode(node, frameChild, nextFrameChild);
+    }
+
+    for (const nodeChildName in node.children) {
+      const nodeChild = node.children[nodeChildName];
+      this.interpolateNode(nodeChild, frame, nextFrame);
+    }
+  }
+
+  interpolateNodeTRS(node: Node, frame: AnimationTRS, nextFrame: AnimationTRS) {
+    const transforms = this.convertToTransforms(frame);
+    const nextTransforms = this.convertToTransforms(nextFrame);
+    const interpolatedTransforms = this.interpolateTransforms(transforms, nextTransforms);
+    node.setTransform(interpolatedTransforms);
+  }
+
+  interpolateTransforms(transforms: Transforms, nextTransform: Transforms): Transforms {
+    const translate = {
+      x: this.interpolate(transforms.translate.x, nextTransform.translate.x),
+      y: this.interpolate(transforms.translate.y, nextTransform.translate.y),
+      z: this.interpolate(transforms.translate.z, nextTransform.translate.z)
+    };
+
+    const rotate = {
+      x: this.interpolate(transforms.rotate.x, nextTransform.rotate.x),
+      y: this.interpolate(transforms.rotate.y, nextTransform.rotate.y),
+      z: this.interpolate(transforms.rotate.z, nextTransform.rotate.z)
+    };
+
+    const scale = {
+      x: this.interpolate(transforms.scale.x, nextTransform.scale.x),
+      y: this.interpolate(transforms.scale.y, nextTransform.scale.y),
+      z: this.interpolate(transforms.scale.z, nextTransform.scale.z)
+    };
+
+    return { translate, rotate, scale };
+  }
+
+  interpolate(a: number, b: number): number {
+    return a + (b - a) * this.deltaFrame;
   }
 
   updateSceneGraph() {
