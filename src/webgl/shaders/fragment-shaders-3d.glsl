@@ -49,8 +49,6 @@ void main() {
                normal = normalTangentSpace;
           }
 
-          lightDirection = normalize(u_reverseLightDirection);
-
           vec3 ambient = color.rgb;
 
           float diffuseStrength = max(dot(normal, lightDirection), 0.0);
