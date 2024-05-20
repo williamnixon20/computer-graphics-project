@@ -16,12 +16,10 @@ uniform vec3 u_specularColor;
 
 uniform sampler2D u_texture;
 uniform sampler2D u_specularMap;
-uniform sampler2D u_displacementMap;
 uniform sampler2D u_normalMap;
 
 uniform int material;
 uniform int specularMap;
-uniform int displacementMap;
 uniform int normalMap;
 
 void main() {

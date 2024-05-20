@@ -9,6 +9,11 @@ uniform mat4 u_worldViewProjection;
 uniform mat4 u_worldInverseTranspose;
 uniform vec4 u_color;
 
+uniform sampler2D u_displacementMap;
+uniform float u_displacementScale;
+uniform float u_displacementBias;
+uniform int displacementMap;
+
 varying vec4 v_color;
 varying vec3 v_normal;
 varying vec3 v_position;
@@ -24,8 +29,17 @@ mat3 transposeMat3(mat3 mat) {
 }
 
 void main() {
+
+  vec4 position = a_position;
+
+  if (displacementMap == 1){
+    float displacement = texture2D(u_displacementMap, a_texcoord).r;
+
+    position = a_position + vec4(a_normal * (displacement * u_displacementScale + u_displacementBias), 0.0);
+  } 
+
   // Multiply the position by the matrix.
-  gl_Position = u_worldViewProjection  * a_position;
+  gl_Position = u_worldViewProjection * position;
 
   // Pass the color to the fragment shader.
   v_color = u_color;
@@ -33,7 +47,7 @@ void main() {
   // Orient the normals and pass to the fragment shader
   v_normal = mat3(u_worldInverseTranspose) * a_normal;
 
-  v_position = (u_worldViewProjection * a_position).xyz;
+  v_position = (u_worldViewProjection * position).xyz;
 
   v_texcoord = a_texcoord;
 
