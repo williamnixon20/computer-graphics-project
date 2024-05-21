@@ -38,6 +38,8 @@ export class Node {
     specular_url: string;
     normalMap: WebGLTexture | null;
     normal_url: string;
+    displacementMap: WebGLTexture | null;
+    displacement_url: string;
 
     constructor() {
         this.children = [];
@@ -79,6 +81,8 @@ export class Node {
         this.specular_url = "";
         this.normalMap = null;
         this.normal_url = "";
+        this.displacementMap = null;
+        this.displacement_url = "";
     }
 
     setParent(parent: Node | null) {
@@ -221,6 +225,7 @@ export class Node {
                 material: (this.shadingInfo.material && enableTexture) ? 1 : 0,
                 specularMap: (this.shadingInfo.specularMap && enableTexture) ? 1 : 0,
                 normalMap: (this.shadingInfo.normalMap && enableTexture) ? 1 : 0,
+                displacementMap: 1,
             }
             const u_world = m4.yRotation(this.cameraInformation.cameraAngleXRadians);
 
@@ -249,6 +254,12 @@ export class Node {
                 const tex_offset = url_offset[this.normal_url];
                 gl.uniform1i(gl.getUniformLocation(programInfo.program, "u_normalMap"), 2 + tex_offset);
             }
+
+            // if (this.displacementMap && uniforms.displacementMap) {
+            //     console.log("DISPLACEMENT MAP", this.displacement_url, uniforms.displacementMap)
+            //     const tex_offset = url_offset[this.displacement_url];
+            //     gl.uniform1i(gl.getUniformLocation(programInfo.program, "u_displacementMap"), 2 + tex_offset);
+            // }
 
             utils.drawBufferInfo(gl, bufferInfo);
         } else {
@@ -380,6 +391,21 @@ export class Node {
         this.specular_url = url;
         this.children.forEach((child) => {
             child.loadSpecularMap(gl, url);
+        })
+    }
+
+    loadDisplacementMap(gl: any, url: any) {
+        this.displacementMap = this.loadTexture(gl, url);
+        this.displacement_url = url;
+        this.children.forEach((child) => {
+            child.loadDisplacementMap(gl, url);
+        })
+    }
+
+    setDisplacementMap(map: number) {
+        this.shadingInfo.displacementMap = map;
+        this.children.forEach((child) => {
+            child.setDisplacementMap(map);
         })
     }
 

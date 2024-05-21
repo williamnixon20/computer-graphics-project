@@ -169,9 +169,10 @@ export default function Canvas() {
     let refNode = {};
     newScene = new Node().buildByDescription(jsonToDraw);
     const arr_color = normalizeRGB(hexToRGBAArray(color, 1));
-    newScene.setTexture(gl, 'texture.png');
-    newScene.loadSpecularMap(gl, 'specular-texture.png');
-    newScene.loadNormalMap(gl, 'bump_normal.png');
+    newScene.setTexture(gl, 'texture/texture1.png');
+    newScene.loadSpecularMap(gl, 'specular/specular1.png');
+    newScene.loadNormalMap(gl, 'normal/normal1.png');
+    // newScene.loadDisplacementMap(gl, 'displacement/displacement2.png');
     
     newScene.setAmbientColor(arr_color.concat([1]));
     newScene.procedureGetNodeRefDict(refNode);
@@ -180,14 +181,10 @@ export default function Canvas() {
 
     let cameraScene1 = null;
     cameraScene1 = new Node().buildByDescription(jsonCamera);
-    cameraScene1.setTexture(gl, "normalMap.png");
-    cameraScene1.loadSpecularMap(gl, "specular-texture.png");
     cameraScene1.setAmbientColor(arr_color.concat([1]));
 
     let cameraScene2 = null;
     cameraScene2 = new Node().buildByDescription(jsonCamera);
-    cameraScene2.setTexture(gl, "normalMap.png");
-    cameraScene2.loadSpecularMap(gl, 'specular-texture.png');
     cameraScene2.setAmbientColor(arr_color.concat([1]));
 
     setScene(newScene);

@@ -66,4 +66,5 @@ export interface ShadingInfo {
   material?: number;
   specularMap?: number;
   normalMap?: number;
+  displacementMap? : number;
 }
