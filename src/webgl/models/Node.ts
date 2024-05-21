@@ -140,7 +140,7 @@ export class Node {
 
         let cubeVertices = utils.createCubeVertices(1);
         // console.log(cubeVertices.normal.length);
-        let vertices = utils.deindexVertices(cubeVertices);
+        let vertices : any = utils.deindexVertices(cubeVertices);
         // vertices = primitives.makeColor(vertices, this.shadingInfo.ambientColor);
         this.arrayInfo = vertices;
 
@@ -217,6 +217,9 @@ export class Node {
                 u_reverseLightDirection: light_dir,
                 u_worldViewProjection: [],
                 u_worldInverseTranspose: [],
+                displacementMap: (this.shadingInfo.displacementMap && enableTexture) ? 1 : 0,
+                u_displacementScale: 1,
+                u_displacementBias: 0,
 
                 u_diffuseColor: this.shadingInfo.diffuseColor,
                 u_shininess: this.shadingInfo.shininess,
@@ -225,7 +228,6 @@ export class Node {
                 material: (this.shadingInfo.material && enableTexture) ? 1 : 0,
                 specularMap: (this.shadingInfo.specularMap && enableTexture) ? 1 : 0,
                 normalMap: (this.shadingInfo.normalMap && enableTexture) ? 1 : 0,
-                displacementMap: 1,
             }
             const u_world = m4.yRotation(this.cameraInformation.cameraAngleXRadians);
 
@@ -255,11 +257,11 @@ export class Node {
                 gl.uniform1i(gl.getUniformLocation(programInfo.program, "u_normalMap"), 2 + tex_offset);
             }
 
-            // if (this.displacementMap && uniforms.displacementMap) {
-            //     console.log("DISPLACEMENT MAP", this.displacement_url, uniforms.displacementMap)
-            //     const tex_offset = url_offset[this.displacement_url];
-            //     gl.uniform1i(gl.getUniformLocation(programInfo.program, "u_displacementMap"), 2 + tex_offset);
-            // }
+            if (this.displacementMap && uniforms.displacementMap) {
+                // console.log("DISPLACEMENT MAP", this.displacement_url, uniforms.displacementMap)
+                const tex_offset = url_offset[this.displacement_url];
+                gl.uniform1i(gl.getUniformLocation(programInfo.program, "u_displacementMap"), 2 + tex_offset);
+            }
 
             utils.drawBufferInfo(gl, bufferInfo);
         } else {

@@ -172,7 +172,7 @@ export default function Canvas() {
     newScene.setTexture(gl, 'texture/texture1.png');
     newScene.loadSpecularMap(gl, 'specular/specular1.png');
     newScene.loadNormalMap(gl, 'normal/normal1.png');
-    // newScene.loadDisplacementMap(gl, 'displacement/displacement2.png');
+    newScene.loadDisplacementMap(gl, 'displacement/displacement2.png');
     
     newScene.setAmbientColor(arr_color.concat([1]));
     newScene.procedureGetNodeRefDict(refNode);
@@ -228,7 +228,7 @@ export default function Canvas() {
 
   const updateShading = () => {
     if (scene && selectedName) {
-      let selectedNode = refDict[selectedName].node;
+      let selectedNode: Node = refDict[selectedName].node;
 
       selectedNode.setShadingMode(shading ? 1 : 0);
       selectedNode.setShininess(shininess);
@@ -239,6 +239,7 @@ export default function Canvas() {
       selectedNode.setMaterial(material);
       selectedNode.setSpecularMap(specularTexture);
       selectedNode.setNormalMap(normalMap);
+      selectedNode.setDisplacementMap(displacementMap);
       selectedNode.setLightDirection(lightDirection);
     }
   };
