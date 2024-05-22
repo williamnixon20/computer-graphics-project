@@ -23,7 +23,9 @@ import { drone } from "../../test/articulated/drone";
 import { degToRad, radToDeg } from "@/webgl/utils/radians";
 
 import { Animator } from "@/webgl/utils/animator";
-import { walking } from "../../test/animation/walking";
+import { manAnim } from "../../test/animation/man-anim";
+import { dogAnim } from "../../test/animation/dog-anim";
+import { droneAnim } from "../../test/animation/drone-anim";
 import { cameraNodeDescriptions } from "../../test/articulated/camera";
 import TRS from "@/webgl/utils/trs";
 
@@ -545,6 +547,7 @@ export default function Canvas() {
   };
 
   // Animation
+  const [selectedAnim, setSelectedAnim] = useState(manAnim as any);
   const [animate, setAnimate] = useState(false);
   const [currentFrame, setCurrentFrame] = useState(0);
   const [reverse, setReverse] = useState(false);
@@ -554,7 +557,7 @@ export default function Canvas() {
 
   let animator = new Animator(
     scene!,
-    walking,
+    selectedAnim,
     currentFrame,
     reverse,
     replay,
@@ -564,7 +567,7 @@ export default function Canvas() {
   let lastFrameTime: number;
   let animationFrameId: number;
 
-  function runAnim(currentTime: number) {
+  function renderAnimation(currentTime: number) {
     if (!animate || !scene || !camera1 || !camera2) return;
 
     if (lastFrameTime === undefined) lastFrameTime = currentTime;
@@ -600,12 +603,12 @@ export default function Canvas() {
     }
 
     lastFrameTime = currentTime;
-    animationFrameId = requestAnimationFrame(runAnim);
+    animationFrameId = requestAnimationFrame(renderAnimation);
   }
 
   useEffect(() => {
     if (animate) {
-      animationFrameId = requestAnimationFrame(runAnim);
+      animationFrameId = requestAnimationFrame(renderAnimation);
     }
     return () => cancelAnimationFrame(animationFrameId);
   }, [animate]);
@@ -678,15 +681,18 @@ export default function Canvas() {
     switch (articulated) {
       case "man":
         articulatedData = blockGuyNodeDescriptions;
+        setSelectedAnim(manAnim);
         break;
       case "dog":
         articulatedData = dog;
+        setSelectedAnim(dogAnim);
         break;
       case "lamp":
         articulatedData = lamp;
         break;
       case "drone":
         articulatedData = drone;
+        setSelectedAnim(droneAnim);
         break;
       default:
         articulatedData = blockGuyNodeDescriptions;

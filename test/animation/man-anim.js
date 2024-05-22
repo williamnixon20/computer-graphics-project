@@ -1,5 +1,5 @@
-export const walking = {
-  name: "Walking Animation",
+export const manAnim = {
+  name: "Man Animation",
   frames: [
     { // Frame 1
       name: "waist",
@@ -27,7 +27,7 @@ export const walking = {
     { // Frame 2
       name: "waist",
       keyframe: {
-        translation: [0, 0, 0],
+        translation: [1, 0, 0],
         rotation: [0, 1, 0],
       },
       children: {
@@ -50,7 +50,7 @@ export const walking = {
     { // Frame 3
       name: "waist",
       keyframe: {
-        translation: [0, 0, 0],
+        translation: [2, 0, 0],
         rotation: [0, 1, 0],
       },
       children: {
@@ -73,7 +73,7 @@ export const walking = {
     { // Frame 4
       name: "waist",
       keyframe: {
-        translation: [0, 0, 0],
+        translation: [3, 0, 0],
         rotation: [0, 1, 0],
       },
       children: {
@@ -96,7 +96,7 @@ export const walking = {
     { // Frame 5
       name: "waist",
       keyframe: {
-        translation: [0, 0, 0],
+        translation: [4, 0, 0],
         rotation: [0, 1, 0],
       },
       children: {
@@ -119,7 +119,7 @@ export const walking = {
     { // Frame 6
       name: "waist",
       keyframe: {
-        translation: [0, 0, 0],
+        translation: [5, 0, 0],
         rotation: [0, 1, 0],
       },
       children: {
@@ -142,7 +142,7 @@ export const walking = {
     { // Frame 7
       name: "waist",
       keyframe: {
-        translation: [0, 0, 0],
+        translation: [6, 0, 0],
         rotation: [0, 1, 0],
       },
       children: {
@@ -165,7 +165,7 @@ export const walking = {
     { // Frame 8
       name: "waist",
       keyframe: {
-        translation: [0, 0, 0],
+        translation: [7, 0, 0],
         rotation: [0, 1, 0],
       },
       children: {
@@ -185,5 +185,28 @@ export const walking = {
         },
       },
     },
+    { // Frame 9
+      name: "waist",
+      keyframe: {
+        translation: [8, 0, 0],
+        rotation: [0, 1, 0],
+      },
+      children: {
+        "left-leg": {
+          name: "left-leg",
+          keyframe: {
+            translation: [-1, -1, 0],
+            rotation: [0, 0, 0],
+          },
+        },
+        "right-leg": {
+          name: "right-leg",
+          keyframe: {
+            translation: [1, -1, 0],
+            rotation: [0, 0, 0],
+          },
+        },
+      },
+    }
   ],
 };
