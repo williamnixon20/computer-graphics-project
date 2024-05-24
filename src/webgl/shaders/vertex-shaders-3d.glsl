@@ -32,7 +32,7 @@ void main() {
 
   vec4 position = a_position;
 
-  if (displacementMap == 1){
+  if (displacementMap != 0){
     float displacement = texture2D(u_displacementMap, a_texcoord).r;
 
     position = a_position + vec4(a_normal * (displacement * u_displacementScale + u_displacementBias), 0.0);

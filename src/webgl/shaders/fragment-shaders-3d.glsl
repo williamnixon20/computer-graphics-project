@@ -35,12 +35,12 @@ void main() {
           vec3 normal = normalize(v_normal);
           vec3 lightDirection = normalize(u_reverseLightDirection);
 
-          if (material == 1) {
+          if (material != 0) {
                albedo = texture2D(u_texture, v_texcoord).rgb * u_diffuseColor;
                color = vec4(albedo, 1.0) * v_color;
           }
 
-          if (normalMap == 1) {
+          if (normalMap != 0) {
                vec3 normalMap = texture2D(u_normalMap, v_texcoord).rgb;
                normalMap = normalize(normalMap * 2.0 - 1.0);
                vec3 normalTangentSpace = normalize(v_tbn * normalMap);
@@ -56,7 +56,7 @@ void main() {
           vec3 reflectionDirection = reflect(-lightDirection, normal);
           float specularStrength = pow(max(dot(reflectionDirection, viewDirection), 0.0), u_shininess);
 
-          if (specularMap == 1) {
+          if (specularMap != 0) {
               float specularMapColor = texture2D(u_specularMap, v_texcoord).r;
           //     float specularMapStrength = dot(specularMapColor, vec3(0.299, 0.587, 0.114));
               specularStrength *= specularMapColor;

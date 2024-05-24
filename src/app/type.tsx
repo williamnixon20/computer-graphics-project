@@ -68,3 +68,10 @@ export interface ShadingInfo {
   normalMap?: number;
   displacementMap? : number;
 }
+
+export enum TextureType {
+  DIFFUSE = 0,
+  SPECULAR = 1,
+  NORMAL = 2,
+  DISPLACEMENT = 3
+}

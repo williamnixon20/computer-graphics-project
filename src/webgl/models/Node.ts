@@ -1,4 +1,4 @@
-import { ArticulatedDescriptions, CameraInformation, HollowDescriptions, Transforms, ShadingInfo } from '@/app/type';
+import { ArticulatedDescriptions, CameraInformation, HollowDescriptions, Transforms, ShadingInfo, TextureType } from '@/app/type';
 import m4 from '../utils/m4';
 import TRS from '../utils/trs';
 import * as utils from "../utils/utils";
@@ -6,9 +6,7 @@ import { degToRad } from '../utils/radians';
 
 var id_global = 1;
 
-var url_offset: any = {
-
-}
+var url_offset: { [index: string]: number } = {};
 
 var tex_offset = 0;
 
@@ -32,14 +30,10 @@ export class Node {
     id: number;
     cameraInformation: CameraInformation;
     shadingInfo: ShadingInfo;
-    texture: WebGLTexture | null;
-    texture_url: string;
-    specularMap: WebGLTexture | null;
-    specular_url: string;
-    normalMap: WebGLTexture | null;
-    normal_url: string;
-    displacementMap: WebGLTexture | null;
-    displacement_url: string;
+    texture_url: string[];
+    specular_url: string[];
+    normal_url: string[];
+    displacement_url: string[];
 
     constructor() {
         this.children = [];
@@ -54,7 +48,7 @@ export class Node {
         this.normal = [];
         this.arrayInfo = {};
         this.id = id_global;
-        this.texture_url = "";
+        this.texture_url = [];
         id_global += 1;
         this.cameraInformation = {
             cameraAngleXRadians: 0,
@@ -76,13 +70,9 @@ export class Node {
             diffuseColor: [1, 1, 1],
             material: 0,
         }
-        this.texture = null;
-        this.specularMap = null;
-        this.specular_url = "";
-        this.normalMap = null;
-        this.normal_url = "";
-        this.displacementMap = null;
-        this.displacement_url = "";
+        this.specular_url = [];
+        this.normal_url = [];
+        this.displacement_url = [];
     }
 
     setParent(parent: Node | null) {
@@ -217,17 +207,17 @@ export class Node {
                 u_reverseLightDirection: light_dir,
                 u_worldViewProjection: [],
                 u_worldInverseTranspose: [],
-                displacementMap: (this.shadingInfo.displacementMap && enableTexture) ? 1 : 0,
-                u_displacementScale: 1,
+                displacementMap: (this.shadingInfo.displacementMap && enableTexture) ? this.shadingInfo.displacementMap : 0,
+                u_displacementScale: 0.2,
                 u_displacementBias: 0,
 
                 u_diffuseColor: this.shadingInfo.diffuseColor,
                 u_shininess: this.shadingInfo.shininess,
                 u_specularColor: this.shadingInfo.specularColor,
                 mode: this.shadingInfo.mode,
-                material: (this.shadingInfo.material && enableTexture) ? 1 : 0,
-                specularMap: (this.shadingInfo.specularMap && enableTexture) ? 1 : 0,
-                normalMap: (this.shadingInfo.normalMap && enableTexture) ? 1 : 0,
+                material: (this.shadingInfo.material && enableTexture) ? this.shadingInfo.material : 0,
+                specularMap: (this.shadingInfo.specularMap && enableTexture) ? this.shadingInfo.specularMap : 0,
+                normalMap: (this.shadingInfo.normalMap && enableTexture) ? this.shadingInfo.normalMap : 0,
             }
             const u_world = m4.yRotation(this.cameraInformation.cameraAngleXRadians);
 
@@ -241,25 +231,28 @@ export class Node {
             utils.setBuffersAndAttributes(gl, programInfo, bufferInfo);
             utils.setUniforms(programInfo, uniforms);
 
-            if (this.texture && uniforms.material) {
-                let tex_offset = url_offset[this.texture_url];
+            if (uniforms.material > 0 && this.texture_url[uniforms.material]) {
+                // console.log(uniforms.material)
+                // console.log(this.texture_url[uniforms.material]);
+                const tex_offset = url_offset[this.texture_url[uniforms.material]];
+                // console.log("TEXTURE OFFSET", tex_offset)
                 gl.uniform1i(gl.getUniformLocation(programInfo.program, "u_texture"), 2 + tex_offset);
             }
 
-            if (this.specularMap && uniforms.specularMap) {
-                let tex_offset = url_offset[this.specular_url];
+            if (uniforms.specularMap > 0) {
+                const tex_offset = url_offset[this.specular_url[uniforms.specularMap]];
                 gl.uniform1i(gl.getUniformLocation(programInfo.program, "u_specularMap"), 2 + tex_offset);
             }
             // console.log("NORMAL MAP", this.shadingInfo.normalMap, uniforms.normalMap)
 
-            if (this.normalMap && uniforms.normalMap) {
-                const tex_offset = url_offset[this.normal_url];
+            if (uniforms.normalMap > 0) {
+                const tex_offset = url_offset[this.normal_url[uniforms.normalMap]];
                 gl.uniform1i(gl.getUniformLocation(programInfo.program, "u_normalMap"), 2 + tex_offset);
             }
 
-            if (this.displacementMap && uniforms.displacementMap) {
+            if (uniforms.displacementMap > 0) {
                 // console.log("DISPLACEMENT MAP", this.displacement_url, uniforms.displacementMap)
-                const tex_offset = url_offset[this.displacement_url];
+                const tex_offset = url_offset[this.displacement_url[uniforms.displacementMap]];
                 gl.uniform1i(gl.getUniformLocation(programInfo.program, "u_displacementMap"), 2 + tex_offset);
             }
 
@@ -359,17 +352,8 @@ export class Node {
 
     setSpecularMap(map: number) {
         this.shadingInfo.specularMap = map;
-        console.log(map)
         this.children.forEach((child) => {
             child.setSpecularMap(map);
-        })
-    }
-
-    setTexture(gl: any, url: any) {
-        this.texture = this.loadTexture(gl, url);
-        this.texture_url = url;
-        this.children.forEach((child) => {
-            child.setTexture(gl, url);
         })
     }
 
@@ -380,34 +364,53 @@ export class Node {
         })
     }
 
-    loadNormalMap(gl: any, url: any) {
-        this.normalMap = this.loadTexture(gl, url);
-        this.normal_url = url;
-        this.children.forEach((child) => {
-            child.loadNormalMap(gl, url);
-        })
-    }
-
-    loadSpecularMap(gl: any, url: any) {
-        this.specularMap = this.loadTexture(gl, url);
-        this.specular_url = url;
-        this.children.forEach((child) => {
-            child.loadSpecularMap(gl, url);
-        })
-    }
-
-    loadDisplacementMap(gl: any, url: any) {
-        this.displacementMap = this.loadTexture(gl, url);
-        this.displacement_url = url;
-        this.children.forEach((child) => {
-            child.loadDisplacementMap(gl, url);
-        })
-    }
-
     setDisplacementMap(map: number) {
         this.shadingInfo.displacementMap = map;
         this.children.forEach((child) => {
             child.setDisplacementMap(map);
+        })
+    }
+
+    // loadNormalMap(gl: any, url: any) {
+    //     this.loadTexture(gl, url);
+    //     this.normal_url = url;
+    //     this.children.forEach((child) => {
+    //         child.loadNormalMap(gl, url);
+    //     })
+    // }
+
+    // loadSpecularMap(gl: any, url: any) {
+    //     this.loadTexture(gl, url);
+    //     this.specular_url = url;
+    //     this.children.forEach((child) => {
+    //         child.loadSpecularMap(gl, url);
+    //     })
+    // }
+
+    // loadDisplacementMap(gl: any, url: any) {
+    //     this.loadTexture(gl, url);
+    //     this.displacement_url = url;
+    //     this.children.forEach((child) => {
+    //         child.loadDisplacementMap(gl, url);
+    //     })
+    // }
+
+    setTexture(gl: any, url: any, id: number, type: TextureType) {
+
+        this.loadTexture(gl, url);
+
+        if (type === TextureType.NORMAL) {
+            this.normal_url[id] = url;
+        } else if (type === TextureType.SPECULAR) {
+            this.specular_url[id] = url;
+        } else if (type === TextureType.DISPLACEMENT) {
+            this.displacement_url[id] = url;
+        } else {
+            this.texture_url[id] = url;
+        }
+
+        this.children.forEach((child) => {
+            child.setTexture(gl, url, id, type);
         })
     }
 

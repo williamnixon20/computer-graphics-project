@@ -13,6 +13,7 @@ import {
   ArticulatedDescriptions,
   CameraInformation,
   HollowDescriptions,
+  TextureType,
   Transforms,
 } from "./type";
 import * as utils from "../webgl/utils/utils";
@@ -171,10 +172,21 @@ export default function Canvas() {
     let refNode = {};
     newScene = new Node().buildByDescription(jsonToDraw);
     const arr_color = normalizeRGB(hexToRGBAArray(color, 1));
-    newScene.setTexture(gl, 'texture/texture1.png');
-    newScene.loadSpecularMap(gl, 'specular/specular1.png');
-    newScene.loadNormalMap(gl, 'normal/normal1.png');
-    newScene.loadDisplacementMap(gl, 'displacement/displacement2.png');
+
+    newScene.setTexture(gl, 'texture/texture1.png', 1, TextureType.DIFFUSE);
+    newScene.setTexture(gl, 'texture/texture2.png', 2, TextureType.DIFFUSE);
+    newScene.setTexture(gl, 'texture/texture3.png', 3, TextureType.DIFFUSE);
+
+    newScene.setTexture(gl, 'specular/specular1.png', 1, TextureType.SPECULAR);
+    newScene.setTexture(gl, 'specular/specular2.png', 2, TextureType.SPECULAR);
+    newScene.setTexture(gl, 'specular/specular3.png', 3, TextureType.SPECULAR);
+
+    newScene.setTexture(gl, 'normal/normal1.png', 1, TextureType.NORMAL);
+    newScene.setTexture(gl, 'normal/normal2.png', 2, TextureType.NORMAL);
+    newScene.setTexture(gl, 'normal/normal3.png', 3, TextureType.NORMAL);
+
+    newScene.setTexture(gl, 'displacement/displacement2.png', 1, TextureType.DISPLACEMENT);
+    newScene.setTexture(gl, 'displacement/displacement3.png', 2, TextureType.DISPLACEMENT);
     
     newScene.setAmbientColor(arr_color.concat([1]));
     newScene.procedureGetNodeRefDict(refNode);
@@ -233,15 +245,26 @@ export default function Canvas() {
       let selectedNode: Node = refDict[selectedName].node;
 
       selectedNode.setShadingMode(shading ? 1 : 0);
+
+      if (!shading)
+        return;
+
       selectedNode.setShininess(shininess);
+
       const diffuseColor = normalizeRGB(hexToRGBAArray(diffuse, 1));
       selectedNode.setDiffuseColor(diffuseColor);
+
       const specularColor = normalizeRGB(hexToRGBAArray(specular, 1));
       selectedNode.setSpecularColor(specularColor);
+
       selectedNode.setMaterial(material);
+
       selectedNode.setSpecularMap(specularTexture);
+
       selectedNode.setNormalMap(normalMap);
+
       selectedNode.setDisplacementMap(displacementMap);
+
       selectedNode.setLightDirection(lightDirection);
     }
   };
@@ -1119,10 +1142,13 @@ export default function Canvas() {
                 value={material}
                 onChange={handleMaterialChange}
               >
-                <option value={0} selected>
+                <option value={0} >
                   Basic Material
                 </option>
-                <option value={1}>Box Texture</option>
+                <option value={1}>Box Cube</option>
+                <option value={2}>Ripple Cube</option>
+                <option value={3}>Stone Cube</option>
+                <option value={4}>Star Sphere</option>
               </select>
             </div>
 
@@ -1135,10 +1161,14 @@ export default function Canvas() {
                 value={specularTexture}
                 onChange={handleSpecularChange}
               >
-                <option value={0} selected>
+                <option value={0}>
                   Basic Material
                 </option>
-                <option value={1}>Box Specular</option>
+                <option value={1}>Box Cube</option>
+                <option value={2}>Ripple Cube</option>
+                <option value={3}>Stone Cube</option>
+                <option value={4}>Earth Sphere</option>
+                <option value={5}>Moon Sphere</option>
               </select>
             </div>
 
@@ -1151,10 +1181,14 @@ export default function Canvas() {
                 value={displacementMap}
                 onChange={handleDisplacementChange}
               >
-                <option value={0} selected>
+                <option value={0}>
                   No Displacement
                 </option>
-                <option value={1}>Displacement 1</option>
+                <option value={1}>Ripple Displacement</option>
+                <option value={2}>Stone Displacement</option>
+                <option value={3}>Earth Displacement</option>
+                <option value={4}>Moon Displacement</option>
+                <option value={5}>Star Displacement</option>
               </select>
             </div>
 
@@ -1167,10 +1201,12 @@ export default function Canvas() {
                 value={normalMap}
                 onChange={handleNormalChange}
               >
-                <option value={0} selected>
+                <option value={0}>
                   No Normal
                 </option>
-                <option value={1}>Normal 1</option>
+                <option value={1}>Shape Cube</option>
+                <option value={2}>Ripple Cube</option>
+                <option value={3}>Stone Cube</option>
               </select>
             </div>
           </div>
