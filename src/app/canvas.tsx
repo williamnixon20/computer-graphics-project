@@ -220,7 +220,7 @@ export default function Canvas() {
     if (scene && camera1 && camera2) {
       const arr_color = normalizeRGB(hexToRGBAArray(color, 1));
       if (selectedName) {
-        let selectedNode = refDict[selectedName].node;
+        let selectedNode: Node = refDict[selectedName].node;
         selectedNode.setAmbientColor(arr_color.concat([1]));
       }
       console.log(arr_color);
@@ -232,41 +232,72 @@ export default function Canvas() {
 
   useEffect(() => {
     updateShading();
-    console.log("update");
-    if (scene && camera1 && camera2) {
-      drawer1?.draw(scene, camera1, camera2, cameraInformation1);
-      drawer2?.draw(scene, camera2, camera1, cameraInformation2);
-    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [shading, shininess, specular, diffuse, material, lightDirection]);
+  }, [shading, shininess, lightDirection]);
+
+  useEffect(() => {
+
+  }, [material]);
 
   const updateShading = () => {
-    if (scene && selectedName) {
-      let selectedNode: Node = refDict[selectedName].node;
+    if(!scene || !camera1 || !camera2 || !selectedName )
+      return;
 
-      selectedNode.setShadingMode(shading ? 1 : 0);
+    const selectedNode: Node = refDict[selectedName].node;
+    
+    selectedNode.setShadingMode(shading ? 1 : 0);
 
-      if (!shading)
-        return;
+    selectedNode.setShininess(shininess);
 
-      selectedNode.setShininess(shininess);
+    selectedNode.setLightDirection(lightDirection);
 
-      const diffuseColor = normalizeRGB(hexToRGBAArray(diffuse, 1));
-      selectedNode.setDiffuseColor(diffuseColor);
+    drawer1?.draw(scene, camera1, camera2, cameraInformation1);
+    drawer2?.draw(scene, camera2, camera1, cameraInformation2);
+  };
 
-      const specularColor = normalizeRGB(hexToRGBAArray(specular, 1));
-      selectedNode.setSpecularColor(specularColor);
+  useEffect(() => {
+    updateTexture();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [shading, material, specularTexture, displacementMap, normalMap]);
 
-      selectedNode.setMaterial(material);
 
-      selectedNode.setSpecularMap(specularTexture);
+  const updateTexture = () => {
+    if(!scene || !camera1 || !camera2 || !selectedName|| !shading)
+      return;
 
-      selectedNode.setNormalMap(normalMap);
+    const selectedNode: Node = refDict[selectedName].node;
 
-      selectedNode.setDisplacementMap(displacementMap);
+    selectedNode.setUsedTextures(material, TextureType.DIFFUSE);
 
-      selectedNode.setLightDirection(lightDirection);
-    }
+    selectedNode.setUsedTextures(specularTexture, TextureType.SPECULAR);
+
+    selectedNode.setUsedTextures(displacementMap, TextureType.DISPLACEMENT);
+
+    selectedNode.setUsedTextures(normalMap, TextureType.NORMAL);
+
+    drawer1?.draw(scene, camera1, camera2, cameraInformation1);
+    drawer2?.draw(scene, camera2, camera1, cameraInformation2);
+  };
+
+  useEffect(() => {
+    updateColor();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [shading, specular, diffuse]);
+
+  const updateColor = () => {
+    if(!scene || !camera1 || !camera2 || !selectedName|| !shading)
+      return;
+
+    const selectedNode: Node = refDict[selectedName].node;
+
+    const diffuseColor = normalizeRGB(hexToRGBAArray(diffuse, 1));
+    selectedNode.setDiffuseColor(diffuseColor);
+
+    const specularColor = normalizeRGB(hexToRGBAArray(specular, 1));
+    selectedNode.setSpecularColor(specularColor);
+
+    drawer1?.draw(scene, camera1, camera2, cameraInformation1);
+    drawer2?.draw(scene, camera2, camera1, cameraInformation2);
   };
 
   const handleMaterialChange = (e: React.ChangeEvent<HTMLSelectElement>) => {

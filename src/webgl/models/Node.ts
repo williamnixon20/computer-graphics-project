@@ -343,57 +343,21 @@ export class Node {
         })
     }
 
-    setMaterial(material: number) {
-        this.shadingInfo.material = material;
+    setUsedTextures(id: number, type: TextureType){
+        if (type === TextureType.NORMAL) {
+            this.shadingInfo.normalMap = id;
+        } else if (type === TextureType.SPECULAR) {
+            this.shadingInfo.specularMap = id;
+        } else if (type === TextureType.DISPLACEMENT) {
+            this.shadingInfo.displacementMap = id;
+        } else {
+            this.shadingInfo.material = id;
+        }
+
         this.children.forEach((child) => {
-            child.setMaterial(material);
+            child.setUsedTextures(id, type);
         })
     }
-
-    setSpecularMap(map: number) {
-        this.shadingInfo.specularMap = map;
-        this.children.forEach((child) => {
-            child.setSpecularMap(map);
-        })
-    }
-
-    setNormalMap(map: number) {
-        this.shadingInfo.normalMap = map;
-        this.children.forEach((child) => {
-            child.setNormalMap(map);
-        })
-    }
-
-    setDisplacementMap(map: number) {
-        this.shadingInfo.displacementMap = map;
-        this.children.forEach((child) => {
-            child.setDisplacementMap(map);
-        })
-    }
-
-    // loadNormalMap(gl: any, url: any) {
-    //     this.loadTexture(gl, url);
-    //     this.normal_url = url;
-    //     this.children.forEach((child) => {
-    //         child.loadNormalMap(gl, url);
-    //     })
-    // }
-
-    // loadSpecularMap(gl: any, url: any) {
-    //     this.loadTexture(gl, url);
-    //     this.specular_url = url;
-    //     this.children.forEach((child) => {
-    //         child.loadSpecularMap(gl, url);
-    //     })
-    // }
-
-    // loadDisplacementMap(gl: any, url: any) {
-    //     this.loadTexture(gl, url);
-    //     this.displacement_url = url;
-    //     this.children.forEach((child) => {
-    //         child.loadDisplacementMap(gl, url);
-    //     })
-    // }
 
     setTexture(gl: any, url: any, id: number, type: TextureType) {
 
