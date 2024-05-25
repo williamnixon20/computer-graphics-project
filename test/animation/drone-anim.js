@@ -4,7 +4,7 @@ export const droneAnim = {
     { // Frame 1
       name: "body",
       keyframe: {
-        scale: [3, 1, 5],
+        translation: [2, 0, 0], // x = 2*cos(0), z = 2*sin(0)
       },
       children: {
         "main-rotor": {
@@ -37,8 +37,7 @@ export const droneAnim = {
     { // Frame 2
       name: "body",
       keyframe: {
-        translation: [1, 0, 1],
-        scale: [3, 1, 5],
+        translation: [0, 0, 2], // x = 2*cos(π/2), z = 2*sin(π/2)
       },
       children: {
         "main-rotor": {
@@ -71,8 +70,7 @@ export const droneAnim = {
     { // Frame 3
       name: "body",
       keyframe: {
-        translation: [2, 0, 2],
-        scale: [3, 1, 5],
+        translation: [-2, 0, 0], // x = 2*cos(π), z = 2*sin(π)
       },
       children: {
         "main-rotor": {
@@ -105,8 +103,7 @@ export const droneAnim = {
     { // Frame 4
       name: "body",
       keyframe: {
-        translation: [-1, 0, -1],
-        scale: [3, 1, 5],
+        translation: [0, 0, -2], // x = 2*cos(3π/2), z = 2*sin(3π/2)
       },
       children: {
         "main-rotor": {

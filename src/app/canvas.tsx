@@ -628,9 +628,10 @@ export default function Canvas() {
   };
 
   // Animation
-  const [selectedAnim, setSelectedAnim] = useState(manAnim as any);
   const [animate, setAnimate] = useState(false);
+  const [selectedAnim, setSelectedAnim] = useState(manAnim as any);
   const [currentFrame, setCurrentFrame] = useState(0);
+  const [tweening, setTweening] = useState("linear");
   const [reverse, setReverse] = useState(false);
   const [replay, setReplay] = useState(false);
   const [reset, setReset] = useState(false);
@@ -640,6 +641,7 @@ export default function Canvas() {
     scene!,
     selectedAnim,
     currentFrame,
+    tweening,
     reverse,
     replay,
     reset,
@@ -1019,6 +1021,20 @@ export default function Canvas() {
               onChange={(e) => setFps(parseInt(e.target.value))}
               className="w-full"
             />
+          </div>
+
+          <div className="text-base font-semibold text-black mb-4">
+            <select
+              onChange={(e) => setTweening(e.target.value)}
+            >
+              <option value="linear">Linear</option>
+              <option value="sine">Sine</option>
+              <option value="quad">Quad</option>
+              <option value="cubic">Cubic</option>
+              <option value="quart">Quart</option>
+              <option value="quint">Quint</option>
+              <option value="expo">Expo</option>
+            </select>
           </div>
 
           <button
