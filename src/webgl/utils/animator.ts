@@ -6,15 +6,17 @@ export class Animator {
   currentAnimation: AnimationClip;
   deltaFrame: number = 0;
   currentFrame: number;
+  tweening: string;
   reverse: boolean;
   replay: boolean;
   reset: boolean;
   fps: number;
 
-  constructor(root: Node, animation: AnimationClip, currentFrame: number, reverse: boolean, replay: boolean, reset: boolean, fps: number) {
+  constructor(root: Node, animation: AnimationClip, currentFrame: number, tweening: string, reverse: boolean, replay: boolean, reset: boolean, fps: number) {
     this.root = root;
     this.currentAnimation = animation;
     this.currentFrame = currentFrame;
+    this.tweening = tweening;
     this.reverse = reverse;
     this.replay = replay;
     this.reset = reset;
@@ -77,28 +79,45 @@ export class Animator {
 
   interpolateTransforms(transforms: Transforms, nextTransform: Transforms): Transforms {
     const translate = {
-      x: this.interpolate(transforms.translate.x, nextTransform.translate.x),
-      y: this.interpolate(transforms.translate.y, nextTransform.translate.y),
-      z: this.interpolate(transforms.translate.z, nextTransform.translate.z)
+      x: this.interpolate(transforms.translate.x, nextTransform.translate.x, this.tweening),
+      y: this.interpolate(transforms.translate.y, nextTransform.translate.y, this.tweening),
+      z: this.interpolate(transforms.translate.z, nextTransform.translate.z, this.tweening)
     };
 
     const rotate = {
-      x: this.interpolate(transforms.rotate.x, nextTransform.rotate.x),
-      y: this.interpolate(transforms.rotate.y, nextTransform.rotate.y),
-      z: this.interpolate(transforms.rotate.z, nextTransform.rotate.z)
+      x: this.interpolate(transforms.rotate.x, nextTransform.rotate.x, this.tweening),
+      y: this.interpolate(transforms.rotate.y, nextTransform.rotate.y, this.tweening),
+      z: this.interpolate(transforms.rotate.z, nextTransform.rotate.z, this.tweening)
     };
 
     const scale = {
-      x: this.interpolate(transforms.scale.x, nextTransform.scale.x),
-      y: this.interpolate(transforms.scale.y, nextTransform.scale.y),
-      z: this.interpolate(transforms.scale.z, nextTransform.scale.z)
+      x: this.interpolate(transforms.scale.x, nextTransform.scale.x, this.tweening),
+      y: this.interpolate(transforms.scale.y, nextTransform.scale.y, this.tweening),
+      z: this.interpolate(transforms.scale.z, nextTransform.scale.z, this.tweening)
     };
 
     return { translate, rotate, scale };
   }
 
-  interpolate(a: number, b: number): number {
-    return a + (b - a) * this.deltaFrame;
+  interpolate(a: number, b: number, tweening: string): number {
+    switch (tweening) {
+      case "linear":
+        return a + (b - a) * this.deltaFrame;
+      case "sine":
+        return a + (b - a) * Math.sin(this.deltaFrame * Math.PI / 2);
+      case "quad":
+        return a + (b - a) * Math.pow(this.deltaFrame, 2);
+      case "cubic":
+        return a + (b - a) * Math.pow(this.deltaFrame, 3);
+      case "quart":
+        return a + (b - a) * Math.pow(this.deltaFrame, 4);
+      case "quint":
+        return a + (b - a) * Math.pow(this.deltaFrame, 5);
+      case "expo":
+        return a + (b - a) * Math.pow(2, 10 * (this.deltaFrame - 1));
+      default:
+        return a + (b - a) * this.deltaFrame;
+    }
   }
 
   updateSceneGraph() {
