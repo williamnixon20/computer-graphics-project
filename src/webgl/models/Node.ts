@@ -13,7 +13,6 @@ var tex_offset = 0;
 var light_dir = [1, 1, 1];
 export class Node {
     position: number[];
-    color: number[];
     normal: number[];
     children: Node[];
     localMatrix: number[];
@@ -46,7 +45,6 @@ export class Node {
         this.draw = false;
         this.name = "";
         this.position = [];
-        this.color = [0, 0, 0, 255];
         this.normal = [];
         this.arrayInfo = {};
         this.id = id_global;
@@ -187,11 +185,43 @@ export class Node {
     buildByDescription(nodeDescription: ArticulatedDescriptions | HollowDescriptions) {
         if (nodeDescription.type === "articulated") {
             return this.buildArticulated(nodeDescription as ArticulatedDescriptions);
-        }
-        else {
+        } else if (nodeDescription.type === "saved") {
+            return this.fromJSON(nodeDescription as any);
+        } else {
             return this.buildHollow(nodeDescription as HollowDescriptions);
         }
     }
+
+    fromJSON(json: any) {
+        let trs = this.source
+        trs.translation = json.translation || trs.translation;
+        trs.rotation = json.rotation || trs.rotation;
+        trs.scale = json.scale || trs.scale;
+
+        this.name = json.name;
+        this.draw = json.draw !== false;
+        this.arrayInfo = json.arrayInfo;
+        this.cameraInformation = json.cameraInformation;
+        this.shadingInfo = json.shadingInfo;
+
+        this.texture_url = json.texture_url;
+        this.specular_url = json.specular_url;
+        this.normal_url = json.normal_url;
+        this.displacement_url = json.displacement_url;
+        this.displacementScale = json.displacementScale;
+        this.displacementBias = json.displacementBias;
+
+        let childrenNodes = this.makeNodes(json.children, "saved")
+
+        // set parent to this for every childrenNodes
+        for (let i = 0; i < childrenNodes.length; i++) {
+            if (childrenNodes[i] instanceof Node) {
+                childrenNodes[i].setParent(this);
+            }
+        }
+        return this;
+    }
+
 
     makeNodes(nodeDescriptions: ArticulatedDescriptions[] | HollowDescriptions[] | undefined, type: string) {
         return nodeDescriptions ? nodeDescriptions.map((node) => {
@@ -228,17 +258,19 @@ export class Node {
                 specularMap: (this.shadingInfo.specularMap && enableTexture) ? this.shadingInfo.specularMap : 0,
                 normalMap: (this.shadingInfo.normalMap && enableTexture) ? this.shadingInfo.normalMap : 0,
             }
+
             const u_world = m4.yRotation(this.cameraInformation.cameraAngleXRadians);
 
             uniforms.u_worldViewProjection = m4.multiply(viewProjectionMatrix, this.worldMatrix);
             uniforms.u_worldInverseTranspose = m4.transpose(m4.inverse(u_world));
 
+            gl.useProgram(programInfo.program);
+            utils.setUniforms(programInfo, uniforms);
+
             let bufferInfo = utils.createBufferInfoFromArrays(gl, this.arrayInfo);
 
-            gl.useProgram(programInfo.program);
 
             utils.setBuffersAndAttributes(gl, programInfo, bufferInfo);
-            utils.setUniforms(programInfo, uniforms);
 
             if (uniforms.material > 0 && this.texture_url[uniforms.material]) {
                 // console.log(uniforms.material)
@@ -414,6 +446,55 @@ export class Node {
             child.setDisplacementBias(bias);
         })
     }
+
+    toJsonFormat() {
+        // save everything
+        let nodeDescription: any = {
+            "name": this.name,
+            "id": this.id,
+            "type": "saved",
+            "translation": this.source.getTranslateWDelta(),
+            "rotation": this.source.getRotateWDelta(),
+            "scale": this.source.getScaleWDelta(),
+            "draw": this.draw,
+            "arrayInfo": {
+                // @ts-ignore
+                "position": Array.from(this.arrayInfo.position),
+                // @ts-ignore
+                "normal": Array.from(this.arrayInfo.normal),
+                // @ts-ignore
+                "texcoord": Array.from(this.arrayInfo.texcoord),
+                // @ts-ignore
+                "tangent": Array.from(this.arrayInfo.tangent),
+                // @ts-ignore
+                "bitangent": Array.from(this.arrayInfo.bitangent),
+                // @ts-ignore
+                "indices": Array.from(this.arrayInfo.indices),
+            },
+            "cameraInformation": this.cameraInformation,
+            "shadingInfo": this.shadingInfo,
+            "texture_url": this.texture_url,
+            "specular_url": this.specular_url,
+            "normal_url": this.normal_url,
+            "displacement_url": this.displacement_url,
+            "displacementScale": this.displacementScale,
+            "displacementBias": this.displacementBias,
+
+            "children": []
+        }
+
+        if (this.arrayInfo.indices) {
+            // @ts-ignore
+            nodeDescription.arrayInfo.indices = Array.from(this.arrayInfo.indices);
+        }
+
+        this.children.forEach((child) => {
+            nodeDescription.children.push(child.toJsonFormat());
+        })
+        console.log("SAVE INFO", nodeDescription.arrayInfo)
+
+        return nodeDescription;
+    }
 }
 
 function bindTextureBlank(gl: WebGLRenderingContext) {
@@ -504,6 +585,4 @@ function bindTexture(gl: WebGLRenderingContext, url: string) {
         }
         gl.activeTexture(gl.TEXTURE1);
     };
-
-    gl.activeTexture(gl.TEXTURE1);
 }

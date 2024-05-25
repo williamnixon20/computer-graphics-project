@@ -33,9 +33,9 @@ import TRS from "@/webgl/utils/trs";
 var jsonToDraw: ArticulatedDescriptions | HollowDescriptions =
   blockGuyNodeDescriptions;
 const jsonCamera = cameraNodeDescriptions;
-
+var selectedName = "";
 export default function Canvas() {
-  const [selectedName, setSelectedName] = useState<string | null | undefined>();
+  // const [selectedName, setSelectedName] = useState<string | null | undefined>();
   const canvas1Ref = useRef<HTMLCanvasElement>(null);
   const canvas2Ref = useRef<HTMLCanvasElement>(null);
 
@@ -198,7 +198,7 @@ export default function Canvas() {
     newScene.setTexture(gl, 'texture/sphere_moon.jpeg', 4, TextureType.DISPLACEMENT);
     newScene.setTexture(gl, 'texture/sphere_star.jpg', 5, TextureType.DISPLACEMENT);
 
-    newScene.setAmbientColor(arr_color.concat([1]));
+    // newScene.setAmbientColor(arr_color.concat([1]));
     newScene.procedureGetNodeRefDict(refNode);
 
     // refNode["head"].node.setTexture(gl, 'f-texture.png');
@@ -215,7 +215,8 @@ export default function Canvas() {
     setCamera1(cameraScene1);
     setCamera2(cameraScene2);
     setRefDict(refNode);
-    setSelectedName(newScene.name);
+    selectedName = newScene.name;
+    // setSelectedName(newScene.name);
 
     if (canvasId === 0 && drawer1) {
       console.log("canvas 1 ready");
@@ -460,7 +461,8 @@ export default function Canvas() {
       resetTransforms();
       let selectedNode = scene?.getById(pickId);
       console.log("position: ", selectedNode?.arrayInfo);
-      setSelectedName(selectedNode?.name);
+      selectedName = selectedNode?.name;
+      // setSelectedName(selectedNode?.name);
     }
   }
 
@@ -688,6 +690,25 @@ export default function Canvas() {
     lastFrameTime = currentTime;
     animationFrameId = requestAnimationFrame(renderAnimation);
   }
+  const handleFileUpload = (event) => {
+    const file = event.target.files[0];
+    const reader = new FileReader();
+
+    reader.onload = (e) => {
+      const fileContent = e.target.result;
+      const jsonData = JSON.parse(fileContent);
+      if (scene) {
+        jsonToDraw = jsonData;
+        setupWebGL(0, canvas1Ref);
+        setupWebGL(1, canvas2Ref);
+        // scene.buildByDescription(jsonData);
+        // setScene(scene); // Update the scene state if needed
+      }
+    };
+    if (file) {
+      reader.readAsText(file);
+    }
+  };
 
   useEffect(() => {
     if (animate) {
@@ -1331,7 +1352,8 @@ export default function Canvas() {
             <div key={name} style={{ marginLeft: refDict[name].level * 10 }}>
               <button
                 onClick={() => {
-                  setSelectedName(name);
+                  // setSelectedName(name);
+                  selectedName = name;
                   resetTransforms();
                 }}
                 className={`${selectedName === name ? "bg-teal-600" : "bg-blue-500"
@@ -1341,7 +1363,32 @@ export default function Canvas() {
               </button>
             </div>
           ))}
-      </div>
+        <div className="mt-10">
+          <button
+            onClick={() => {
+              console.log(scene?.toJsonFormat());
+              scene?.buildByDescription(scene?.toJsonFormat());
+              // Download as JSON file
+              const element = document.createElement("a");
+              const file = new Blob([JSON.stringify(scene?.toJsonFormat())], { type: 'text/plain' });
+              element.href = URL.createObjectURL(file);
+              element.download = "scene.json";
+              document.body.appendChild(element); // Required for this to work in FireFox
+              element.click();
+            }}
+            className="w-full mb-4 bg-blue-500 text-white py-2"
+          >
+            Save
+          </button>
+          <p>Load (Saved file format only)</p>
+          <input
+            type="file"
+            accept=".json"
+            onChange={handleFileUpload}
+          // className="border border-gray-300 p-2 rounded"
+          />
+        </div>
+      </div >
       <div className="p-4 min-w-44 h-screen">
         {selectedName && (
           <>
