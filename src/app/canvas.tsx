@@ -176,10 +176,14 @@ export default function Canvas() {
     newScene.setTexture(gl, 'texture/texture1.png', 1, TextureType.DIFFUSE);
     newScene.setTexture(gl, 'texture/texture2.png', 2, TextureType.DIFFUSE);
     newScene.setTexture(gl, 'texture/texture3.png', 3, TextureType.DIFFUSE);
+    newScene.setTexture(gl, 'texture/sphere_earth.jpeg', 4, TextureType.DIFFUSE);
+    newScene.setTexture(gl, 'texture/sphere_moon.jpeg', 5, TextureType.DIFFUSE);
+    newScene.setTexture(gl, 'texture/sphere_star.jpeg', 6, TextureType.DIFFUSE);
 
     newScene.setTexture(gl, 'specular/specular1.png', 1, TextureType.SPECULAR);
     newScene.setTexture(gl, 'specular/specular2.png', 2, TextureType.SPECULAR);
     newScene.setTexture(gl, 'specular/specular3.png', 3, TextureType.SPECULAR);
+    newScene.setTexture(gl, 'texture/sphere_earth.jpeg', 4, TextureType.SPECULAR);
 
     newScene.setTexture(gl, 'normal/normal1.png', 1, TextureType.NORMAL);
     newScene.setTexture(gl, 'normal/normal2.png', 2, TextureType.NORMAL);
@@ -187,6 +191,9 @@ export default function Canvas() {
 
     newScene.setTexture(gl, 'displacement/displacement2.png', 1, TextureType.DISPLACEMENT);
     newScene.setTexture(gl, 'displacement/displacement3.png', 2, TextureType.DISPLACEMENT);
+    newScene.setTexture(gl, 'texture/sphere_earth.jpeg', 3, TextureType.DISPLACEMENT);
+    newScene.setTexture(gl, 'texture/sphere_moon.jpeg', 4, TextureType.DISPLACEMENT);
+    newScene.setTexture(gl, 'texture/sphere_star.jpeg', 5, TextureType.DISPLACEMENT);
     
     newScene.setAmbientColor(arr_color.concat([1]));
     newScene.procedureGetNodeRefDict(refNode);
@@ -1179,7 +1186,9 @@ export default function Canvas() {
                 <option value={1}>Box Cube</option>
                 <option value={2}>Ripple Cube</option>
                 <option value={3}>Stone Cube</option>
-                <option value={4}>Star Sphere</option>
+                <option value={4}>Earth Sphere</option>
+                <option value={5}>Moon Sphere</option>
+                <option value={6}>Star Sphere</option>
               </select>
             </div>
 
@@ -1199,7 +1208,6 @@ export default function Canvas() {
                 <option value={2}>Ripple Cube</option>
                 <option value={3}>Stone Cube</option>
                 <option value={4}>Earth Sphere</option>
-                <option value={5}>Moon Sphere</option>
               </select>
             </div>
 

@@ -659,7 +659,6 @@ export function createSphereVertices(
 
     for (let y = 0; y <= subdivisionsHeight; y++) {
         for (let x = 0; x <= subdivisionsAxis; x++) {
-
             const u = x / subdivisionsAxis;
             const v = y / subdivisionsHeight;
             const theta = longRange * u + opt_startLongitudeInRadians;
@@ -694,11 +693,34 @@ export function createSphereVertices(
         }
     }
 
+    for (let x = 0; x < subdivisionsAxis; x++) {
+        for (let y = 0; y < subdivisionsHeight; y++) {
+            const index0 = (y + 0) * numVertsAround + x;
+            const index1 = (y + 0) * numVertsAround + x + 1;
+            const index2 = (y + 1) * numVertsAround + x;
+
+            const p0 = positions.slice(index0 * 3, index0 * 3 + 3);
+            const p1 = positions.slice(index1 * 3, index1 * 3 + 3);
+            const p2 = positions.slice(index2 * 3, index2 * 3 + 3);
+
+            const uv0 = texCoords.slice(index0 * 2, index0 * 2 + 2);
+            const uv1 = texCoords.slice(index1 * 2, index1 * 2 + 2);
+            const uv2 = texCoords.slice(index2 * 2, index2 * 2 + 2);
+
+            const {tangent, bitangent} = calculateTB([p0, p1, p2], [uv0, uv1, uv2]);
+
+            tangents.push(tangent);
+            bitangents.push(bitangent);
+        }
+    }
+
     return {
         position: positions,
         normal: normals,
         texcoord: texCoords,
         indices: indices,
+        tangent: tangents,
+        bitangent: bitangents,
     };
 }
 
