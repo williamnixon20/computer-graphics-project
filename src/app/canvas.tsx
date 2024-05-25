@@ -186,6 +186,7 @@ export default function Canvas() {
     newScene.setTexture(gl, 'specular/specular2.png', 2, TextureType.SPECULAR);
     newScene.setTexture(gl, 'specular/specular3.png', 3, TextureType.SPECULAR);
     newScene.setTexture(gl, 'texture/sphere_earth.jpeg', 4, TextureType.SPECULAR);
+    newScene.setTexture(gl, 'blank', 5, TextureType.SPECULAR);
 
     newScene.setTexture(gl, 'normal/normal1.png', 1, TextureType.NORMAL);
     newScene.setTexture(gl, 'normal/normal2.png', 2, TextureType.NORMAL);
@@ -1227,6 +1228,7 @@ export default function Canvas() {
                 <option value={2}>Ripple Cube</option>
                 <option value={3}>Stone Cube</option>
                 <option value={4}>Earth Sphere</option>
+                <option value={5}>No Specular</option>
               </select>
             </div>
 

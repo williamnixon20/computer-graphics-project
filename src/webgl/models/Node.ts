@@ -383,7 +383,11 @@ export class Node {
     }
 
     loadTexture(gl: any, url: any) {
-        bindTexture(gl, url);
+        if (url === "blank") {
+            bindTextureBlank(gl);
+        } else {
+            bindTexture(gl, url);
+        }
         return true;
     }
 
@@ -405,6 +409,40 @@ export class Node {
             child.setDisplacementBias(bias);
         })
     }
+}
+
+function bindTextureBlank(gl: WebGLRenderingContext) {
+    const texture = gl.createTexture();
+    const url = "blank"
+    if (!(url in url_offset)) {
+        console.log("URL OFFSET", url_offset, tex_offset)
+        url_offset[url] = tex_offset;
+        tex_offset += 1;
+    }
+    gl.activeTexture(gl.TEXTURE2 + url_offset[url]);
+    gl.bindTexture(gl.TEXTURE_2D, texture);
+
+    // temp texture
+    const level = 0;
+    const internalFormat = gl.RGBA;
+    const width = 1;
+    const height = 1;
+    const border = 0;
+    const srcFormat = gl.RGBA;
+    const srcType = gl.UNSIGNED_BYTE;
+    const pixel = new Uint8Array([0, 0, 0, 255]);
+    gl.texImage2D(
+        gl.TEXTURE_2D,
+        level,
+        internalFormat,
+        width,
+        height,
+        border,
+        srcFormat,
+        srcType,
+        pixel,
+    );
+
 }
 
 function isPowerOf2(value: number) {
