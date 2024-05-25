@@ -1,21 +1,12 @@
 function createProgram(
-    gl, shaders, opt_attribs, opt_locations, opt_errorCallback) {
+    gl, shaders) {
 
     const program = gl.createProgram();
     shaders.forEach(function (shader) {
         gl.attachShader(program, shader);
     });
-    if (opt_attribs) {
-        opt_attribs.forEach(function (attrib, ndx) {
-            gl.bindAttribLocation(
-                program,
-                opt_locations ? opt_locations[ndx] : ndx,
-                attrib);
-        });
-    }
     gl.linkProgram(program);
 
-    // Check the link status
     const linked = gl.getProgramParameter(program, gl.LINK_STATUS);
     if (!linked) {
         console.log('Error in program linking:' + lastError);
@@ -28,97 +19,30 @@ function createProgram(
 
 
 function createUniformSetters(gl, program) {
-    let textureUnit = 0;
 
     function createUniformSetter(program, uniformInfo) {
         const location = gl.getUniformLocation(program, uniformInfo.name);
         const type = uniformInfo.type;
         const isArray = (uniformInfo.size > 1 && uniformInfo.name.substr(-3) === '[0]');
-        if (type === gl.FLOAT && isArray) {
-            return function (v) {
-                gl.uniform1fv(location, v);
-            };
-        }
-        if (type === gl.FLOAT) {
-            return function (v) {
-                gl.uniform1f(location, v);
-            };
-        }
-        if (type === gl.FLOAT_VEC2) {
-            return function (v) {
-                gl.uniform2fv(location, v);
-            };
-        }
-        if (type === gl.FLOAT_VEC3) {
-            return function (v) {
-                gl.uniform3fv(location, v);
-            };
-        }
-        if (type === gl.FLOAT_VEC4) {
-            return function (v) {
-                gl.uniform4fv(location, v);
-            };
-        }
-        if (type === gl.INT && isArray) {
-            return function (v) {
-                gl.uniform1iv(location, v);
-            };
-        }
-        if (type === gl.INT) {
-            return function (v) {
-                gl.uniform1i(location, v);
-            };
-        }
-        if (type === gl.INT_VEC2) {
-            return function (v) {
-                gl.uniform2iv(location, v);
-            };
-        }
-        if (type === gl.INT_VEC3) {
-            return function (v) {
-                gl.uniform3iv(location, v);
-            };
-        }
-        if (type === gl.INT_VEC4) {
-            return function (v) {
-                gl.uniform4iv(location, v);
-            };
-        }
-        if (type === gl.BOOL) {
-            return function (v) {
-                gl.uniform1iv(location, v);
-            };
-        }
-        if (type === gl.BOOL_VEC2) {
-            return function (v) {
-                gl.uniform2iv(location, v);
-            };
-        }
-        if (type === gl.BOOL_VEC3) {
-            return function (v) {
-                gl.uniform3iv(location, v);
-            };
-        }
-        if (type === gl.BOOL_VEC4) {
-            return function (v) {
-                gl.uniform4iv(location, v);
-            };
-        }
-        if (type === gl.FLOAT_MAT2) {
-            return function (v) {
-                gl.uniformMatrix2fv(location, false, v);
-            };
-        }
-        if (type === gl.FLOAT_MAT3) {
-            return function (v) {
-                gl.uniformMatrix3fv(location, false, v);
-            };
-        }
-        if (type === gl.FLOAT_MAT4) {
-            return function (v) {
-                gl.uniformMatrix4fv(location, false, v);
-            };
-        }
+        const typeFunctionMap = {
+            [gl.FLOAT]: isArray ? v => gl.uniform1fv(location, v) : v => gl.uniform1f(location, v),
+            [gl.FLOAT_VEC2]: v => gl.uniform2fv(location, v),
+            [gl.FLOAT_VEC3]: v => gl.uniform3fv(location, v),
+            [gl.FLOAT_VEC4]: v => gl.uniform4fv(location, v),
+            [gl.INT]: isArray ? v => gl.uniform1iv(location, v) : v => gl.uniform1i(location, v),
+            [gl.INT_VEC2]: v => gl.uniform2iv(location, v),
+            [gl.INT_VEC3]: v => gl.uniform3iv(location, v),
+            [gl.INT_VEC4]: v => gl.uniform4iv(location, v),
+            [gl.BOOL]: v => gl.uniform1iv(location, v),
+            [gl.BOOL_VEC2]: v => gl.uniform2iv(location, v),
+            [gl.BOOL_VEC3]: v => gl.uniform3iv(location, v),
+            [gl.BOOL_VEC4]: v => gl.uniform4iv(location, v),
+            [gl.FLOAT_MAT2]: v => gl.uniformMatrix2fv(location, false, v),
+            [gl.FLOAT_MAT3]: v => gl.uniformMatrix3fv(location, false, v),
+            [gl.FLOAT_MAT4]: v => gl.uniformMatrix4fv(location, false, v)
+        };
+
+        return typeFunctionMap[type] || null;
     }
 
     const uniformSetters = {};
@@ -130,7 +54,6 @@ function createUniformSetters(gl, program) {
             break;
         }
         let name = uniformInfo.name;
-        // remove the array suffix.
         if (name.substr(-3) === '[0]') {
             name = name.substr(0, name.length - 3);
         }
@@ -212,8 +135,8 @@ function setAttributes(setters, attribs) {
 }
 
 export function createProgramInfo(
-    gl, shaderSources, opt_attribs, opt_locations, opt_errorCallback) {
-    const program = createProgram(gl, shaderSources, opt_attribs, opt_locations, opt_errorCallback);
+    gl, shaderSources) {
+    const program = createProgram(gl, shaderSources);
     if (!program) {
         return null;
     }
@@ -232,19 +155,6 @@ export function setBuffersAndAttributes(gl, setters, buffers) {
         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, buffers.indices);
     }
 }
-
-export function resizeCanvasToDisplaySize(canvas, multiplier) {
-    multiplier = multiplier || 1;
-    const width = canvas.clientWidth * multiplier | 0;
-    const height = canvas.clientHeight * multiplier | 0;
-    if (canvas.width !== width || canvas.height !== height) {
-        canvas.width = width;
-        canvas.height = height;
-        return true;
-    }
-    return false;
-}
-
 
 function augmentTypedArray(typedArray, numComponents) {
     let cursor = 0;
@@ -439,7 +349,6 @@ export function createBufferInfoFromArrays(gl, arrays, opt_mapping) {
     return bufferInfo;
 }
 
-
 export function drawBufferInfo(gl, bufferInfo, primitiveType, count, offset) {
     const indices = bufferInfo.indices;
     primitiveType = primitiveType === undefined ? gl.TRIANGLES : primitiveType;
@@ -451,58 +360,6 @@ export function drawBufferInfo(gl, bufferInfo, primitiveType, count, offset) {
         gl.drawArrays(primitiveType, offset, numElements);
     }
 }
-
-
-
-export function deindexVertices(vertices) {
-    const indices = vertices.indices;
-    const newVertices = {};
-    const numElements = indices.length;
-
-    function expandToUnindexed(channel) {
-        const srcBuffer = vertices[channel];
-        const numComponents = srcBuffer.numComponents;
-        const dstBuffer = createAugmentedTypedArray(numComponents, numElements, srcBuffer.constructor);
-        for (let ii = 0; ii < numElements; ++ii) {
-            const ndx = indices[ii];
-            const offset = ndx * numComponents;
-            for (let jj = 0; jj < numComponents; ++jj) {
-                dstBuffer.push(srcBuffer[offset + jj]);
-            }
-        }
-        newVertices[channel] = dstBuffer;
-    }
-
-    Object.keys(vertices).filter(allButIndices).forEach(expandToUnindexed);
-
-    return newVertices;
-}
-
-export function makeColor(vertices, color) {
-    const numElements = vertices.position.numElements;
-    // options = options || {};
-    const vcolors = createAugmentedTypedArray(4, numElements, Uint8Array);
-    // const rand = options.rand || function (ndx, channel) {
-    //     return channel < 3 ? randInt(256) : 255;
-    // };
-    vertices.color = vcolors;
-    if (vertices.indices) {
-        for (let ii = 0; ii < numElements; ++ii) {
-            vcolors.push(color);
-        }
-    } else {
-        const numVertsPerColor = 3;
-        const numSets = numElements / numVertsPerColor;
-        for (let ii = 0; ii < numSets; ++ii) {
-            for (let jj = 0; jj < numVertsPerColor; ++jj) {
-                vcolors.push(color);
-            }
-        }
-    }
-    return vertices;
-}
-
-
 
 const CUBE_FACE_INDICES = [
     [3, 7, 5, 1], // right
@@ -555,7 +412,7 @@ export function createCubeVertices(size) {
         const faceIndices = CUBE_FACE_INDICES[f];
         const positionsForFace = [];
         const uvsForFace = [];
-        
+
         for (let v = 0; v < 4; ++v) {
             const position = cornerVertices[faceIndices[v]];
             const uv = uvCoords[v];
@@ -563,7 +420,7 @@ export function createCubeVertices(size) {
             uvsForFace.push(uv);
         }
 
-        const {tangent, bitangent} = calculateTB(positionsForFace, uvsForFace);
+        const { tangent, bitangent } = calculateTB(positionsForFace, uvsForFace);
 
         for (let v = 0; v < 4; ++v) {
             const position = cornerVertices[faceIndices[v]];
@@ -594,7 +451,7 @@ export function createCubeVertices(size) {
     };
 }
 
-function calculateTB(positions, uvs) {
+export function calculateTB(positions, uvs) {
     const edge1 = subtractVectors(positions[1], positions[0]);
     const edge2 = subtractVectors(positions[2], positions[0]);
     const deltaUV1 = subtractVectors(uvs[1], uvs[0]);
@@ -651,9 +508,9 @@ export function createSphereVertices(
     const longRange = opt_endLongitudeInRadians - opt_startLongitudeInRadians;
 
     const numVertices = (subdivisionsAxis + 1) * (subdivisionsHeight + 1);
-    const positions =  createAugmentedTypedArray(3, numVertices);
-    const normals =  createAugmentedTypedArray(3, numVertices);
-    const texCoords =  createAugmentedTypedArray(2, numVertices);
+    const positions = createAugmentedTypedArray(3, numVertices);
+    const normals = createAugmentedTypedArray(3, numVertices);
+    const texCoords = createAugmentedTypedArray(2, numVertices);
     const tangents = createAugmentedTypedArray(3, numVertices);
     const bitangents = createAugmentedTypedArray(3, numVertices);
 
@@ -677,7 +534,7 @@ export function createSphereVertices(
     }
 
     const numVertsAround = subdivisionsAxis + 1;
-    const indices =  createAugmentedTypedArray(3, subdivisionsAxis * subdivisionsHeight * 2, Uint16Array);
+    const indices = createAugmentedTypedArray(3, subdivisionsAxis * subdivisionsHeight * 2, Uint16Array);
     for (let x = 0; x < subdivisionsAxis; x++) {
         for (let y = 0; y < subdivisionsHeight; y++) {
 
@@ -707,7 +564,7 @@ export function createSphereVertices(
             const uv1 = texCoords.slice(index1 * 2, index1 * 2 + 2);
             const uv2 = texCoords.slice(index2 * 2, index2 * 2 + 2);
 
-            const {tangent, bitangent} = calculateTB([p0, p1, p2], [uv0, uv1, uv2]);
+            const { tangent, bitangent } = calculateTB([p0, p1, p2], [uv0, uv1, uv2]);
 
             tangents.push(tangent);
             bitangents.push(bitangent);

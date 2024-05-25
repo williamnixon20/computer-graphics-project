@@ -156,26 +156,30 @@ export class Node {
         this.draw = true;
         const lengthPoint = nodeDescription.positions.length / (3 * 6);
         let textureArrBase = [
-            0, 0,
-            0, 1,
-            1, 1,
             1, 0,
             0, 0,
+            0, 1,
+            1, 0,
+            0, 1,
             1, 1,
         ];
+
+        let rescaledPositions = nodeDescription.positions.map((pos) => pos * 0.03);
 
         let textureArr: number[] = [];
         for (let i = 0; i < lengthPoint; i++) {
             textureArr = textureArr.concat(textureArrBase);
         }
-        let rescaledPositions = nodeDescription.positions.map((pos) => pos * 0.03);
-        console.log(rescaledPositions)
 
         this.arrayInfo = {
             position: rescaledPositions,
             normal: nodeDescription.normals,
-            texcoord: new Float32Array(textureArr)
+            texcoord: new Float32Array(textureArr),
+            // TODO: LEGIT BITTANGENT AND TANGENT
+            tangent: rescaledPositions,
+            bitangent: rescaledPositions,
         }
+        console.log("ARRAY INFO", this.arrayInfo)
         this.name = nodeDescription.name;
         return this;
     }

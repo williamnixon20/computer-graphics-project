@@ -76,7 +76,7 @@ export class Drawer {
 
         time *= 0.001;
 
-        utils.resizeCanvasToDisplaySize(this.gl.canvas);
+        this.resizeCanvasToDisplaySize(this.gl.canvas);
 
         // Tell WebGL how to convert from clip space to pixels
         this.gl.viewport(0, 0, this.gl.canvas.width, this.gl.canvas.height);
@@ -330,6 +330,17 @@ export class Drawer {
         gl.bindRenderbuffer(gl.RENDERBUFFER, null);
         gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
         return id;
+    }
+
+    resizeCanvasToDisplaySize(canvas: any) {
+        const width = canvas.clientWidth | 0;
+        const height = canvas.clientHeight | 0;
+        if (canvas.width !== width || canvas.height !== height) {
+            canvas.width = width;
+            canvas.height = height;
+            return true;
+        }
+        return false;
     }
 
 }
