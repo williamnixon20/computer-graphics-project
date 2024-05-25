@@ -34,6 +34,8 @@ export class Node {
     specular_url: string[];
     normal_url: string[];
     displacement_url: string[];
+    displacementScale : number;
+    displacementBias : number;
 
     constructor() {
         this.children = [];
@@ -73,6 +75,8 @@ export class Node {
         this.specular_url = [];
         this.normal_url = [];
         this.displacement_url = [];
+        this.displacementScale = 0.1;
+        this.displacementBias = 0;
     }
 
     setParent(parent: Node | null) {
@@ -208,8 +212,8 @@ export class Node {
                 u_worldViewProjection: [],
                 u_worldInverseTranspose: [],
                 displacementMap: (this.shadingInfo.displacementMap && enableTexture) ? this.shadingInfo.displacementMap : 0,
-                u_displacementScale: 0.2,
-                u_displacementBias: 0,
+                u_displacementScale: this.displacementScale,
+                u_displacementBias: this.displacementBias,
 
                 u_diffuseColor: this.shadingInfo.diffuseColor,
                 u_shininess: this.shadingInfo.shininess,
@@ -386,6 +390,20 @@ export class Node {
     // LIGHT DIR IS A GLOBAL VAR
     setLightDirection(lightDirection: number[]) {
         light_dir = lightDirection;
+    }
+
+    setDisplacementScale(scale: number) {
+        this.displacementScale = scale;
+        this.children.forEach((child) => {
+            child.setDisplacementScale(scale);
+        })
+    }
+
+    setDisplacementBias(bias: number) {
+        this.displacementBias = bias;
+        this.children.forEach((child) => {
+            child.setDisplacementBias(bias);
+        })
     }
 }
 
