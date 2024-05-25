@@ -10,6 +10,7 @@ export const dog = {
                 {
                     name: "head",
                     translation: [0, 1, 0.75],
+                    prim: "sphere"
                 },
                 {
                     name: "right-back-leg",

@@ -21,7 +21,8 @@ export const blockGuyNodeDescriptions = {
                             children: [
                                 {
                                     name: "head",
-                                    translation: [0, 1, 1], // head slightly forward to differentiate front and back side of the obj
+                                    translation: [0, 2, 0], // head slightly forward to differentiate front and back side of the obj
+                                    prim: "sphere"
                                 },
                             ],
                         },

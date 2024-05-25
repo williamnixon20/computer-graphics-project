@@ -22,6 +22,7 @@ export const lamp = {
                                     name: "bulb",
                                     translation: [0, 1, 0],
                                     scale: [1 / 2, 1 / 2, 1 / 2],
+                                    prim: "sphere"
                                 },
                             ]
                         }

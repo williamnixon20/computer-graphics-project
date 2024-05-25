@@ -15,6 +15,7 @@ export interface ArticulatedDescriptions {
   scale?: number[];
   children?: ArticulatedDescriptions[];
   colors?: number[];
+  prim?: string;
 }
 
 export interface HollowDescriptions {
@@ -66,7 +67,7 @@ export interface ShadingInfo {
   material?: number;
   specularMap?: number;
   normalMap?: number;
-  displacementMap? : number;
+  displacementMap?: number;
 }
 
 export enum TextureType {

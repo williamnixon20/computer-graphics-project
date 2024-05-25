@@ -197,7 +197,7 @@ export default function Canvas() {
     newScene.setTexture(gl, 'texture/sphere_earth.jpeg', 3, TextureType.DISPLACEMENT);
     newScene.setTexture(gl, 'texture/sphere_moon.jpeg', 4, TextureType.DISPLACEMENT);
     newScene.setTexture(gl, 'texture/sphere_star.jpg', 5, TextureType.DISPLACEMENT);
-    
+
     newScene.setAmbientColor(arr_color.concat([1]));
     newScene.procedureGetNodeRefDict(refNode);
 
@@ -250,11 +250,11 @@ export default function Canvas() {
   }, [material]);
 
   const updateShading = () => {
-    if(!scene || !camera1 || !camera2 || !selectedName )
+    if (!scene || !camera1 || !camera2 || !selectedName)
       return;
 
     const selectedNode: Node = refDict[selectedName].node;
-    
+
     selectedNode.setShadingMode(shading ? 1 : 0);
 
     selectedNode.setShininess(shininess);
@@ -267,12 +267,12 @@ export default function Canvas() {
 
   useEffect(() => {
     updateTexture();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [shading, material, specularTexture, displacementMap, normalMap]);
 
 
   const updateTexture = () => {
-    if(!scene || !camera1 || !camera2 || !selectedName|| !shading)
+    if (!scene || !camera1 || !camera2 || !selectedName || !shading)
       return;
 
     const selectedNode: Node = refDict[selectedName].node;
@@ -291,11 +291,11 @@ export default function Canvas() {
 
   useEffect(() => {
     updateColor();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [shading, specular, diffuse]);
 
   const updateColor = () => {
-    if(!scene || !camera1 || !camera2 || !selectedName|| !shading)
+    if (!scene || !camera1 || !camera2 || !selectedName || !shading)
       return;
 
     const selectedNode: Node = refDict[selectedName].node;
@@ -314,7 +314,7 @@ export default function Canvas() {
     console.log("displacement scale: ", displacementScale);
     console.log("displacement bias: ", displacementBias);
 
-    if(!scene || !camera1 || !camera2 || !selectedName|| !shading)
+    if (!scene || !camera1 || !camera2 || !selectedName || !shading)
       return;
 
     const selectedNode: Node = refDict[selectedName].node;
@@ -324,7 +324,7 @@ export default function Canvas() {
 
     drawer1?.draw(scene, camera1, camera2, cameraInformation1);
     drawer2?.draw(scene, camera2, camera1, cameraInformation2);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [displacementScale, displacementBias]);
 
   const handleMaterialChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -420,7 +420,7 @@ export default function Canvas() {
               step={0.1}
               value={
                 transforms[type][
-                  axis as keyof Transforms["translate"]
+                axis as keyof Transforms["translate"]
                 ] as number
               }
               onChange={(e) =>
@@ -1253,39 +1253,39 @@ export default function Canvas() {
             </div>
 
             {displacementMap !== 0 && (
-            <div className="mb-2 flex flex-col justify-between">
-              <div className="mb-2">
-                <label className="text-base font-semibold text-white mb-2">
-                  Displacement Scale
-                </label>
-                <input
-                  type="range"
-                  min={0}
-                  max={2.5}
-                  step={0.1}
-                  value={displacementScale}
-                  onChange={(e) => setDisplacementScale(Number(e.target.value))}
-                  className="w-full"
-                />
-                <span className="text-white">{displacementScale}</span>
+              <div className="mb-2 flex flex-col justify-between">
+                <div className="mb-2">
+                  <label className="text-base font-semibold text-white mb-2">
+                    Displacement Scale
+                  </label>
+                  <input
+                    type="range"
+                    min={0}
+                    max={2.5}
+                    step={0.1}
+                    value={displacementScale}
+                    onChange={(e) => setDisplacementScale(Number(e.target.value))}
+                    className="w-full"
+                  />
+                  <span className="text-white">{displacementScale}</span>
+                </div>
+                <div className="mb-2">
+                  <label className="text-base font-semibold text-white mb-2">
+                    Displacement Bias
+                  </label>
+                  <input
+                    type="range"
+                    min={-2}
+                    max={2}
+                    step={0.1}
+                    value={displacementBias}
+                    onChange={(e) => setDisplacementBias(Number(e.target.value))}
+                    className="w-full"
+                  />
+                  <span className="text-white">{displacementBias}</span>
+                </div>
               </div>
-              <div className="mb-2">
-                <label className="text-base font-semibold text-white mb-2">
-                  Displacement Bias
-                </label>
-                <input
-                  type="range"
-                  min={-2}
-                  max={2}
-                  step={0.1}
-                  value={displacementBias}
-                  onChange={(e) => setDisplacementBias(Number(e.target.value))}
-                  className="w-full"
-                />
-                <span className="text-white">{displacementBias}</span>
-              </div>
-            </div>
-          )}
+            )}
 
             <div className="mb-2 flex flex-col justify-between">
               <label className="text-base font-semibold text-white mb-2">
@@ -1317,9 +1317,8 @@ export default function Canvas() {
                   setSelectedName(name);
                   resetTransforms();
                 }}
-                className={`${
-                  selectedName === name ? "bg-teal-600" : "bg-blue-500"
-                } p-1 text-sm`}
+                className={`${selectedName === name ? "bg-teal-600" : "bg-blue-500"
+                  } p-1 text-sm`}
               >
                 {name}
               </button>

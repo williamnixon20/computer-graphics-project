@@ -34,8 +34,8 @@ export class Node {
     specular_url: string[];
     normal_url: string[];
     displacement_url: string[];
-    displacementScale : number;
-    displacementBias : number;
+    displacementScale: number;
+    displacementBias: number;
 
     constructor() {
         this.children = [];
@@ -131,11 +131,12 @@ export class Node {
 
         this.draw = nodeDescription.draw !== false;
 
-
-        let cubeVertices = utils.createCubeVertices(1);
-        // console.log(cubeVertices.normal.length);
-        let vertices : any = utils.deindexVertices(cubeVertices);
-        // vertices = primitives.makeColor(vertices, this.shadingInfo.ambientColor);
+        let vertices;
+        if (nodeDescription?.prim === "sphere") {
+            vertices = utils.createSphereVertices(1, 20, 20);
+        } else {
+            vertices = utils.createCubeVertices(1);
+        }
         this.arrayInfo = vertices;
 
 
@@ -347,7 +348,7 @@ export class Node {
         })
     }
 
-    setUsedTextures(id: number, type: TextureType){
+    setUsedTextures(id: number, type: TextureType) {
         if (type === TextureType.NORMAL) {
             this.shadingInfo.normalMap = id;
         } else if (type === TextureType.SPECULAR) {
@@ -460,6 +461,13 @@ function bindTexture(gl: WebGLRenderingContext, url: string) {
             tex_offset += 1;
         }
         gl.activeTexture(gl.TEXTURE2 + url_offset[url]);
+
+        // dont rebind if texture already used
+        let boundTexture = gl.getParameter(gl.TEXTURE_BINDING_2D);
+        if (boundTexture) {
+            gl.activeTexture(gl.TEXTURE1);
+            return;
+        }
         const texture = gl.createTexture();
         gl.bindTexture(gl.TEXTURE_2D, texture);
 
@@ -472,17 +480,6 @@ function bindTexture(gl: WebGLRenderingContext, url: string) {
         const srcFormat = gl.RGBA;
         const srcType = gl.UNSIGNED_BYTE;
         const pixel = new Uint8Array([0, 255, 255, 255]);
-        // gl.texImage2D(
-        //     gl.TEXTURE_2D,
-        //     level,
-        //     internalFormat,
-        //     width,
-        //     height,
-        //     border,
-        //     srcFormat,
-        //     srcType,
-        //     pixel,
-        // );
 
         console.log("LOADED", url, url_offset[url])
         gl.texImage2D(

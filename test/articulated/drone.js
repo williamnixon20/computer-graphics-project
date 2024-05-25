@@ -5,7 +5,8 @@ export const drone = {
     children: [
         {
             name: "body",
-            scale: [3, 1, 5],
+            // scale: [3, 1, 5],
+            prim: "sphere",
             children: [
                 {
                     name: "main-rotor",
