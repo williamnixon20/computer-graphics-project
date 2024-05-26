@@ -845,7 +845,7 @@ export default function Canvas() {
           onKeyUp={handleKeyUp}
           tabIndex={0}
           id="webgl-canvas"
-          className="w-full h-1/2 bg-white border-b-2 border-b-black rounded-none"
+          className="w-full h-1/2 bg-gray-300 border-b-2 border-b-black rounded-none"
         />
         <canvas
           ref={canvas2Ref}
@@ -857,7 +857,7 @@ export default function Canvas() {
           onKeyUp={handleKeyUp}
           tabIndex={0}
           id="webgl-canvas"
-          className="w-full h-1/2 bg-white"
+          className="w-full h-1/2 bg-gray-300"
         />
       </div>
       <div className="flex flex-col h-screen bg-gray-black p-4 w-80 border-r-2 border-r-blue-500 max-h-screen overflow-y-auto scrollbar-hide">
