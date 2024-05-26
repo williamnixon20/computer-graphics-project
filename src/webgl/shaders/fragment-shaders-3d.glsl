@@ -13,6 +13,7 @@ uniform vec3 u_reverseLightDirection;
 uniform vec3 u_cameraPosition;
 uniform int u_cameraType;
 
+uniform vec4 u_lightColor;
 uniform float u_shininess;
 uniform vec3 u_diffuseColor;
 uniform vec3 u_specularColor;
@@ -28,9 +29,10 @@ uniform int normalMap;
 void main() {
 
      vec4 color = v_color;
+     vec3 cameraPosition = u_cameraPosition;
 
      if (mode == 0) {
-          gl_FragColor = color;
+          gl_FragColor = color * u_lightColor;
 
      } else {
 
@@ -74,6 +76,6 @@ void main() {
 
           vec3 finalColor = (ambient + diffuse + specular);
 
-          gl_FragColor = vec4(finalColor, color.a);
+          gl_FragColor = vec4(finalColor, color.a)  * u_lightColor;
      }
 }

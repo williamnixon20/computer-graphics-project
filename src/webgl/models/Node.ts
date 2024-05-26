@@ -273,6 +273,7 @@ export class Node {
                 displacementMap: (this.shadingInfo.displacementMap && enableTexture) ? this.shadingInfo.displacementMap : 0,
                 u_displacementScale: this.displacementScale,
                 u_displacementBias: this.displacementBias,
+                u_lightColor: [1.0, 1.0, 1.0, 1.0],
 
                 // type: this.type,
                 u_cameraPosition: this.cameraPosition,
