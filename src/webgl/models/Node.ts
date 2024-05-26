@@ -125,7 +125,7 @@ export class Node {
         });
     }
 
-    updateCameraMatrix(cameraMatrix: number[]){
+    updateCameraMatrix(cameraMatrix: number[]) {
         this.cameraMatrix = cameraMatrix;
         this.children.forEach((child) => {
             child.updateCameraMatrix(cameraMatrix);
@@ -493,8 +493,6 @@ export class Node {
                 "tangent": Array.from(this.arrayInfo.tangent),
                 // @ts-ignore
                 "bitangent": Array.from(this.arrayInfo.bitangent),
-                // @ts-ignore
-                "indices": Array.from(this.arrayInfo.indices),
             },
             "cameraInformation": this.cameraInformation,
             "shadingInfo": this.shadingInfo,
@@ -506,6 +504,11 @@ export class Node {
             "displacementBias": this.displacementBias,
 
             "children": []
+        }
+
+        if (this.arrayInfo.indices) {
+            // @ts-ignore
+            nodeDescription.arrayInfo.indices = Array.from(this.arrayInfo.indices);
         }
 
         if (this.arrayInfo.indices) {
