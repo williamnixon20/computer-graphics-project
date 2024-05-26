@@ -710,6 +710,18 @@ export default function Canvas() {
           setupWebGL(0, canvas1Ref);
           setupWebGL(1, canvas2Ref);
         }
+        if (jsonToDraw["name"] === "point between feet") {
+          setSelectedArticulated("man")
+        }
+        if (jsonToDraw["name"] === "lamp") {
+          setSelectedArticulated("lamp")
+        }
+        if (jsonToDraw["name"] === "dog") {
+          setSelectedArticulated("dog")
+        }
+        if (jsonToDraw["name"] === "drone") {
+          setSelectedArticulated("drone")
+        }
       } catch {
         window.alert("Invalid JSON file, please make sure it is file SAVED from GUI.");
       }

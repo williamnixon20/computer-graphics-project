@@ -68,7 +68,7 @@ export class Node {
         this.shadingInfo = {
             mode: 0,
             shininess: 200,
-            ambientColor: [1, 1, 1],
+            ambientColor: [0, 0, 0.6],
             specularColor: [1, 1, 1],
             diffuseColor: [1, 1, 1],
             material: 0,
@@ -191,8 +191,8 @@ export class Node {
             textureArr = textureArr.concat(textureArrBase);
         }
 
-        const tangentsAndBitangents  = utils.calculateTBHollow(nodeDescription, rescaledPositions, textureArr);
-    
+        const tangentsAndBitangents = utils.calculateTBHollow(nodeDescription, rescaledPositions, textureArr);
+
         this.arrayInfo = {
             position: rescaledPositions,
             normal: nodeDescription.normals,
@@ -204,7 +204,7 @@ export class Node {
         this.name = nodeDescription.name;
         return this;
     }
-    
+
     buildByDescription(nodeDescription: ArticulatedDescriptions | HollowDescriptions) {
         if (nodeDescription.type === "articulated") {
             return this.buildArticulated(nodeDescription as ArticulatedDescriptions);
