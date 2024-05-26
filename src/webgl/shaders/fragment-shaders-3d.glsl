@@ -6,9 +6,12 @@ varying vec3 v_normal;
 varying vec3 v_position;
 varying vec2 v_texcoord;
 varying mat3 v_tbn;
+varying vec3 v_worldPosition;
 
 uniform int mode;
 uniform vec3 u_reverseLightDirection;
+uniform int type;
+uniform vec3 u_cameraPosition;
 
 uniform float u_shininess;
 uniform vec3 u_diffuseColor;
@@ -45,6 +48,7 @@ void main() {
                normalMap = normalize(normalMap * 2.0 - 1.0);
                vec3 normalTangentSpace = normalize(v_tbn * normalMap);
                normal = normalTangentSpace;
+               lightDirection = normalize(v_tbn * lightDirection);
           }
 
           vec3 ambient = color.rgb;
@@ -52,8 +56,14 @@ void main() {
           float diffuseStrength = max(dot(normal, lightDirection), 0.0);
           vec3 diffuse = albedo * diffuseStrength;
 
-          vec3 viewDirection = normalize(-v_position);
+          vec3 viewDirection = normalize(u_cameraPosition - v_position);
           vec3 reflectionDirection = reflect(-lightDirection, normal);
+
+          // if(type == 1){
+          //      viewDirection = normalize(u_cameraPosition - v_worldPosition);
+          //      reflectionDirection = reflect(lightDirection, normalize(v_worldNormal));
+          // }
+
           float specularStrength = pow(max(dot(reflectionDirection, viewDirection), 0.0), u_shininess);
 
           if (specularMap != 0) {

@@ -35,6 +35,9 @@ export class Node {
     displacement_url: string[];
     displacementScale: number;
     displacementBias: number;
+    cameraMatrix: number[];
+    type: number;
+    cameraPosition: number[];
 
     constructor() {
         this.children = [];
@@ -64,7 +67,7 @@ export class Node {
         };
         this.shadingInfo = {
             mode: 0,
-            shininess: 100,
+            shininess: 200,
             ambientColor: [1, 1, 1],
             specularColor: [1, 1, 1],
             diffuseColor: [1, 1, 1],
@@ -75,6 +78,9 @@ export class Node {
         this.displacement_url = [];
         this.displacementScale = 0.1;
         this.displacementBias = 0;
+        this.cameraMatrix = [];
+        this.type = 0;
+        this.cameraPosition = [];
     }
 
     setParent(parent: Node | null) {
@@ -119,6 +125,20 @@ export class Node {
         });
     }
 
+    updateCameraMatrix(cameraMatrix: number[]){
+        this.cameraMatrix = cameraMatrix;
+        this.children.forEach((child) => {
+            child.updateCameraMatrix(cameraMatrix);
+        });
+    }
+
+    updateCameraPosition(cameraPosition: number[]) {
+        this.cameraPosition = cameraPosition;
+        this.children.forEach((child) => {
+            child.updateCameraPosition(cameraPosition);
+        });
+    }
+
     buildArticulated(nodeDescription: ArticulatedDescriptions) {
         let trs = this.source
         trs.translation = nodeDescription.translation || trs.translation;
@@ -131,6 +151,8 @@ export class Node {
 
         let vertices;
         if (nodeDescription?.prim === "sphere") {
+            this.type = 1;
+            console.log("TYPE ", this.type);
             vertices = utils.createSphereVertices(1, 20, 20);
         } else {
             vertices = utils.createCubeVertices(1);
@@ -246,10 +268,13 @@ export class Node {
                 u_reverseLightDirection: light_dir,
                 u_worldViewProjection: [],
                 u_worldInverseTranspose: [],
+                u_world: [],
                 displacementMap: (this.shadingInfo.displacementMap && enableTexture) ? this.shadingInfo.displacementMap : 0,
                 u_displacementScale: this.displacementScale,
                 u_displacementBias: this.displacementBias,
 
+                type: this.type,
+                u_cameraPosition: this.cameraPosition,
                 u_diffuseColor: this.shadingInfo.diffuseColor,
                 u_shininess: this.shadingInfo.shininess,
                 u_specularColor: this.shadingInfo.specularColor,
@@ -258,9 +283,9 @@ export class Node {
                 specularMap: (this.shadingInfo.specularMap && enableTexture) ? this.shadingInfo.specularMap : 0,
                 normalMap: (this.shadingInfo.normalMap && enableTexture) ? this.shadingInfo.normalMap : 0,
             }
+            const u_world = m4.inverse(this.cameraMatrix);
 
-            const u_world = m4.yRotation(this.cameraInformation.cameraAngleXRadians);
-
+            uniforms.u_world = u_world;
             uniforms.u_worldViewProjection = m4.multiply(viewProjectionMatrix, this.worldMatrix);
             uniforms.u_worldInverseTranspose = m4.transpose(m4.inverse(u_world));
 

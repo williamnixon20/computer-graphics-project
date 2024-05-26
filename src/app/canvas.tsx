@@ -1099,7 +1099,7 @@ export default function Canvas() {
               <input
                 type="range"
                 min={1}
-                max={120}
+                max={500}
                 value={shininess}
                 onChange={(e) => setShininess(parseInt(e.target.value))}
               />

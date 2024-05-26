@@ -156,6 +156,8 @@ export class Drawer {
         scene.updateWorldMatrix(null);
 
         scene.updateCameraInformation(cameraInformation);
+        scene.updateCameraMatrix(cameraMatrix);
+        scene.updateCameraPosition(cameraPosition);
 
         var adjust;
         var speed = 3;
