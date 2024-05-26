@@ -28,6 +28,7 @@ import { Animator } from "@/webgl/utils/animator";
 import { manAnim } from "../../test/animation/man-anim";
 import { dogAnim } from "../../test/animation/dog-anim";
 import { droneAnim } from "../../test/animation/drone-anim";
+import { lampAnim } from "../../test/animation/lamp-anim";
 import { cameraNodeDescriptions } from "../../test/articulated/camera";
 import TRS from "@/webgl/utils/trs";
 
@@ -819,6 +820,7 @@ export default function Canvas() {
         break;
       case "lamp":
         articulatedData = lamp;
+        setSelectedAnim(lampAnim);
         break;
       case "drone":
         articulatedData = drone;
@@ -826,6 +828,7 @@ export default function Canvas() {
         break;
       default:
         articulatedData = blockGuyNodeDescriptions;
+        setSelectedAnim(manAnim);
         break;
     }
     jsonToDraw = articulatedData;
