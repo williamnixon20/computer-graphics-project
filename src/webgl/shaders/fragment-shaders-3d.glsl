@@ -58,6 +58,8 @@ void main() {
 
           vec3 viewDirection = normalize(u_cameraPosition - v_position);
           if (u_cameraType == 0) {
+               vec3 cameraPosition = normalize(u_cameraPosition);
+               viewDirection = normalize(cameraPosition - v_position);
                lightDirection = -1.0 * lightDirection;
           }
           vec3 reflectionDirection = reflect(-lightDirection, normal);
