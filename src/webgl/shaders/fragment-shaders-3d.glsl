@@ -16,7 +16,6 @@ uniform float u_shininess;
 uniform vec3 u_diffuseColor;
 uniform vec3 u_specularColor;
 
-
 uniform sampler2D u_texture;
 uniform sampler2D u_specularMap;
 uniform sampler2D u_normalMap;
@@ -48,7 +47,7 @@ void main() {
                normalMap = normalize(normalMap * 2.0 - 1.0);
                vec3 normalTangentSpace = normalize(v_tbn * normalMap);
                normal = normalTangentSpace;
-               lightDirection = normalize(v_tbn * lightDirection);
+               // lightDirection = normalize(v_tbn * lightDirection);
           }
 
           vec3 ambient = color.rgb;
