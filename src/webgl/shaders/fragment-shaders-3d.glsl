@@ -6,11 +6,11 @@ varying vec3 v_normal;
 varying vec3 v_position;
 varying vec2 v_texcoord;
 varying mat3 v_tbn;
-varying vec3 v_worldPosition;
+// varying vec3 v_worldPosition;
 
 uniform int mode;
 uniform vec3 u_reverseLightDirection;
-uniform int type;
+// uniform int type;
 uniform vec3 u_cameraPosition;
 
 uniform float u_shininess;

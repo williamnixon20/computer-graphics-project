@@ -274,7 +274,7 @@ export class Node {
                 u_displacementScale: this.displacementScale,
                 u_displacementBias: this.displacementBias,
 
-                type: this.type,
+                // type: this.type,
                 u_cameraPosition: this.cameraPosition,
                 u_diffuseColor: this.shadingInfo.diffuseColor,
                 u_shininess: this.shadingInfo.shininess,
@@ -284,11 +284,11 @@ export class Node {
                 specularMap: (this.shadingInfo.specularMap && enableTexture) ? this.shadingInfo.specularMap : 0,
                 normalMap: (this.shadingInfo.normalMap && enableTexture) ? this.shadingInfo.normalMap : 0,
             }
-            const u_world = m4.inverse(this.cameraMatrix);
+            const viewMatrix = m4.inverse(this.cameraMatrix);
 
-            uniforms.u_world = u_world;
+            // uniforms.u_world = u_world;
             uniforms.u_worldViewProjection = m4.multiply(viewProjectionMatrix, this.worldMatrix);
-            uniforms.u_worldInverseTranspose = m4.transpose(m4.inverse(u_world));
+            uniforms.u_worldInverseTranspose = m4.transpose(m4.inverse(viewMatrix));
 
             gl.useProgram(programInfo.program);
             utils.setUniforms(programInfo, uniforms);
