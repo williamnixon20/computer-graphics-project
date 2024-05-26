@@ -36,9 +36,12 @@ Here are some of the functionalities of the app:
 - Translation, Rotation, and Scaling on each node.
 - Play animations with tweening.
 - Multi scene view with orbital control and perspective, orthographic, and oblique projection.
+
+Panduan penggunaan dapat dilihat pada pdf di folder /docs ataupun pada link gdocs berikut
+https://docs.google.com/document/d/1MoUSaDQ7525uhW5RNgqf-KDxu8huxqRLt37R6cwk_4g/edit
 ---
 
-Made with 🫡 by WebGLHF team,
+
 | Nama | NIM | Articulated + Animasi / Hollow | Pembagian Kerja |
 |------|-----|------------------------------|-------|
 | [Yanuar Sano Nur Rasyid](https://github.com/yansans) | 13521110 | Man + Prism | Shading |
