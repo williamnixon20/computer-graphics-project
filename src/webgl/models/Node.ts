@@ -151,7 +151,9 @@ export class Node {
 
         let vertices;
         if (nodeDescription?.prim === "sphere") {
-            this.type = 1;
+            if (this.cameraInformation.projType = "perspective") {
+                this.type = 1;            
+            }
             console.log("TYPE ", this.type);
             vertices = utils.createSphereVertices(1, 20, 20);
         } else {
@@ -286,9 +288,11 @@ export class Node {
             }
             const viewMatrix = m4.inverse(this.cameraMatrix);
 
-            // uniforms.u_world = u_world;
+            // uniforms.u_world = this.worldMatrix;
+            const modelViewMatrix = m4.multiply(viewMatrix, this.worldMatrix);
+
             uniforms.u_worldViewProjection = m4.multiply(viewProjectionMatrix, this.worldMatrix);
-            uniforms.u_worldInverseTranspose = m4.transpose(m4.inverse(viewMatrix));
+            uniforms.u_worldInverseTranspose = m4.transpose(m4.inverse(this.worldMatrix));
 
             gl.useProgram(programInfo.program);
             utils.setUniforms(programInfo, uniforms);
