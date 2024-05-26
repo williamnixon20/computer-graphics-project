@@ -701,13 +701,17 @@ export default function Canvas() {
 
     reader.onload = (e) => {
       const fileContent = e.target.result;
-      const jsonData = JSON.parse(fileContent);
-      if (scene) {
-        jsonToDraw = jsonData;
-        setupWebGL(0, canvas1Ref);
-        setupWebGL(1, canvas2Ref);
-        // scene.buildByDescription(jsonData);
-        // setScene(scene); // Update the scene state if needed
+      try {
+        const jsonData = JSON.parse(fileContent);
+        setSelectedArticulated("")
+        setSelectedShape("")
+        if (scene) {
+          jsonToDraw = jsonData;
+          setupWebGL(0, canvas1Ref);
+          setupWebGL(1, canvas2Ref);
+        }
+      } catch {
+        window.alert("Invalid JSON file, please make sure it is file SAVED from GUI.");
       }
     };
     if (file) {
@@ -1251,111 +1255,113 @@ export default function Canvas() {
           </div>
         )}
       </div>
-      <div className="px-2 border-r-2 border-r-blue-500 h-screen min-w-36 p-4">
-        {/* Animation */}
-        <div>
-          <div className="mt-2 mb-2">
-            <label className="text-base font-semibold text-white mb-2">
-              Animation
-            </label>
-          </div>
+      {
+        selectedArticulated !== "" && <div className="px-2 border-r-2 border-r-blue-500 h-screen min-w-36 p-4">
+          {/* Animation */}
+          <div>
+            <div className="mt-2 mb-2">
+              <label className="text-base font-semibold text-white mb-2">
+                Animation
+              </label>
+            </div>
 
-          <div className="mb-2">
-            <span className="text-base font-semibold text-white mb-2">
-              Current Frame: {currentFrame + 1} / {animator!.length}
-            </span>
-          </div>
+            <div className="mb-2">
+              <span className="text-base font-semibold text-white mb-2">
+                Current Frame: {currentFrame + 1} / {animator!.length}
+              </span>
+            </div>
 
-          <div className="mb-2 flex flex-row justify-between">
-            <label className="text-base font-semibold text-white mr-2">
-              Reverse
-            </label>
-            <input
-              type="checkbox"
-              checked={reverse}
-              onChange={(e) => setReverse(e.target.checked)}
-            />
-          </div>
+            <div className="mb-2 flex flex-row justify-between">
+              <label className="text-base font-semibold text-white mr-2">
+                Reverse
+              </label>
+              <input
+                type="checkbox"
+                checked={reverse}
+                onChange={(e) => setReverse(e.target.checked)}
+              />
+            </div>
 
-          <div className="mb-2 flex flex-row justify-between">
-            <label className="text-base font-semibold text-white mr-2">
-              Auto-Replay
-            </label>
-            <input
-              type="checkbox"
-              checked={replay}
-              onChange={(e) => setReplay(e.target.checked)}
-            />
-          </div>
+            <div className="mb-2 flex flex-row justify-between">
+              <label className="text-base font-semibold text-white mr-2">
+                Auto-Replay
+              </label>
+              <input
+                type="checkbox"
+                checked={replay}
+                onChange={(e) => setReplay(e.target.checked)}
+              />
+            </div>
 
-          <div className="mb-2">
-            <label className="text-base font-semibold text-white mb-2">
-              FPS: {fps}
-            </label>
-          </div>
+            <div className="mb-2">
+              <label className="text-base font-semibold text-white mb-2">
+                FPS: {fps}
+              </label>
+            </div>
 
-          <div className="mb-2">
-            <input
-              type="range"
-              min="1"
-              defaultValue={"1"}
-              value={fps}
-              max="30"
-              onChange={(e) => setFps(parseInt(e.target.value))}
-              className="w-full"
-            />
-          </div>
+            <div className="mb-2">
+              <input
+                type="range"
+                min="1"
+                defaultValue={"1"}
+                value={fps}
+                max="30"
+                onChange={(e) => setFps(parseInt(e.target.value))}
+                className="w-full"
+              />
+            </div>
 
-          <div className="text-base font-semibold text-black mb-4">
-            <select
-              onChange={(e) => setTweening(e.target.value)}
+            <div className="text-base font-semibold text-black mb-4">
+              <select
+                onChange={(e) => setTweening(e.target.value)}
+              >
+                <option value="linear">Linear</option>
+                <option value="sine">Sine</option>
+                <option value="quad">Quad</option>
+                <option value="cubic">Cubic</option>
+                <option value="quart">Quart</option>
+                <option value="quint">Quint</option>
+                <option value="expo">Expo</option>
+              </select>
+            </div>
+
+            <button
+              onClick={() => setAnimate(!animate)}
+              className="w-full mb-4 bg-blue-500 text-white py-2"
             >
-              <option value="linear">Linear</option>
-              <option value="sine">Sine</option>
-              <option value="quad">Quad</option>
-              <option value="cubic">Cubic</option>
-              <option value="quart">Quart</option>
-              <option value="quint">Quint</option>
-              <option value="expo">Expo</option>
-            </select>
+              {animate ? "Pause Animation" : "Play Animation"}
+            </button>
+
+            <button
+              onClick={handleNextFrame}
+              className="w-full mb-4 bg-blue-500 text-white py-2"
+            >
+              {"Next Frame"}
+            </button>
+
+            <button
+              onClick={handlePreviousFrame}
+              className="w-full mb-4 bg-blue-500 text-white py-2"
+            >
+              {"Previous Frame"}
+            </button>
+
+            <button
+              onClick={handleFirstFrame}
+              className="w-full mb-4 bg-blue-500 text-white py-2"
+            >
+              {"First Frame"}
+            </button>
+
+            <button
+              onClick={handleLastFrame}
+              className="w-full mb-4 bg-blue-500 text-white py-2"
+            >
+              {"Last Frame"}
+            </button>
           </div>
-
-          <button
-            onClick={() => setAnimate(!animate)}
-            className="w-full mb-4 bg-blue-500 text-white py-2"
-          >
-            {animate ? "Pause Animation" : "Play Animation"}
-          </button>
-
-          <button
-            onClick={handleNextFrame}
-            className="w-full mb-4 bg-blue-500 text-white py-2"
-          >
-            {"Next Frame"}
-          </button>
-
-          <button
-            onClick={handlePreviousFrame}
-            className="w-full mb-4 bg-blue-500 text-white py-2"
-          >
-            {"Previous Frame"}
-          </button>
-
-          <button
-            onClick={handleFirstFrame}
-            className="w-full mb-4 bg-blue-500 text-white py-2"
-          >
-            {"First Frame"}
-          </button>
-
-          <button
-            onClick={handleLastFrame}
-            className="w-full mb-4 bg-blue-500 text-white py-2"
-          >
-            {"Last Frame"}
-          </button>
         </div>
-      </div>
+      }
       <div className="px-2 border-r-2 border-r-blue-500 h-screen min-w-36 p-4">
         <p className="font-semibold">Structure</p>
         {refDict &&
