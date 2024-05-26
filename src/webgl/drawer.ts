@@ -104,11 +104,13 @@ export class Drawer {
         var up = [0, 1, 0];
 
         var cameraMatrix;
+        var cameraMatrixMultiScene;
         if (cameraInformation.projType === "perspective") {
             projectionMatrix = m4.perspective(cameraInformation.fieldOfViewRadians, aspect, 1, 2000);
 
             cameraMatrix = m4.yRotation(cameraInformation.cameraAngleXRadians);
             cameraMatrix = m4.xRotate(cameraMatrix, cameraInformation.cameraAngleYRadians);
+            cameraMatrixMultiScene = cameraMatrix;
         } else {
             var left = -this.gl.canvas.clientWidth / 64;
             var right = this.gl.canvas.clientWidth / 64;
@@ -125,19 +127,27 @@ export class Drawer {
                     m4.oblique(degToRad(75), degToRad(75))
                 );
             }
+            cameraMatrixMultiScene = m4.yRotation(cameraInformation.cameraAngleXRadians);
+            cameraMatrixMultiScene = m4.xRotate(cameraMatrixMultiScene, cameraInformation.cameraAngleYRadians);            
 
             cameraMatrix = m4.yRotation(cameraInformation.cameraAngleXRadians + degToRad(180));
             cameraMatrix = m4.xRotate(cameraMatrix, -cameraInformation.cameraAngleYRadians);
         }
 
         cameraMatrix = m4.translate(cameraMatrix, cameraInformation.translateX, cameraInformation.translateY, cameraInformation.radius);
-
+        cameraMatrixMultiScene = m4.translate(cameraMatrixMultiScene, cameraInformation.translateX, cameraInformation.translateY, cameraInformation.radius);
         // Get the camera's position from the matrix we computed
         var cameraPosition: number[] = [
             cameraMatrix[12],
             cameraMatrix[13],
             cameraMatrix[14],
         ];
+
+        var cameraMatrixMultiScenePos: number[] = [
+            cameraMatrixMultiScene[12],
+            cameraMatrixMultiScene[13],
+            cameraMatrixMultiScene[14],
+        ]
 
         cameraMatrix = m4.lookAt(cameraPosition, target, up);
 
@@ -169,7 +179,7 @@ export class Drawer {
         // camera
         currCamera.updateWorldMatrix(null);
         currCamera.updateCameraInformation(cameraInformation);
-        currCamera.source.translation = cameraPosition
+        currCamera.source.translation = cameraMatrixMultiScenePos
 
         if (this.isPostprocess) {
             this.postprocess();
