@@ -79,28 +79,28 @@ export class Animator {
 
   interpolateTransforms(transforms: Transforms, nextTransform: Transforms): Transforms {
     const translate = {
-      x: this.interpolate(transforms.translate.x, nextTransform.translate.x, this.tweening),
-      y: this.interpolate(transforms.translate.y, nextTransform.translate.y, this.tweening),
-      z: this.interpolate(transforms.translate.z, nextTransform.translate.z, this.tweening)
+      x: this.interpolate(transforms.translate.x, nextTransform.translate.x),
+      y: this.interpolate(transforms.translate.y, nextTransform.translate.y),
+      z: this.interpolate(transforms.translate.z, nextTransform.translate.z)
     };
 
     const rotate = {
-      x: this.interpolate(transforms.rotate.x, nextTransform.rotate.x, this.tweening),
-      y: this.interpolate(transforms.rotate.y, nextTransform.rotate.y, this.tweening),
-      z: this.interpolate(transforms.rotate.z, nextTransform.rotate.z, this.tweening)
+      x: this.interpolate(transforms.rotate.x, nextTransform.rotate.x),
+      y: this.interpolate(transforms.rotate.y, nextTransform.rotate.y),
+      z: this.interpolate(transforms.rotate.z, nextTransform.rotate.z)
     };
 
     const scale = {
-      x: this.interpolate(transforms.scale.x, nextTransform.scale.x, this.tweening),
-      y: this.interpolate(transforms.scale.y, nextTransform.scale.y, this.tweening),
-      z: this.interpolate(transforms.scale.z, nextTransform.scale.z, this.tweening)
+      x: this.interpolate(transforms.scale.x, nextTransform.scale.x),
+      y: this.interpolate(transforms.scale.y, nextTransform.scale.y),
+      z: this.interpolate(transforms.scale.z, nextTransform.scale.z)
     };
 
     return { translate, rotate, scale };
   }
 
-  interpolate(a: number, b: number, tweening: string): number {
-    switch (tweening) {
+  interpolate(a: number, b: number): number {
+    switch (this.tweening) {
       case "linear":
         return a + (b - a) * this.deltaFrame;
       case "sine":
