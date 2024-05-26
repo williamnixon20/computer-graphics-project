@@ -151,9 +151,6 @@ export class Node {
 
         let vertices;
         if (nodeDescription?.prim === "sphere") {
-            if (this.cameraInformation.projType = "perspective") {
-                this.type = 1;            
-            }
             console.log("TYPE ", this.type);
             vertices = utils.createSphereVertices(1, 20, 20);
         } else {
@@ -269,6 +266,7 @@ export class Node {
 
                 u_color: this.shadingInfo.ambientColor,
                 u_reverseLightDirection: light_dir,
+                u_cameraType: this.cameraInformation.projType === "perspective" ? 1 : 0,
                 u_worldViewProjection: [],
                 u_worldInverseTranspose: [],
                 u_world: [],

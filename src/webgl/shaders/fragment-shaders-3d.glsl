@@ -6,16 +6,16 @@ varying vec3 v_normal;
 varying vec3 v_position;
 varying vec2 v_texcoord;
 varying mat3 v_tbn;
-// varying vec3 v_worldPosition;
 
 uniform int mode;
 uniform vec3 u_reverseLightDirection;
-// uniform int type;
 uniform vec3 u_cameraPosition;
+uniform int u_cameraType;
 
 uniform float u_shininess;
 uniform vec3 u_diffuseColor;
 uniform vec3 u_specularColor;
+
 
 uniform sampler2D u_texture;
 uniform sampler2D u_specularMap;
@@ -57,18 +57,15 @@ void main() {
           vec3 diffuse = albedo * diffuseStrength;
 
           vec3 viewDirection = normalize(u_cameraPosition - v_position);
+          if (u_cameraType == 0) {
+               lightDirection = -1.0 * lightDirection;
+          }
           vec3 reflectionDirection = reflect(-lightDirection, normal);
-
-          // if(type == 1){
-          //      viewDirection = normalize(u_cameraPosition - v_worldPosition);
-          //      reflectionDirection = reflect(lightDirection, normalize(v_worldNormal));
-          // }
 
           float specularStrength = pow(max(dot(reflectionDirection, viewDirection), 0.0), u_shininess);
 
           if (specularMap != 0) {
               float specularMapColor = texture2D(u_specularMap, v_texcoord).r;
-          //     float specularMapStrength = dot(specularMapColor, vec3(0.299, 0.587, 0.114));
               specularStrength *= specularMapColor;
           }
 
