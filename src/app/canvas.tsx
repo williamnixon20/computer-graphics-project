@@ -228,6 +228,11 @@ export default function Canvas() {
   }
 
   useEffect(() => {
+    updateAmbientColor();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [color]);
+
+  const updateAmbientColor = () => {
     if (scene && camera1 && camera2) {
       const arr_color = normalizeRGB(hexToRGBAArray(color, 1));
       if (selectedName) {
@@ -238,8 +243,7 @@ export default function Canvas() {
       drawer1?.draw(scene, camera1, camera2, cameraInformation1);
       drawer2?.draw(scene, camera2, camera1, cameraInformation2);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [color]);
+  }
 
   useEffect(() => {
     updateShading();
@@ -751,6 +755,7 @@ export default function Canvas() {
 
   const handleShapeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const shape = e.target.value;
+    setShading(false);
     setSelectedShape(shape);
 
     let shapeData;
@@ -779,6 +784,7 @@ export default function Canvas() {
 
   const handleArticulatedChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const articulated = e.target.value;
+    setShading(false);
     setSelectedArticulated(articulated);
 
     let articulatedData;
