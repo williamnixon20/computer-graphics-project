@@ -1383,8 +1383,6 @@ export default function Canvas() {
         <div className="mt-10">
           <button
             onClick={() => {
-              console.log(scene?.toJsonFormat());
-              scene?.buildByDescription(scene?.toJsonFormat());
               // Download as JSON file
               const element = document.createElement("a");
               const file = new Blob([JSON.stringify(scene?.toJsonFormat())], { type: 'text/plain' });

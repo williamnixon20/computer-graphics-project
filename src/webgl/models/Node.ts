@@ -324,7 +324,7 @@ export class Node {
 
             utils.drawBufferInfo(gl, bufferInfo);
         } else {
-            // console.log("NOT DRAWING!")
+            console.log("NOT DRAWING!")
         }
 
         this.children.forEach((child) => {
@@ -511,15 +511,9 @@ export class Node {
             nodeDescription.arrayInfo.indices = Array.from(this.arrayInfo.indices);
         }
 
-        if (this.arrayInfo.indices) {
-            // @ts-ignore
-            nodeDescription.arrayInfo.indices = Array.from(this.arrayInfo.indices);
-        }
-
         this.children.forEach((child) => {
             nodeDescription.children.push(child.toJsonFormat());
         })
-        console.log("SAVE INFO", nodeDescription.arrayInfo)
 
         return nodeDescription;
     }
