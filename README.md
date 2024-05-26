@@ -39,9 +39,9 @@ Here are some of the functionalities of the app:
 ---
 
 Made with 🫡 by WebGLHF team,
-|Nama | NIM|
-|--|--|
-|[Yanuar Sano Nur Rasyid ]("https://github.com/yansans")|13521110|
-|[Ahmad Ghulam Ilham ]("https://github.com/Agilham")|13521118|
-|[Saddam Annais S]("https://github.com/SaddamAnnais")|13521121|
-|[William Nixon]("https://github.com/williamnixon20")|13521123|
+| Nama | NIM | Articulated + Animasi / Hollow | Pembagian Kerja |
+|------|-----|------------------------------|-------|
+| [Yanuar Sano Nur Rasyid](https://github.com/yansans) | 13521110 | Man + Prism | Shading |
+| [Ahmad Ghulam Ilham](https://github.com/Agilham) | 13521118 | Drone + Locked-prism | Animation | 
+| [Saddam Annais S](https://github.com/SaddamAnnais) | 13521121 | Lamp + Hexagon | Kamera |
+| [William Nixon](https://github.com/williamnixon20) | 13521123 | Dog + Torus | Components |
