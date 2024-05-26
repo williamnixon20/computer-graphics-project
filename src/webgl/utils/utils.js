@@ -581,3 +581,46 @@ export function createSphereVertices(
     };
 }
 
+
+export function calculateTBHollow(nodeDescription, rescaledPositions, textureArr) {
+    let tangents = [];
+    let bitangents = [];
+    for (let i = 0; i < nodeDescription.normals.length; i += 3) {
+
+        let v0 = rescaledPositions.slice(i * 3, i * 3 + 3);
+        let v1 = rescaledPositions.slice(i * 3 + 3, i * 3 + 6);
+        let v2 = rescaledPositions.slice(i * 3 + 6, i * 3 + 9);
+
+        let uv0 = textureArr.slice(i * 2, i * 2 + 2);
+        let uv1 = textureArr.slice(i * 2 + 2, i * 2 + 4);
+        let uv2 = textureArr.slice(i * 2 + 4, i * 2 + 6);
+
+        let deltaPos1 = [v1[0] - v0[0], v1[1] - v0[1], v1[2] - v0[2]];
+        let deltaPos2 = [v2[0] - v0[0], v2[1] - v0[1], v2[2] - v0[2]];
+
+        let deltaUV1 = [uv1[0] - uv0[0], uv1[1] - uv0[1]];
+        let deltaUV2 = [uv2[0] - uv0[0], uv2[1] - uv0[1]];
+
+        let r = 1.0 / (deltaUV1[0] * deltaUV2[1] - deltaUV1[1] * deltaUV2[0]);
+        let tangent = [
+            (deltaPos1[0] * deltaUV2[1] - deltaPos2[0] * deltaUV1[1]) * r,
+            (deltaPos1[1] * deltaUV2[1] - deltaPos2[1] * deltaUV1[1]) * r,
+            (deltaPos1[2] * deltaUV2[1] - deltaPos2[2] * deltaUV1[1]) * r
+        ];
+        let bitangent = [
+            (deltaPos2[0] * deltaUV1[0] - deltaPos1[0] * deltaUV2[0]) * r,
+            (deltaPos2[1] * deltaUV1[0] - deltaPos1[1] * deltaUV2[0]) * r,
+            (deltaPos2[2] * deltaUV1[0] - deltaPos1[2] * deltaUV2[0]) * r
+        ];
+
+        for (let j = 0; j < 3; j++) {
+            tangents.push(...tangent);
+            bitangents.push(...bitangent);
+        }
+    }
+
+    return {
+        tangent: new Float32Array(tangents),
+        bitangent: new Float32Array(bitangents)
+    };
+}

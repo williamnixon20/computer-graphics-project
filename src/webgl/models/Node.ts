@@ -191,19 +191,20 @@ export class Node {
             textureArr = textureArr.concat(textureArrBase);
         }
 
+        const tangentsAndBitangents  = utils.calculateTBHollow(nodeDescription, rescaledPositions, textureArr);
+    
         this.arrayInfo = {
             position: rescaledPositions,
             normal: nodeDescription.normals,
             texcoord: new Float32Array(textureArr),
-            // TODO: LEGIT BITTANGENT AND TANGENT
-            tangent: rescaledPositions,
-            bitangent: rescaledPositions,
+            tangent: tangentsAndBitangents.tangent,
+            bitangent: tangentsAndBitangents.bitangent,
         }
         console.log("ARRAY INFO", this.arrayInfo)
         this.name = nodeDescription.name;
         return this;
     }
-
+    
     buildByDescription(nodeDescription: ArticulatedDescriptions | HollowDescriptions) {
         if (nodeDescription.type === "articulated") {
             return this.buildArticulated(nodeDescription as ArticulatedDescriptions);
