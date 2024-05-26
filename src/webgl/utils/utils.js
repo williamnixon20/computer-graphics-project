@@ -555,19 +555,26 @@ export function createSphereVertices(
             const index0 = (y + 0) * numVertsAround + x;
             const index1 = (y + 0) * numVertsAround + x + 1;
             const index2 = (y + 1) * numVertsAround + x;
+            const index3 = (y + 1) * numVertsAround + x + 1;
 
             const p0 = positions.slice(index0 * 3, index0 * 3 + 3);
             const p1 = positions.slice(index1 * 3, index1 * 3 + 3);
             const p2 = positions.slice(index2 * 3, index2 * 3 + 3);
+            const p3 = positions.slice(index3 * 3, index3 * 3 + 3);
 
             const uv0 = texCoords.slice(index0 * 2, index0 * 2 + 2);
             const uv1 = texCoords.slice(index1 * 2, index1 * 2 + 2);
             const uv2 = texCoords.slice(index2 * 2, index2 * 2 + 2);
+            const uv3 = texCoords.slice(index3 * 2, index3 * 2 + 2);
 
-            const { tangent, bitangent } = calculateTB([p0, p1, p2], [uv0, uv1, uv2]);
+            const { tangent: t0, bitangent: b0 } = calculateTB([p0, p1, p2], [uv0, uv1, uv2]);
+            const { tangent: t1, bitangent: b1 } = calculateTB([p2, p1, p3], [uv2, uv1, uv3]);
 
-            tangents.push(tangent);
-            bitangents.push(bitangent);
+            tangents.push(t0[0], t0[1], t0[2]);
+            bitangents.push(b0[0], b0[1], b0[2]);
+
+            tangents.push(t1[0], t1[1], t1[2]);
+            bitangents.push(b1[0], b1[1], b1[2]);
         }
     }
 
