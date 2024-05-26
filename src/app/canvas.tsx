@@ -9,6 +9,7 @@ import { cubeHollow } from "../../test/hollow/cube-hollow";
 import { hexagon } from "../../test/hollow/hexagon";
 import { lockedPrism } from "../../test/hollow/locked-prism";
 import { prism } from "../../test/hollow/prism";
+import { torus } from "../../test/hollow/torus";
 import {
   ArticulatedDescriptions,
   CameraInformation,
@@ -760,9 +761,9 @@ export default function Canvas() {
 
     let shapeData;
     switch (shape) {
-      case "cubeHollow":
-        shapeData = cubeHollow;
-        break;
+      // case "cubeHollow":
+      //   shapeData = cubeHollow;
+      //   break;
       case "hexagon":
         shapeData = hexagon;
         break;
@@ -771,6 +772,9 @@ export default function Canvas() {
         break;
       case "lockedPrism":
         shapeData = lockedPrism;
+        break;
+      case "torus":
+        shapeData = torus;
         break;
       default:
         shapeData = prism;
@@ -1048,10 +1052,11 @@ export default function Canvas() {
                 <option value="" disabled>
                   Select a shape
                 </option>
-                <option value="cubeHollow">Cube Hollow</option>
+                {/* <option value="cubeHollow">Cube Hollow</option> */}
                 <option value="hexagon">Hexagon</option>
                 <option value="prism">Prism</option>
                 <option value="lockedPrism">Fancy Prism</option>
+                <option value="torus">Torus</option>
               </select>
             </div>
           </>
