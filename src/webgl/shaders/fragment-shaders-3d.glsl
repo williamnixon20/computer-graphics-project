@@ -6,6 +6,7 @@ varying vec3 v_normal;
 varying vec3 v_position;
 varying vec2 v_texcoord;
 varying mat3 v_tbn;
+varying vec3 v_worldPosition;
 
 uniform int mode;
 uniform vec3 u_reverseLightDirection;
@@ -47,7 +48,6 @@ void main() {
                normalMap = normalize(normalMap * 2.0 - 1.0);
                vec3 normalTangentSpace = normalize(v_tbn * normalMap);
                normal = normalTangentSpace;
-               // lightDirection = normalize(v_tbn * lightDirection);
           }
 
           vec3 ambient = color.rgb;
@@ -55,11 +55,11 @@ void main() {
           float diffuseStrength = max(dot(normal, lightDirection), 0.0);
           vec3 diffuse = albedo * diffuseStrength;
 
-          vec3 viewDirection = normalize(u_cameraPosition - v_position);
+          vec3 viewDirection = normalize(u_cameraPosition - v_worldPosition);
+          // We flipped camera in drawer, need to flip it back
           if (u_cameraType == 0) {
-               vec3 cameraPosition = normalize(u_cameraPosition);
-               viewDirection = normalize(cameraPosition - v_position);
-               lightDirection = -1.0 * lightDirection;
+               vec3 min_u_cameraPosition = -1.0 * u_cameraPosition;
+               viewDirection = normalize(min_u_cameraPosition - v_worldPosition);
           }
           vec3 reflectionDirection = reflect(-lightDirection, normal);
 

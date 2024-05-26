@@ -291,6 +291,8 @@ export class Node {
 
             uniforms.u_worldViewProjection = m4.multiply(viewProjectionMatrix, this.worldMatrix);
             uniforms.u_worldInverseTranspose = m4.transpose(m4.inverse(this.worldMatrix));
+            // @ts-ignore
+            uniforms.u_world = this.worldMatrix;
 
             gl.useProgram(programInfo.program);
             utils.setUniforms(programInfo, uniforms);

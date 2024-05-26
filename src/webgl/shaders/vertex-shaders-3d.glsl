@@ -8,7 +8,7 @@ attribute vec3 a_bitangent;
 uniform mat4 u_worldViewProjection;
 uniform mat4 u_worldInverseTranspose;
 uniform vec4 u_color;
-// uniform mat4 u_world;
+uniform mat4 u_world;
 
 uniform sampler2D u_displacementMap;
 uniform float u_displacementScale;
@@ -51,7 +51,7 @@ void main() {
 
   v_position = (u_worldViewProjection * position).xyz;
 
-  // v_worldPosition = (u_world * position).xyz;
+  v_worldPosition = (u_world * position).xyz;
 
   v_texcoord = a_texcoord;
 

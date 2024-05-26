@@ -81,7 +81,7 @@ export default function Canvas() {
     rotate: { x: 0, y: 0, z: 0 },
   });
 
-  const [lightDirection, setLightDirection] = useState([0, 0, 1]);
+  const [lightDirection, setLightDirection] = useState([0, 0, 10]);
 
   // @ts-ignore
   const handleSliderChange = (index, value) => {
